@@ -1,0 +1,179 @@
+import axios from 'axios';
+
+const api = axios.create({
+  baseURL: '/api',
+  headers: { 'Content-Type': 'application/json' },
+});
+
+// ─── Auth interceptor ─────────────────────────────────────────────────────────
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('access_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const original = error.config;
+    if (error.response?.status === 401 && !original._retry) {
+      original._retry = true;
+      const refresh = localStorage.getItem('refresh_token');
+      if (refresh) {
+        try {
+          const { data } = await axios.post('/api/auth/refresh/', { refresh });
+          localStorage.setItem('access_token', data.access);
+          original.headers.Authorization = `Bearer ${data.access}`;
+          return api(original);
+        } catch {
+          localStorage.clear();
+          window.location.href = '/login';
+        }
+      } else {
+        localStorage.clear();
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+export default api;
+
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+export const authApi = {
+  login: (email: string, password: string) =>
+    api.post('/auth/login/', { email, password }),
+  refresh: (refresh: string) =>
+    api.post('/auth/refresh/', { refresh }),
+  me: () => api.get('/users/me/'),
+};
+
+// ─── Patients ─────────────────────────────────────────────────────────────────
+export const patientsApi = {
+  list: (params?: Record<string, string>) =>
+    api.get('/patients/', { params }),
+  get: (id: number) => api.get(`/patients/${id}/`),
+  create: (data: object) => api.post('/patients/', data),
+  update: (id: number, data: object) => api.patch(`/patients/${id}/`, data),
+  delete: (id: number) => api.delete(`/patients/${id}/`),
+  stats: (id: number) => api.get(`/patients/${id}/stats/`),
+};
+
+// ─── Appointments ─────────────────────────────────────────────────────────────
+export const appointmentsApi = {
+  list: (params?: Record<string, string>) =>
+    api.get('/appointments/', { params }),
+  get: (id: number) => api.get(`/appointments/${id}/`),
+  create: (data: object) => api.post('/appointments/', data),
+  update: (id: number, data: object) => api.patch(`/appointments/${id}/`, data),
+  markAttended: (id: number) => api.post(`/appointments/${id}/attend/`),
+  markMissed: (id: number) => api.post(`/appointments/${id}/miss/`),
+  reschedule: (id: number, data: object) => api.post(`/appointments/${id}/reschedule/`, data),
+};
+
+// ─── Postnatal ────────────────────────────────────────────────────────────────
+export const postnatalApi = {
+  list: () => api.get('/postnatal/'),
+  get: (id: number) => api.get(`/postnatal/${id}/`),
+  create: (data: object) => api.post('/postnatal/', data),
+  update: (id: number, data: object) => api.patch(`/postnatal/${id}/`, data),
+  mark7Day: (id: number, notes?: string) =>
+    api.post(`/postnatal/${id}/7day-attended/`, { notes }),
+  mark6Week: (id: number, notes?: string) =>
+    api.post(`/postnatal/${id}/6week-attended/`, { notes }),
+};
+
+// ─── Reminders ────────────────────────────────────────────────────────────────
+export const remindersApi = {
+  list: () => api.get('/reminders/'),
+  send: (data: object) => api.post('/reminders/send/', data),
+};
+
+// ─── Dashboard ────────────────────────────────────────────────────────────────
+export const dashboardApi = {
+  summary: () => api.get('/dashboard/summary/'),
+  dueSoon: (days?: number) => api.get('/dashboard/due-soon/', { params: { days } }),
+  overdueDelivery: () => api.get('/dashboard/overdue-delivery/'),
+  recentActivity: () => api.get('/dashboard/recent-activity/'),
+  trends: (period = 'weekly', weeks = 12) =>
+    api.get('/dashboard/trends/', { params: { period, weeks } }),
+};
+
+// ─── Partograph ───────────────────────────────────────────────────────────────
+export const partographApi = {
+  list:   (patientId: number) => api.get(`/patients/${patientId}/partograph/`),
+  create: (patientId: number, data: object) => api.post(`/patients/${patientId}/partograph/`, data),
+  update: (patientId: number, entryId: number, data: object) =>
+    api.patch(`/patients/${patientId}/partograph/${entryId}/`, data),
+  delete: (patientId: number, entryId: number) =>
+    api.delete(`/patients/${patientId}/partograph/${entryId}/`),
+};
+
+// ─── Clinical Alerts ──────────────────────────────────────────────────────────
+export const alertsApi = {
+  list:         (params?: Record<string, string>) => api.get('/alerts/', { params }),
+  count:        () => api.get('/alerts/count/'),
+  acknowledge:  (id: number) => api.post(`/alerts/${id}/acknowledge/`),
+};
+
+// ─── Staff Management (admin) ─────────────────────────────────────────────────
+export const staffApi = {
+  list:        (params?: Record<string, string>) => api.get('/users/staff/', { params }),
+  register:    (data: object) => api.post('/users/register/', data),
+  deactivate:  (id: number) => api.post(`/users/staff/${id}/deactivate/`),
+  reactivate:  (id: number) => api.post(`/users/staff/${id}/reactivate/`),
+  changeRole:  (id: number, role: string) => api.patch(`/users/staff/${id}/role/`, { role }),
+};
+
+// ─── Audit Trail (admin) ──────────────────────────────────────────────────────
+export const auditApi = {
+  getHistory: (modelName: string, pk: number) =>
+    api.get(`/core/audit/${modelName}/${pk}/`),
+};
+
+// ─── Clinical Notes & Documents (Phase 3A/3B) ────────────────────────────────
+export const clinicalApi = {
+  // Notes
+  listNotes:   (params?: object) => api.get('/clinical/notes/', { params }),
+  createNote:  (data: object) => api.post('/clinical/notes/', data),
+  getNote:     (id: number) => api.get(`/clinical/notes/${id}/`),
+  updateNote:  (id: number, data: object) => api.patch(`/clinical/notes/${id}/`, data),
+  deleteNote:  (id: number) => api.delete(`/clinical/notes/${id}/`),
+  // Documents
+  listDocs:    (params?: object) => api.get('/clinical/documents/', { params }),
+  uploadDoc:   (formData: FormData) => api.post('/clinical/documents/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  deleteDoc:   (id: number) => api.delete(`/clinical/documents/${id}/`),
+};
+
+// ─── FHIR R4 Export (Phase 3G) ────────────────────────────────────────────────
+export const fhirApi = {
+  patient: (id: number) => api.get(`/core/fhir/patient/${id}/`),
+  bundle:  () => api.get('/core/fhir/patients/'),
+};
+
+// ─── Nutrition (Phase 4) ──────────────────────────────────────────────────────
+export const nutritionApi = {
+  listCategories: () => api.get('/nutrition/categories/'),
+  getProfile: (patientId: number) => api.get(`/nutrition/profile/${patientId}/`),
+  updateProfile: (patientId: number, data: object) => api.patch(`/nutrition/profile/${patientId}/`, data),
+  getRecommendations: (patientId: number) => api.get(`/nutrition/recommendations/${patientId}/`),
+  generateRecommendations: (patientId: number) => api.post(`/nutrition/recommendations/${patientId}/generate/`),
+  listPlans: (params?: object) => api.get('/nutrition/plans/', { params }),
+  getWeightLogs: (patientId: number) => api.get(`/nutrition/weight/${patientId}/`),
+  addWeightLog: (patientId: number, data: object) => api.post(`/nutrition/weight/${patientId}/`, data),
+  seedPlans: () => api.post('/nutrition/seed/'),
+};
+
+// ─── Procedures & Emergencies (Phase 5) ───────────────────────────────────────
+export const proceduresApi = {
+  listProcedures: (params?: object) => api.get('/procedures/', { params }),
+  getProcedure: (id: number) => api.get(`/procedures/${id}/`),
+  listEmergencies: (params?: object) => api.get('/procedures/emergencies/', { params }),
+  getEmergency: (id: number, patientId?: number) => api.get(`/procedures/emergencies/${id}/`, { params: { patient: patientId } }),
+  getAccessLogs: () => api.get('/procedures/access-logs/'),
+};
