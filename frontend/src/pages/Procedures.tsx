@@ -29,7 +29,7 @@ export default function Procedures() {
   return (
     <>
       <header className="page-header">
-        <h1>🏥 Clinical Procedures & Emergency Dashboard</h1>
+        <h1 style={{display: 'flex', alignItems: 'center', gap: '8px'}}><img src="/itierio.png" alt="logo" style={{height: '1.2em'}} /> Clinical Procedures & Emergency Dashboard</h1>
       </header>
 
       <div className="page-body">

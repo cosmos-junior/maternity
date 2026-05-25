@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
@@ -7,7 +7,7 @@ import OfflineBanner from './OfflineBanner';
 
 
 
-interface NavItem { to: string; icon: string; label: string; roles?: string[] }
+interface NavItem { to: string; icon: React.ReactNode; label: string; roles?: string[] }
 
 interface NavSection {
   label: string;
@@ -35,7 +35,7 @@ const NAV_SECTIONS: NavSection[] = [
       { to: '/postnatal', icon: '⚕', label: 'Postnatal' },
       { to: '/clinical-notes', icon: '🩺', label: 'Clinical Notes' },
       { to: '/documents', icon: '📁', label: 'Documents' },
-      { to: '/procedures', icon: '🏥', label: 'Procedures' },
+      { to: '/procedures', icon: <img src="/itierio.png" alt="logo" style={{height: '1.2em', verticalAlign: 'middle'}} />, label: 'Procedures' },
     ]
   },
   {
@@ -147,7 +147,9 @@ export default function Layout() {
             </div>
           </div>
           <div className="header-actions" style={{ gap: '20px', color: 'var(--text-muted)' }}>
-            <span className="cursor-pointer">🏥 IMNH</span>
+            <span className="cursor-pointer" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <img src="/itierio.png" alt="logo" style={{height: '1.2em'}} /> IMNH
+            </span>
 
 
             <div className="cursor-pointer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

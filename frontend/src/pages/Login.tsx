@@ -4,7 +4,7 @@ import { authApi } from '../api';
 import { useAuth } from '../context/AuthContext';
 
 // Vite static asset imports
-const pregbg = new URL('../../dist/assets/pregbg.jpg', import.meta.url).href;
+const pregbg = '/PREGNANT.jpg';
 
 export default function Login() {
   const { login } = useAuth();
@@ -38,7 +38,7 @@ export default function Login() {
       >
         <div className="login-image-overlay">
           <div className="login-image-content">
-            <div className="login-image-badge">🏥 Itierio Nursing Home</div>
+            <div className="login-image-badge"><img src="/itierio.png" alt="logo" style={{height: '1.2em', verticalAlign: 'middle', marginRight: '6px'}} /> Itierio Nursing Home</div>
             <h2 className="login-image-headline">
               Compassionate Care<br />
               <span>for Every Mother</span>
@@ -70,7 +70,9 @@ export default function Login() {
         <div className="login-form-inner">
           {/* Logo */}
           <div className="login-form-logo">
-            <div className="login-form-icon">🏥</div>
+            <div className="login-form-icon" style={{ padding: '8px' }}>
+              <img src="/itierio.png" alt="logo" style={{width: '100%', height: '100%', objectFit: 'contain'}} />
+            </div>
             <h1>Materni<span>Track</span></h1>
             <p>Maternity Follow-Up Tracker</p>
             <span className="login-form-org">Itierio Nursing Home</span>
@@ -145,10 +147,10 @@ export default function Login() {
 
           <div className="login-divider" />
           <div className="login-trust-badges">
-            <span>✅ Secure Login</span>
-            <span>🏥 HIPAA Aligned</span>
-            <span>🛡️ Data Protected</span>
-          </div>
+          <span>✅ Secure Login</span>
+          <span><img src="/itierio.png" alt="logo" style={{height: '1em', verticalAlign: 'middle', marginRight: '4px'}} /> HIPAA Aligned</span>
+          <span>🛡️ Data Protected</span>
+        </div>
         </div>
       </div>
     </div>
