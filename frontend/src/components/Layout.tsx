@@ -35,7 +35,7 @@ const NAV_SECTIONS: NavSection[] = [
       { to: '/postnatal', icon: '⚕', label: 'Postnatal' },
       { to: '/clinical-notes', icon: '🩺', label: 'Clinical Notes' },
       { to: '/documents', icon: '📁', label: 'Documents' },
-      { to: '/procedures', icon: <img src="/itierio.png" alt="logo" style={{height: '1.2em', verticalAlign: 'middle'}} />, label: 'Procedures' },
+      { to: '/procedures', icon: <img src="/itierio.jpg" alt="logo" style={{height: '1.2em', verticalAlign: 'middle'}} />, label: 'Procedures' },
     ]
   },
   {
@@ -148,7 +148,7 @@ export default function Layout() {
           </div>
           <div className="header-actions" style={{ gap: '20px', color: 'var(--text-muted)' }}>
             <span className="cursor-pointer" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-              <img src="/itierio.png" alt="logo" style={{height: '1.2em'}} /> IMNH
+              <img src="/itierio.jpg" alt="logo" style={{height: '1.2em'}} /> IMNH
             </span>
 
 

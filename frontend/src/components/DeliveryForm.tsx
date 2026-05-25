@@ -54,7 +54,7 @@ const getDefaultReviewDates = (deliveryDate: string) => {
 // ─── Step indicators ───────────────────────────────────────────────────────────
 
 const STEPS = [
-  { icon: <img src="/itierio.png" alt="logo" style={{height: '1.2em', verticalAlign: 'middle'}} />, title: 'Delivery Details' },
+  { icon: <img src="/itierio.jpg" alt="logo" style={{height: '1.2em', verticalAlign: 'middle'}} />, title: 'Delivery Details' },
   { icon: '👶', title: 'Newborn Record(s)' },
   { icon: '📅', title: 'Follow-Up Schedule' },
 ];
@@ -187,7 +187,7 @@ export default function DeliveryForm({ patients, onClose, onSaved }: DeliveryFor
 
         {/* Header */}
         <div className="modal-header">
-          <div className="modal-title" style={{display: 'flex', alignItems: 'center', gap: '8px'}}><img src="/itierio.png" alt="logo" style={{height: '1.2em'}} /> Record Delivery</div>
+          <div className="modal-title" style={{display: 'flex', alignItems: 'center', gap: '8px'}}><img src="/itierio.jpg" alt="logo" style={{height: '1.2em'}} /> Record Delivery</div>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
 
