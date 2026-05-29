@@ -6,7 +6,6 @@ import {
   Filter, 
   Download, 
   User, 
-  Calendar, 
   ExternalLink,
   Activity,
   ChevronRight,
@@ -25,8 +24,6 @@ export default function Children() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [genderFilter, setGenderFilter] = useState('');
-  const [dobFrom, setDobFrom] = useState('');
-  const [dobTo, setDobTo] = useState('');
 
   const load = async () => {
     setLoading(true);
@@ -66,11 +63,9 @@ export default function Children() {
       const mother = (c.mother_details?.full_name ?? '').toLowerCase();
       if (q && !(name.includes(q) || mother.includes(q))) return false;
       if (genderFilter && c.gender !== genderFilter) return false;
-      if (dobFrom && c.date_of_birth < dobFrom) return false;
-      if (dobTo && c.date_of_birth > dobTo) return false;
       return true;
     });
-  }, [children, search, genderFilter, dobFrom, dobTo]);
+  }, [children, search, genderFilter]);
 
   const exportCsv = () => {
     const header = ['Child Name', 'Mother', 'DOB', 'Gender', 'Birth Weight', 'Vaccination Progress'];
@@ -135,7 +130,7 @@ export default function Children() {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'minmax(0, 1.8fr) minmax(180px, 0.7fr) minmax(280px, 1fr)',
+              gridTemplateColumns: 'minmax(0, 1.8fr) minmax(180px, 0.7fr)',
               gap: 16,
               alignItems: 'end',
             }}
@@ -144,64 +139,30 @@ export default function Children() {
               <label className="form-label flex items-center gap-2">
                 <Search size={14} className="text-muted" /> Search
               </label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={18} />
-                <input
-                  type="text"
-                  placeholder="Search by baby or mother..."
-                  className="form-input pl-10"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </div>
+              <input
+                type="text"
+                placeholder="Search by baby or mother..."
+                className="form-input"
+                style={{ paddingLeft: '14px' }}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
             </div>
 
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label flex items-center gap-2">
                 <Filter size={14} className="text-muted" /> Gender
               </label>
-              <div className="relative">
-                <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
-                <select
-                  className="form-input pl-10"
-                  value={genderFilter}
-                  onChange={(e) => setGenderFilter(e.target.value)}
-                >
-                  <option value="">All Genders</option>
-                  <option value="MALE">Male</option>
-                  <option value="FEMALE">Female</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label flex items-center gap-2">
-                <Calendar size={14} className="text-muted" /> DOB range
-              </label>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr auto 1fr',
-                  gap: 10,
-                  alignItems: 'center',
-                }}
+              <select
+                className="form-input"
+                style={{ paddingLeft: '14px' }}
+                value={genderFilter}
+                onChange={(e) => setGenderFilter(e.target.value)}
               >
-                <input
-                  type="date"
-                  className="form-input py-1 px-2"
-                  value={dobFrom}
-                  onChange={(e) => setDobFrom(e.target.value)}
-                  aria-label="Date of birth from"
-                />
-                <span className="text-xs text-muted whitespace-nowrap">to</span>
-                <input
-                  type="date"
-                  className="form-input py-1 px-2"
-                  value={dobTo}
-                  onChange={(e) => setDobTo(e.target.value)}
-                  aria-label="Date of birth to"
-                />
-              </div>
+                <option value="">All Genders</option>
+                <option value="MALE">Male</option>
+                <option value="FEMALE">Female</option>
+              </select>
             </div>
           </div>
         </div>
