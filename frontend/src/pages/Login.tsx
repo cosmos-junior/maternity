@@ -4,8 +4,8 @@ import { Eye, EyeOff, Building2, AlertCircle, LogIn, Activity, CheckCircle, Hosp
 import { authApi } from '../api';
 import { useAuth } from '../context/AuthContext';
 
-// Vite static asset imports
-const pregbg = new URL('../../dist/assets/pregbg.jpg', import.meta.url).href;
+// Vite static asset import for the left login panel
+const loginPanelImage = new URL('../../images/login_image.jpg', import.meta.url).href;
 
 export default function Login() {
   const { login } = useAuth();
@@ -35,7 +35,7 @@ export default function Login() {
       {/* ── Left panel: image ── */}
       <div
         className="login-image-panel"
-        style={{ backgroundImage: `url(${pregbg})` }}
+        style={{ backgroundImage: `url(${loginPanelImage})` }}
       >
         <div className="login-image-overlay">
           <div className="login-image-content">
