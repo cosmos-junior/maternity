@@ -3,8 +3,6 @@ import type { ReactNode } from 'react';
 import {
   LayoutDashboard,
   Calendar,
-  ChevronDown,
-  Filter,
   RefreshCw,
   TrendingUp,
   Users,
@@ -292,32 +290,24 @@ export default function Dashboard() {
                   </p>
                 </div>
 
-                <div
-                  className="pointer-events-none absolute left-1/2 top-0 hidden -translate-x-1/2 lg:block"
-                  style={{
-                    color: 'var(--text-muted)',
-                    fontSize: '0.78rem',
-                    fontWeight: 700,
-                    letterSpacing: '0.12em',
-                    textTransform: 'uppercase',
-                    paddingTop: '0.35rem',
-                  }}
-                >
-                  Export as
-                </div>
-
                 <div className="flex flex-wrap gap-2">
-                  <button className="btn btn-ghost" style={{ ...glassButton, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Calendar size={18} /> {formatDate(new Date().toISOString().split('T')[0])}
-                  </button>
-
-                  <button className="btn btn-ghost hidden sm:flex" style={{ ...glassButton, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    Today <ChevronDown size={14} />
-                  </button>
-
-                  <button className="btn btn-ghost hidden sm:flex" style={{ ...glassButton, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Filter size={18} /> Filters
-                  </button>
+                  <div
+                    className="hidden sm:flex"
+                    style={{
+                      ...glassButton,
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minWidth: '110px',
+                      padding: '0 16px',
+                      color: 'var(--text-muted)',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      letterSpacing: '0.12em',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    Export as
+                  </div>
 
                   <button className="btn btn-ghost" style={{ ...glassButton, display: 'flex', alignItems: 'center', gap: '8px' }} onClick={exportCsv} disabled={!summary}>
                     <ExportCsvIcon /> CSV

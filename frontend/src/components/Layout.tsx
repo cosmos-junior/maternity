@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
+import { formatDate } from '../utils';
 import AlertBanner from './AlertBanner';
 import OfflineBanner from './OfflineBanner';
 import ThemeToggle from './ThemeToggle';
@@ -186,6 +187,22 @@ export default function Layout() {
           </div>
           <div className="header-actions" style={{ gap: '20px', color: 'var(--text-muted)' }}>
             <ThemeToggle />
+            <button
+              className="btn btn-ghost hidden sm:inline-flex"
+              style={{
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border)',
+                borderRadius: '10px',
+                color: 'var(--text-primary)',
+                padding: '6px 12px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 1px 6px rgba(2,6,23,0.04)'
+              }}
+            >
+              <Calendar size={16} /> {formatDate(new Date().toISOString().split('T')[0])}
+            </button>
             <span className="cursor-pointer hidden sm:inline flex items-center gap-2">
               <Hospital size={16} /> IMNH
             </span>
