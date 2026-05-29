@@ -1,5 +1,26 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
+import { 
+  FileText, 
+  Plus, 
+  Search, 
+  RefreshCw, 
+  Stethoscope, 
+  FlaskConical, 
+  BarChart2, 
+  Pill, 
+  Share2, 
+  Eye, 
+  ClipboardCheck,
+  User,
+  ChevronRight,
+  TrendingUp,
+  AlertTriangle,
+  X,
+  CheckCircle,
+  Filter,
+  Check
+} from 'lucide-react';
 import { clinicalApi, patientsApi } from '../api';
 import { formatDate } from '../utils';
 
@@ -26,14 +47,14 @@ interface ClinicalNote {
   created_at: string;
 }
 
-const CATEGORY_ICONS: Record<string, string> = {
-  CONSULTATION: '🩺',
-  LAB_ORDER: '🧪',
-  LAB_RESULT: '📊',
-  PRESCRIPTION: '💊',
-  REFERRAL: '🔗',
-  OBSERVATION: '👁️',
-  DISCHARGE: '📋',
+const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+  CONSULTATION: <Stethoscope size={16} />,
+  LAB_ORDER: <FlaskConical size={16} />,
+  LAB_RESULT: <BarChart2 size={16} />,
+  PRESCRIPTION: <Pill size={16} />,
+  REFERRAL: <Share2 size={16} />,
+  OBSERVATION: <Eye size={16} />,
+  DISCHARGE: <ClipboardCheck size={16} />,
 };
 
 const PRIORITY_COLORS: Record<string, string> = {
@@ -110,31 +131,42 @@ export default function ClinicalNotes() {
   return (
     <>
       <header className="page-header">
-        <h1>🩺 Clinical Notes</h1>
+        <h1 className="flex items-center gap-3">
+          <FileText className="text-primary" size={28} /> Clinical Notes
+        </h1>
         <div className="header-actions">
-          <button className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
-            {showForm ? '✕ Close' : '+ Add Note'}
+          <button className="btn btn-primary flex items-center gap-2" onClick={() => setShowForm(v => !v)}>
+            {showForm ? <X size={18} /> : <Plus size={18} />}
+            {showForm ? 'Close' : 'Add Note'}
           </button>
         </div>
       </header>
 
       <div className="page-body">
-        {success && <div className="alert alert-success">✓ {success}</div>}
+        {success && <div className="alert alert-success flex items-center gap-2">
+          <CheckCircle size={16} /> {success}
+        </div>}
 
         {/* Filters */}
-        <div className="filter-bar">
+        <div className="filter-bar flex items-center gap-2">
+          <Filter size={18} className="text-muted" />
           <select className="form-select" style={{ width: 180 }} value={catFilter} onChange={e => setCatFilter(e.target.value)}>
             <option value="">All Categories</option>
             {CATEGORIES.map(c => (
-              <option key={c} value={c}>{CATEGORY_ICONS[c]} {c.replace('_', ' ')}</option>
+              <option key={c} value={c}>{c.replace('_', ' ')}</option>
             ))}
           </select>
+          <button className="btn btn-ghost btn-sm flex items-center gap-2" style={{ marginLeft: 'auto' }} onClick={load}>
+            <RefreshCw size={14} /> Refresh
+          </button>
         </div>
 
         {/* Form */}
         {showForm && (
           <div className="card mb-6" style={{ borderLeft: '3px solid var(--hosp-teal)' }}>
-            <div className="section-title">📝 New Clinical Note</div>
+            <div className="section-title flex items-center gap-2">
+              <FileText size={18} className="text-primary" /> New Clinical Note
+            </div>
             <form onSubmit={handleSubmit}>
               <div className="form-grid">
                 <div className="form-group">
@@ -226,8 +258,8 @@ export default function ClinicalNotes() {
 
               <div className="modal-footer" style={{ paddingTop: 16 }}>
                 <button type="button" className="btn btn-ghost" onClick={() => setShowForm(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={saving}>
-                  {saving ? 'Saving…' : '✓ Save Note'}
+                <button type="submit" className="btn btn-primary flex items-center gap-2" disabled={saving}>
+                  {saving ? 'Saving…' : <><Check size={18} /> Save Note</>}
                 </button>
               </div>
             </form>
@@ -239,7 +271,7 @@ export default function ClinicalNotes() {
           <div className="loading-wrap"><div className="spinner" /></div>
         ) : notes.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">🩺</div>
+            <div className="empty-icon"><FileText size={48} /></div>
             <div className="empty-title">No clinical notes yet</div>
             <div className="empty-desc">Add consultation notes, lab orders, or prescriptions.</div>
           </div>
@@ -249,26 +281,26 @@ export default function ClinicalNotes() {
               <div key={n.id} className="card" style={{ borderLeft: `4px solid var(--${PRIORITY_COLORS[n.priority] || 'primary'})` }}>
                 <div className="flex-between" style={{ flexWrap: 'wrap', gap: 8 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <span style={{ fontSize: '1.2rem' }}>{CATEGORY_ICONS[n.category] || '📝'}</span>
+                    <span className="text-primary-600">{CATEGORY_ICONS[n.category] || <FileText size={16} />}</span>
                     <div>
                       <div style={{ fontWeight: 700 }}>{n.title}</div>
-                      <div className="text-muted text-sm">
-                        {n.patient_name} · {n.category_display} · {formatDate(n.created_at)}
+                      <div className="text-muted text-sm flex items-center gap-1 flex-wrap">
+                        <User size={12} /> {n.patient_name} · {n.category_display} · {formatDate(n.created_at)}
                         {n.created_by_name && ` · by ${n.created_by_name}`}
                       </div>
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 6 }}>
                     <span className={`badge badge-${PRIORITY_COLORS[n.priority]}`}>{n.priority_display}</span>
-                    {n.lab_is_abnormal && <span className="badge badge-danger">⚠ Abnormal</span>}
+                    {n.lab_is_abnormal && <span className="badge badge-danger flex items-center gap-1"><AlertTriangle size={12} /> Abnormal</span>}
                   </div>
                 </div>
                 <div className="divider" />
                 <p style={{ whiteSpace: 'pre-wrap', fontSize: '0.85rem', lineHeight: 1.6 }}>{n.content}</p>
 
                 {n.diagnosis_codes && (
-                  <div className="text-muted text-sm" style={{ marginTop: 8 }}>
-                    <strong>ICD-10:</strong> {n.diagnosis_codes}
+                  <div className="text-muted text-sm flex items-center gap-1" style={{ marginTop: 8 }}>
+                    <Search size={12} /> <strong>ICD-10:</strong> {n.diagnosis_codes}
                   </div>
                 )}
                 {n.lab_test_name && (

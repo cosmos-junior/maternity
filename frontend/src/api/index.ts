@@ -86,6 +86,23 @@ export const postnatalApi = {
     api.post(`/postnatal/${id}/6week-attended/`, { notes }),
 };
 
+// ─── Pediatrics ─────────────────────────────────────────────────────────────
+export const pediatricsApi = {
+  listProfiles: (params?: Record<string, string>) =>
+    api.get('/pediatrics/profiles/', { params }),
+  getProfile: (id: number) => api.get(`/pediatrics/profiles/${id}/`),
+  listGrowth: (params?: Record<string, string>) =>
+    api.get('/pediatrics/growth/', { params }),
+  createGrowth: (data: object) => api.post('/pediatrics/growth/', data),
+  listVaccinations: (params?: Record<string, string>) =>
+    api.get('/pediatrics/vaccinations/', { params }),
+  updateVaccination: (id: number, data: object) =>
+    api.patch(`/pediatrics/vaccinations/${id}/`, data),
+  listClinicVisits: (params?: Record<string, string>) =>
+    api.get('/pediatrics/clinic-visits/', { params }),
+  createClinicVisit: (data: object) => api.post('/pediatrics/clinic-visits/', data),
+};
+
 // ─── Reminders ────────────────────────────────────────────────────────────────
 export const remindersApi = {
   list: () => api.get('/reminders/'),

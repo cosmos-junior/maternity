@@ -1,4 +1,18 @@
 import { useState } from 'react';
+import { 
+  Building2, 
+  Baby, 
+  Calendar, 
+  Check, 
+  Plus, 
+  Trash2, 
+  ChevronRight, 
+  ChevronLeft, 
+  Save, 
+  X,
+  Dna,
+  AlertTriangle
+} from 'lucide-react';
 import { postnatalApi } from '../api';
 import { Patient } from '../types';
 
@@ -54,24 +68,27 @@ const getDefaultReviewDates = (deliveryDate: string) => {
 // ─── Step indicators ───────────────────────────────────────────────────────────
 
 const STEPS = [
-  { icon: '🏥', title: 'Delivery Details' },
-  { icon: '👶', title: 'Newborn Record(s)' },
-  { icon: '📅', title: 'Follow-Up Schedule' },
+  { icon: Building2, title: 'Delivery Details' },
+  { icon: Baby, title: 'Newborn Record(s)' },
+  { icon: Calendar, title: 'Follow-Up Schedule' },
 ];
 
 interface StepBarProps { current: number }
 function StepBar({ current }: StepBarProps) {
   return (
     <div className="mstep-bar">
-      {STEPS.map((s, i) => (
-        <div key={i} className={`mstep-item ${i === current ? 'active' : i < current ? 'done' : ''}`}>
-          <div className="mstep-circle">
-            {i < current ? '✓' : s.icon}
+      {STEPS.map((s, i) => {
+        const Icon = s.icon;
+        return (
+          <div key={i} className={`mstep-item ${i === current ? 'active' : i < current ? 'done' : ''}`}>
+            <div className="mstep-circle">
+              {i < current ? <Check size={16} strokeWidth={3} /> : <Icon size={16} />}
+            </div>
+            <span className="mstep-label">{s.title}</span>
+            {i < STEPS.length - 1 && <div className="mstep-line" />}
           </div>
-          <span className="mstep-label">{s.title}</span>
-          {i < STEPS.length - 1 && <div className="mstep-line" />}
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -187,14 +204,16 @@ export default function DeliveryForm({ patients, onClose, onSaved }: DeliveryFor
 
         {/* Header */}
         <div className="modal-header">
-          <div className="modal-title">🏥 Record Delivery</div>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <div className="modal-title flex items-center gap-2">
+            <Baby size={20} className="text-primary" /> Record Delivery
+          </div>
+          <button className="modal-close" onClick={onClose}><X size={20} /></button>
         </div>
 
         {/* Step indicator */}
         <StepBar current={step} />
 
-        {error && <div className="alert alert-danger" style={{ marginBottom: 16 }}>⚠️ {error}</div>}
+        {error && <div className="alert alert-danger" style={{ marginBottom: 16 }}><AlertTriangle size={18} className="mr-2 inline" /> {error}</div>}
 
         <form onSubmit={handleSubmit}>
 
@@ -247,8 +266,8 @@ export default function DeliveryForm({ patients, onClose, onSaved }: DeliveryFor
           {/* ── Step 1: Newborn Records (dynamic) ─────────────────── */}
           {step === 1 && (
             <div className="mstep-content">
-              <div className="mstep-section-label">
-                👶 Newborn Information
+              <div className="mstep-section-label flex items-center gap-2">
+                <Baby size={18} /> Newborn Information
                 <span className="mstep-count">{form.newborns.length} baby{form.newborns.length > 1 ? 'ies' : ''}</span>
               </div>
 
@@ -259,9 +278,9 @@ export default function DeliveryForm({ patients, onClose, onSaved }: DeliveryFor
                       Baby {form.newborns.length > 1 ? `#${idx + 1}` : ''}
                     </span>
                     {form.newborns.length > 1 && (
-                      <button type="button" className="btn btn-danger btn-sm"
+                      <button type="button" className="btn btn-danger btn-sm flex items-center gap-1"
                         onClick={() => dropNewborn(idx)}>
-                        🗑 Remove
+                        <Trash2 size={14} /> Remove
                       </button>
                     )}
                   </div>
@@ -304,7 +323,9 @@ export default function DeliveryForm({ patients, onClose, onSaved }: DeliveryFor
                         <label key={key} className={`immu-toggle ${nb[key] ? 'immu-toggle--active' : ''}`}>
                           <input type="checkbox" checked={nb[key]}
                             onChange={e => setNewborn(idx, key, e.target.checked)} />
-                          <span>{nb[key] ? '✅' : '⬜'} {label}</span>
+                          <span className="flex items-center gap-1">
+                            {nb[key] ? <Check size={14} /> : <div style={{ width: 14, height: 14, border: '1px solid currentColor', borderRadius: 2 }} />} {label}
+                          </span>
                         </label>
                       )
                     )}
@@ -321,9 +342,9 @@ export default function DeliveryForm({ patients, onClose, onSaved }: DeliveryFor
               ))}
 
               {/* Add another baby button */}
-              <button type="button" className="btn btn-ghost" style={{ width: '100%', marginTop: 8 }}
+              <button type="button" className="btn btn-ghost flex items-center justify-center gap-2" style={{ width: '100%', marginTop: 8 }}
                 onClick={addNewborn}>
-                + Add Another Baby (twins / multiples)
+                <Plus size={18} /> Add Another Baby (twins / multiples)
               </button>
             </div>
           )}
@@ -331,7 +352,9 @@ export default function DeliveryForm({ patients, onClose, onSaved }: DeliveryFor
           {/* ── Step 2: Follow-Up Schedule ────────────────────────── */}
           {step === 2 && (
             <div className="mstep-content">
-              <div className="mstep-section-label">📅 Postnatal Review Dates</div>
+              <div className="mstep-section-label flex items-center gap-2">
+                <Calendar size={18} /> Postnatal Review Dates
+              </div>
               <p className="form-hint" style={{ marginBottom: 16 }}>
                 Dates have been auto-calculated from the delivery date. Adjust if needed.
               </p>
@@ -354,7 +377,9 @@ export default function DeliveryForm({ patients, onClose, onSaved }: DeliveryFor
 
               {/* Summary */}
               <div className="delivery-summary">
-                <div className="delivery-summary__title">📋 Delivery Summary</div>
+                <div className="delivery-summary__title flex items-center gap-2">
+                  <Dna size={18} className="text-primary" /> Delivery Summary
+                </div>
                 <div className="delivery-summary__grid">
                   <div><span>Patient</span><strong>{patients.find(p => String(p.id) === form.patient)?.full_name ?? '—'}</strong></div>
                   <div><span>Date</span><strong>{form.delivery_date}</strong></div>
@@ -372,18 +397,19 @@ export default function DeliveryForm({ patients, onClose, onSaved }: DeliveryFor
 
           {/* Footer navigation */}
           <div className="modal-footer">
-            <button type="button" className="btn btn-ghost" onClick={step === 0 ? onClose : back}>
-              {step === 0 ? 'Cancel' : '← Back'}
+            <button type="button" className="btn btn-ghost flex items-center gap-1" onClick={step === 0 ? onClose : back}>
+              {step === 0 ? <X size={18} /> : <ChevronLeft size={18} />}
+              {step === 0 ? 'Cancel' : 'Back'}
             </button>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <span className="mstep-progress-text">Step {step + 1} of {STEPS.length}</span>
               {step < STEPS.length - 1 ? (
-                <button type="button" className="btn btn-primary" onClick={handleNext}>
-                  Next → 
+                <button type="button" className="btn btn-primary flex items-center gap-1" onClick={handleNext}>
+                  Next <ChevronRight size={18} />
                 </button>
               ) : (
-                <button id="save-delivery-btn" type="submit" className="btn btn-primary" disabled={saving}>
-                  {saving ? 'Saving…' : '✓ Save Delivery Record'}
+                <button id="save-delivery-btn" type="submit" className="btn btn-primary flex items-center gap-1" disabled={saving}>
+                  {saving ? 'Saving…' : <><Save size={18} /> Save Delivery Record</>}
                 </button>
               )}
             </div>

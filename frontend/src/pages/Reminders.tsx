@@ -1,4 +1,15 @@
 import { useEffect, useState } from 'react';
+import { 
+  MessageSquare, 
+  Send, 
+  Smartphone, 
+  Info, 
+  ClipboardList, 
+  RefreshCw, 
+  CheckCircle, 
+  AlertCircle,
+  Clock
+} from 'lucide-react';
 import { remindersApi, patientsApi, appointmentsApi } from '../api';
 import { ReminderLog, Patient, Appointment } from '../types';
 import { formatDateTime, APPT_TYPE_LABELS } from '../utils';
@@ -14,6 +25,7 @@ export default function Reminders() {
   const [result, setResult] = useState<{ success: boolean; msg: string } | null>(null);
 
   const load = async () => {
+    setLoading(true);
     const [lRes, pRes, aRes] = await Promise.all([
       remindersApi.list(),
       patientsApi.list(),
@@ -50,16 +62,20 @@ export default function Reminders() {
   return (
     <>
       <header className="page-header">
-        <h1>💬 SMS Reminders</h1>
+        <h1 className="flex items-center gap-3">
+          <MessageSquare className="text-primary" size={28} /> SMS Reminders
+        </h1>
         <div className="header-actions">
-          <button id="send-reminder-btn" className="btn btn-primary" onClick={() => setShowModal(true)}>+ Send Reminder</button>
+          <button id="send-reminder-btn" className="btn btn-primary flex items-center gap-2" onClick={() => setShowModal(true)}>
+            <Send size={18} /> Send Reminder
+          </button>
         </div>
       </header>
 
       <div className="page-body">
         <div className="card" style={{ marginBottom: 20, padding: '16px 20px', background: 'var(--warning-glow)', border: '1px solid rgba(251,191,36,0.3)' }}>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-            <span style={{ fontSize: '1.3rem' }}>📱</span>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+            <span className="text-warning"><Info size={24} /></span>
             <div>
               <div style={{ fontWeight: 600, color: 'var(--warning)' }}>Africa's Talking Integration</div>
               <div className="text-muted text-sm">Configure your API key in <code style={{ color: 'var(--primary)' }}>.env</code> (AT_API_KEY). Use sandbox mode for testing. Ensure the phone numbers are in international format (+254XXXXXXXXX).</div>
@@ -70,10 +86,18 @@ export default function Reminders() {
         {loading ? <div className="loading-wrap"><div className="spinner" /></div>
         : (
           <div className="card">
-            <div className="section-title mb-4">📋 Sent Reminders ({logs.length})</div>
+            <header className="flex items-center justify-between mb-4">
+              <h2 className="section-title flex items-center gap-2">
+                <ClipboardList size={20} className="text-primary" /> Sent Reminders ({logs.length})
+              </h2>
+              <button className="btn btn-ghost btn-sm flex items-center gap-1" onClick={load}>
+                <RefreshCw size={14} /> Refresh
+              </button>
+            </header>
+            
             {logs.length === 0
               ? <div className="empty-state" style={{ padding: '30px' }}>
-                  <div className="empty-icon">💬</div>
+                  <div className="empty-icon"><MessageSquare size={48} className="text-muted" /></div>
                   <div className="empty-title">No reminders sent yet</div>
                   <div className="empty-desc">Use the button above to send your first SMS reminder.</div>
                 </div>
@@ -92,7 +116,8 @@ export default function Reminders() {
                           <td className="text-muted">{l.appointment_info ?? '—'}</td>
                           <td className="text-muted">{formatDateTime(l.sent_at)}</td>
                           <td>
-                            <span className={`badge badge-${l.delivery_status === 'SENT' ? 'success' : l.delivery_status === 'FAILED' ? 'danger' : 'warning'}`}>
+                            <span className={`badge badge-${l.delivery_status === 'SENT' ? 'success' : l.delivery_status === 'FAILED' ? 'danger' : 'warning'} flex items-center gap-1 w-fit`}>
+                              {l.delivery_status === 'SENT' ? <CheckCircle size={12} /> : l.delivery_status === 'FAILED' ? <AlertCircle size={12} /> : <Clock size={12} />}
                               {l.delivery_status}
                             </span>
                           </td>

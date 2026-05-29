@@ -1,4 +1,5 @@
 import { RiskLevel } from '../types';
+import { AlertTriangle, ShieldCheck } from 'lucide-react';
 
 interface HighRiskBadgeProps {
   riskLevel: RiskLevel;
@@ -32,10 +33,12 @@ export default function HighRiskBadge({
 
   const badge = (
     <span
-      className={`risk-badge risk-badge--${riskLevel.toLowerCase()} ${isHigh ? 'risk-badge--flash' : ''}`}
+      className={`risk-badge risk-badge--${riskLevel.toLowerCase()} ${isHigh ? 'risk-badge--flash' : ''} flex items-center gap-1`}
     >
-      {isHigh   && <span className="risk-badge__dot" />}
-      {isHigh ? '🚨 HIGH RISK' : isMedium ? '⚠️ MEDIUM' : '✅ LOW RISK'}
+      {isHigh && <AlertTriangle size={12} />}
+      {isMedium && <AlertTriangle size={12} />}
+      {!isHigh && !isMedium && <ShieldCheck size={12} />}
+      {isHigh ? 'HIGH RISK' : isMedium ? 'MEDIUM' : 'LOW RISK'}
     </span>
   );
 

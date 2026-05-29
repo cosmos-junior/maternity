@@ -1,5 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { 
+  Apple, 
+  RefreshCw, 
+  User, 
+  Activity, 
+  HeartPulse, 
+  FileText, 
+  ChevronRight,
+  Sparkles,
+  CheckCircle,
+  AlertCircle
+} from 'lucide-react';
 import { nutritionApi, patientsApi } from '../api';
 import { formatDate } from '../utils';
 
@@ -66,26 +78,33 @@ export default function Nutrition() {
     <>
       <header className="page-header">
         <div>
-          <h1>🥗 Nutrition Profile: {patient.full_name}</h1>
+          <h1 className="flex items-center gap-2">
+            <Apple className="text-primary" /> Nutrition Profile: {patient.full_name}
+          </h1>
           <div className="text-muted text-sm mt-1">
-            <Link to={`/patients/${patient.id}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>
-              ← Back to Patient Dashboard
+            <Link to={`/patients/${patient.id}`} className="flex items-center gap-1 hover:text-primary transition-colors">
+              <ChevronRight size={14} className="rotate-180" /> Back to Patient Dashboard
             </Link>
           </div>
         </div>
         <div className="header-actions">
-          <button className="btn btn-primary" onClick={handleGenerate} disabled={generating}>
-            {generating ? 'Generating…' : '↻ Update Recommendations'}
+          <button className="btn btn-primary flex items-center gap-2" onClick={handleGenerate} disabled={generating}>
+            {generating ? <RefreshCw size={18} className="animate-spin" /> : <RefreshCw size={18} />}
+            {generating ? 'Generating…' : 'Update Recommendations'}
           </button>
         </div>
       </header>
 
       <div className="page-body">
-        {success && <div className="alert alert-success">✓ {success}</div>}
+        {success && <div className="alert alert-success flex items-center gap-2">
+          <CheckCircle size={16} /> {success}
+        </div>}
 
         <div className="form-grid-2" style={{ marginBottom: 24 }}>
           <div className="card" style={{ borderLeft: '4px solid var(--primary)' }}>
-            <div className="section-title">Clinical Profile</div>
+            <div className="section-title flex items-center gap-2">
+              <Activity size={20} className="text-primary" /> Clinical Profile
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
               <div>
                 <div className="text-muted text-sm">Phase</div>
@@ -121,9 +140,13 @@ export default function Nutrition() {
           </div>
           
           <div className="card">
-            <div className="section-title">Dietary Preferences & Allergies</div>
+            <div className="section-title flex items-center gap-2">
+              <Sparkles size={20} className="text-primary" /> Dietary Preferences & Allergies
+            </div>
             <div className="form-group">
-              <label className="form-label">Allergies</label>
+              <label className="form-label flex items-center gap-2">
+                <AlertCircle size={14} className="text-danger" /> Allergies
+              </label>
               <textarea className="form-textarea" readOnly value={profile.allergies || 'None recorded'} rows={2} style={{ background: 'var(--bg-card)' }} />
             </div>
             <div className="form-group">
@@ -133,11 +156,13 @@ export default function Nutrition() {
           </div>
         </div>
 
-        <div className="section-title">Recommended Weekly Meal Plan</div>
+        <div className="section-title flex items-center gap-2 mb-4">
+          <FileText size={20} className="text-primary" /> Recommended Weekly Meal Plan
+        </div>
         {recommendations.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">🍽️</div>
-            <div className="empty-title">No recommendations yet</div>
+            <div className="empty-icon"><Apple size={48} className="text-muted opacity-20" /></div>
+            <div className="empty-title">No Recommendations</div>
             <div className="empty-desc">Click "Update Recommendations" to generate a personalized meal plan based on the patient's clinical profile.</div>
           </div>
         ) : (

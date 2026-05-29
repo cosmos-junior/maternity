@@ -1,5 +1,25 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { 
+  ArrowLeft, 
+  Activity, 
+  FileText, 
+  Plus, 
+  X, 
+  CheckCircle,
+  Clock,
+  FlaskConical,
+  Heart,
+  Zap,
+  Thermometer,
+  User,
+  ExternalLink,
+  ChevronLeft,
+  Check,
+  TrendingUp,
+  ClipboardList,
+  LayoutDashboard
+} from 'lucide-react';
 import { patientsApi, partographApi } from '../api';
 import { Patient } from '../types';
 import { formatDate } from '../utils';
@@ -103,7 +123,7 @@ export default function Partograph() {
         temperature_celsius:   form.temperature_celsius   ? parseFloat(form.temperature_celsius)    : null,
         ...extra,
       });
-      setSuccessMsg('Observation recorded ✓');
+      setSuccessMsg('Observation recorded');
       setTimeout(() => setSuccessMsg(''), 3000);
       setForm(BLANK_FORM);
       setExtra(EXTRA_BLANK);
@@ -158,57 +178,75 @@ export default function Partograph() {
 
   if (loading) return (
     <>
-      <header className="page-header"><h1>📈 Partograph</h1></header>
+      <header className="page-header">
+        <h1 className="flex items-center gap-2"><Activity /> Partograph</h1>
+      </header>
       <div className="page-body loading-wrap"><div className="spinner" /></div>
     </>
   );
 
   if (!patient) return (
-    <div className="page-body"><p>Patient not found.</p></div>
+    <div className="page-body flex items-center gap-2 text-danger">
+      <X size={18} /> Patient not found.
+    </div>
   );
 
   return (
     <>
       <header className="page-header">
-        <Link to={`/patients/${patientId}`} className="btn btn-ghost btn-sm">← Back</Link>
-        <h1>📈 Partograph — {patient.full_name}</h1>
+        <Link to={`/patients/${patientId}`} className="btn btn-ghost btn-sm flex items-center gap-1">
+          <ChevronLeft size={16} /> Back
+        </Link>
+        <h1 className="flex items-center gap-2">
+          <Activity className="text-primary" /> Partograph — {patient.full_name}
+        </h1>
         <div className="header-actions">
           <span className="badge badge-primary">{patient.patient_number}</span>
           <a
             href={`/api/patients/${patientId}/partograph/pdf/`}
             target="_blank"
             rel="noopener noreferrer"
-            className="btn btn-ghost btn-sm"
+            className="btn btn-ghost btn-sm flex items-center gap-1"
           >
-            📄 Export PDF
+            <FileText size={16} /> Export PDF
           </a>
           <button
             id="add-partograph-btn"
-            className="btn btn-primary"
+            className="btn btn-primary flex items-center gap-1"
             onClick={() => setShowForm(v => !v)}
           >
-            {showForm ? '✕ Close Form' : '+ Add Observation'}
+            {showForm ? <><X size={16} /> Close Form</> : <><Plus size={16} /> Add Observation</>}
           </button>
         </div>
       </header>
 
       <div className="page-body">
-        {successMsg && <div className="alert alert-success">✓ {successMsg}</div>}
+        {successMsg && (
+          <div className="alert alert-success flex items-center gap-2">
+            <CheckCircle size={18} /> {successMsg}
+          </div>
+        )}
 
         {/* ── Data entry form ────────────────────────────────────────────── */}
         {showForm && (
           <div className="card mb-6" style={{ borderLeft: '3px solid var(--hosp-teal)' }}>
-            <div className="section-title">🩺 Record Labour Observation</div>
+            <div className="section-title flex items-center gap-2">
+              <Activity size={20} className="text-primary" /> Record Labour Observation
+            </div>
             {apiError && <div className="alert alert-danger">{apiError}</div>}
             <form onSubmit={handleSubmit}>
               <div className="partograph-form-grid">
 
                 {/* Column 1: Time + Cervimetry */}
                 <div className="partograph-form-col">
-                  <div className="partograph-form-group-label">⏱️ Time</div>
+                  <div className="partograph-form-group-label flex items-center gap-2">
+                    <Clock size={16} className="text-muted" /> Time
+                  </div>
                   <ValidatedInput field="hours_in_labour" label="Hours in Labour" placeholder="0–24" required />
 
-                  <div className="partograph-form-group-label">🔬 Cervimetry</div>
+                  <div className="partograph-form-group-label flex items-center gap-2">
+                    <FlaskConical size={16} className="text-muted" /> Cervimetry
+                  </div>
                   <ValidatedInput field="cervical_dilation_cm" label="Cervical Dilation (cm)" placeholder="0–10" />
                   <ValidatedInput field="descent_station"      label="Station (-5 to +5)"    placeholder="e.g. -2" />
 
@@ -237,10 +275,14 @@ export default function Partograph() {
 
                 {/* Column 2: Fetal + Contractions */}
                 <div className="partograph-form-col">
-                  <div className="partograph-form-group-label">💓 Fetal Parameters</div>
+                  <div className="partograph-form-group-label flex items-center gap-2">
+                    <Heart size={16} className="text-muted" /> Fetal Parameters
+                  </div>
                   <ValidatedInput field="fetal_heart_rate" label="Fetal Heart Rate (bpm)" placeholder="110–160" />
 
-                  <div className="partograph-form-group-label">🔄 Contractions</div>
+                  <div className="partograph-form-group-label flex items-center gap-2">
+                    <Zap size={16} className="text-muted" /> Contractions
+                  </div>
                   <ValidatedInput field="contractions_per_10min" label="Contractions / 10 min" placeholder="0–5" />
                   <div className="form-group">
                     <label className="form-label">Contraction Duration</label>
@@ -254,124 +296,115 @@ export default function Partograph() {
                   </div>
                 </div>
 
-                {/* Column 3: Maternal Vitals */}
+                {/* Column 3: Maternal */}
                 <div className="partograph-form-col">
-                  <div className="partograph-form-group-label">🩺 Maternal Vitals</div>
-                  <ValidatedInput field="bp_systolic"          label="BP Systolic (mmHg)"    placeholder="e.g. 120" />
-                  <ValidatedInput field="bp_diastolic"         label="BP Diastolic (mmHg)"   placeholder="e.g. 80" />
-                  <ValidatedInput field="pulse_rate"           label="Pulse Rate (bpm)"       placeholder="e.g. 80" />
-                  <ValidatedInput field="temperature_celsius"  label="Temperature (°C)"       placeholder="e.g. 37.0" />
+                  <div className="partograph-form-group-label flex items-center gap-2">
+                    <User size={16} className="text-muted" /> Maternal Vitals
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <ValidatedInput field="bp_systolic"  label="BP Sys" placeholder="120" />
+                    <ValidatedInput field="bp_diastolic" label="BP Dia" placeholder="80" />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+                    <ValidatedInput field="pulse_rate"   label="Pulse"  placeholder="72" />
+                    <div className="form-group">
+                      <label className="form-label">Temp (°C)</label>
+                      <input className="form-input" type="number" step="0.1" placeholder="36.5"
+                        value={form.temperature_celsius}
+                        onChange={e => setF('temperature_celsius', e.target.value)} />
+                    </div>
+                  </div>
 
+                  <div className="partograph-form-group-label flex items-center gap-2">
+                    <CheckCircle size={16} className="text-muted" /> Other
+                  </div>
                   <div className="form-group">
                     <label className="form-label">Urine Protein</label>
                     <select className="form-select" value={extra.urine_protein}
                       onChange={e => setExtra(x => ({ ...x, urine_protein: e.target.value }))}>
                       <option value="NIL">Nil</option>
+                      <option value="TRACE">Trace</option>
                       <option value="+">+</option>
                       <option value="++">++</option>
-                      <option value="+++">+++</option>
                     </select>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Drugs / Oxytocin</label>
-                    <input className="form-input" value={extra.drugs_given} placeholder="e.g. Syntocinon 10 IU"
-                      onChange={e => setExtra(x => ({ ...x, drugs_given: e.target.value }))} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Notes</label>
-                    <textarea className="form-textarea" style={{ minHeight: 52 }}
-                      value={extra.notes}
-                      onChange={e => setExtra(x => ({ ...x, notes: e.target.value }))} />
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 12 }}>
-                <button type="button" className="btn btn-ghost" onClick={() => setShowForm(false)}>Cancel</button>
-                <button id="save-partograph-btn" type="submit" className="btn btn-primary" disabled={saving}>
-                  {saving ? 'Saving…' : '✓ Record Observation'}
+              <div className="form-group">
+                <label className="form-label">Drugs & IV Fluids</label>
+                <input className="form-input" value={extra.drugs_given}
+                  onChange={e => setExtra(x => ({ ...x, drugs_given: e.target.value }))}
+                  placeholder="Oxytocin, IV saline, etc." />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Clinical Notes</label>
+                <textarea className="form-textarea" style={{ minHeight: 60 }}
+                  value={extra.notes}
+                  onChange={e => setExtra(x => ({ ...x, notes: e.target.value }))}
+                  placeholder="Record any significant observations or actions taken…" />
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button type="submit" className="btn btn-primary flex items-center gap-2" disabled={saving}>
+                  <CheckCircle size={18} /> {saving ? 'Saving...' : 'Save Observation'}
                 </button>
               </div>
             </form>
           </div>
         )}
 
-        {/* ── Chart ───────────────────────────────────────────────────────── */}
-        <div className="card mb-6">
-          <div className="flex-between mb-4">
-            <div className="section-title" style={{ margin: 0 }}>
-              📊 WHO Partograph
-            </div>
-            <div className="text-muted" style={{ fontSize: '0.78rem' }}>
-              {entries.length} observation{entries.length !== 1 ? 's' : ''} recorded
-            </div>
-          </div>
+        {/* ── Chart & Table ──────────────────────────────────────────────── */}
+        <PartographChart entries={chartData} />
 
-          {entries.length === 0 ? (
-            <div className="empty-state">
-              <div className="empty-icon">📈</div>
-              <div className="empty-title">No observations yet</div>
-              <div className="empty-desc">Click "Add Observation" to start recording labour progress.</div>
-            </div>
-          ) : (
-            <PartographChart entries={chartData} />
-          )}
+        <div className="section-title mt-8 flex items-center gap-2">
+          <Activity size={20} className="text-primary" /> Logged Observations
         </div>
-
-        {/* ── Data table ─────────────────────────────────────────────────── */}
-        {entries.length > 0 && (
-          <div className="card">
-            <div className="section-title">📋 Observation Log</div>
-            <div className="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Hour</th>
-                    <th>Dilation (cm)</th>
-                    <th>FHR (bpm)</th>
-                    <th>Contrax / 10m</th>
-                    <th>Station</th>
-                    <th>BP</th>
-                    <th>Pulse</th>
-                    <th>Temp °C</th>
-                    <th>Liquor</th>
-                    <th>Recorded By</th>
-                    <th>Time</th>
+        <div className="overflow-x-auto card p-0">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Time (hrs)</th>
+                <th>Cervix</th>
+                <th>Station</th>
+                <th>FHR</th>
+                <th>Contr.</th>
+                <th>Mould.</th>
+                <th>BP/Pulse</th>
+                <th title="Temperature">Temp</th>
+                <th>Recorded By</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {entries.length === 0 ? (
+                <tr><td colSpan={10} className="text-center py-8 text-muted">No data points recorded yet.</td></tr>
+              ) : (
+                entries.map(e => (
+                  <tr key={e.id}>
+                    <td className="font-semibold text-primary">{e.hours_in_labour}h</td>
+                    <td>{e.cervical_dilation_cm ?? '—'} cm</td>
+                    <td>{e.descent_station ?? '—'}</td>
+                    <td>{e.fetal_heart_rate ?? '—'}</td>
+                    <td>{e.contractions_per_10min ?? '—'}</td>
+                    <td>{e.moulding}</td>
+                    <td className="text-sm">
+                      {e.bp_systolic}/{e.bp_diastolic} · {e.pulse_rate}
+                    </td>
+                    <td>{e.temperature_celsius ? `${e.temperature_celsius}°C` : '—'}</td>
+                    <td className="text-sm text-muted">{e.recorded_by_name}</td>
+                    <td>
+                       <Link to={`/partograph/entry/${e.id}/edit`} className="btn btn-ghost btn-sm p-1" title="Edit">
+                          <ExternalLink size={14} />
+                       </Link>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {entries.map(e => (
-                    <tr key={e.id}>
-                      <td><span className="mono">{e.hours_in_labour}h</span></td>
-                      <td>{e.cervical_dilation_cm ?? '—'}</td>
-                      <td style={{
-                        color: e.fetal_heart_rate && (e.fetal_heart_rate < 110 || e.fetal_heart_rate > 160)
-                          ? 'var(--danger)' : undefined,
-                        fontWeight: e.fetal_heart_rate && (e.fetal_heart_rate < 110 || e.fetal_heart_rate > 160) ? 700 : undefined,
-                      }}>
-                        {e.fetal_heart_rate ?? '—'}
-                        {e.fetal_heart_rate && (e.fetal_heart_rate < 110 || e.fetal_heart_rate > 160) &&
-                          <span title="Abnormal FHR"> ⚠️</span>}
-                      </td>
-                      <td>{e.contractions_per_10min ?? '—'}</td>
-                      <td>{e.descent_station !== null ? (e.descent_station > 0 ? `+${e.descent_station}` : e.descent_station) : '—'}</td>
-                      <td>{e.bp_systolic && e.bp_diastolic ? `${e.bp_systolic}/${e.bp_diastolic}` : '—'}</td>
-                      <td>{e.pulse_rate ?? '—'}</td>
-                      <td>{e.temperature_celsius ?? '—'}</td>
-                      <td><span className={`badge badge-${e.liquor === 'M' ? 'warning' : e.liquor === 'B' ? 'danger' : 'neutral'}`}>
-                        {e.liquor}
-                      </span></td>
-                      <td className="text-muted">{e.recorded_by_name ?? '—'}</td>
-                      <td className="text-muted" style={{ fontSize: '0.75rem' }}>
-                        {new Date(e.recorded_at).toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </>
   );

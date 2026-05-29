@@ -16,6 +16,8 @@ import ClinicalNotes from './pages/ClinicalNotes';
 import Documents from './pages/Documents';
 import Nutrition from './pages/Nutrition';
 import Procedures from './pages/Procedures';
+import ChildProfile from './pages/ChildProfile';
+import Children from './pages/Children';
 
 function PrivateRoute({ children }: { children: React.ReactElement }) {
   const { isAuthenticated } = useAuth();
@@ -45,8 +47,10 @@ function AppRoutes() {
         <Route path="patients/:id" element={<PatientDetail />} />
         <Route path="patients/:id/partograph" element={<Partograph />} />
         <Route path="patients/:id/nutrition" element={<Nutrition />} />
+        <Route path="children" element={<Children />} />
         <Route path="appointments" element={<Appointments />} />
         <Route path="postnatal" element={<Postnatal />} />
+        <Route path="children/:id" element={<ChildProfile />} />
         <Route path="reminders" element={<Reminders />} />
         <Route path="alerts" element={<Alerts />} />
         <Route path="clinical-notes" element={<ClinicalNotes />} />

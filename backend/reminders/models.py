@@ -10,7 +10,12 @@ class ReminderLog(models.Model):
     PROVIDER_CHOICES = [
         ('AFRICAS_TALKING', "Africa's Talking"),
         ('TWILIO', 'Twilio'),
+        ('SMTP', 'SMTP Email'),
         ('MANUAL', 'Manual'),
+    ]
+    CHANNEL_CHOICES = [
+        ('SMS', 'SMS'),
+        ('EMAIL', 'Email'),
     ]
 
     appointment = models.ForeignKey(
@@ -20,7 +25,9 @@ class ReminderLog(models.Model):
     patient = models.ForeignKey(
         'patients.Patient', on_delete=models.CASCADE, related_name='reminders'
     )
-    phone_number = models.CharField(max_length=15)
+    channel = models.CharField(max_length=10, choices=CHANNEL_CHOICES, default='SMS')
+    phone_number = models.CharField(max_length=15, blank=True)
+    email_address = models.EmailField(blank=True, null=True)
     message_body = models.TextField()
     sent_at = models.DateTimeField(auto_now_add=True)
     delivery_status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='PENDING')

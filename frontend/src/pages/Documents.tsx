@@ -2,6 +2,25 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { clinicalApi, patientsApi } from '../api';
 import { formatDate } from '../utils';
+import { 
+  FlaskConical, 
+  Camera, 
+  Microscope, 
+  Pill, 
+  Link as LinkIcon, 
+  FileText, 
+  Fingerprint, 
+  Paperclip,
+  Plus,
+  Trash2,
+  FileIcon,
+  Download,
+  X,
+  Upload,
+  CheckCircle,
+  RefreshCw,
+  Check
+} from 'lucide-react';
 
 interface PatientDoc {
   id: number;
@@ -18,15 +37,15 @@ interface PatientDoc {
   created_at: string;
 }
 
-const DOC_ICONS: Record<string, string> = {
-  LAB_REPORT: '🧪',
-  ULTRASOUND: '📷',
-  SCAN: '🔬',
-  PRESCRIPTION: '💊',
-  REFERRAL: '🔗',
-  CONSENT: '📃',
-  ID_DOCUMENT: '🪪',
-  OTHER: '📎',
+const DOC_ICONS: Record<string, React.ReactNode> = {
+  LAB_REPORT: <FlaskConical size={18} className="text-blue-500" />,
+  ULTRASOUND: <Camera size={18} className="text-purple-500" />,
+  SCAN: <Microscope size={18} className="text-teal-500" />,
+  PRESCRIPTION: <Pill size={18} className="text-red-500" />,
+  REFERRAL: <LinkIcon size={18} className="text-indigo-500" />,
+  CONSENT: <FileText size={18} className="text-slate-500" />,
+  ID_DOCUMENT: <Fingerprint size={18} className="text-orange-500" />,
+  OTHER: <Paperclip size={18} className="text-slate-400" />,
 };
 
 function formatSize(bytes: number): string {
@@ -102,21 +121,27 @@ export default function Documents() {
   return (
     <>
       <header className="page-header">
-        <h1>📁 Patient Documents</h1>
+        <h1 className="flex items-center gap-2 italic-none"><FileIcon className="text-primary" /> Patient Documents</h1>
         <div className="header-actions">
-          <button className="btn btn-primary" onClick={() => setShowForm(v => !v)}>
-            {showForm ? '✕ Close' : '📤 Upload Document'}
+          <button className="btn btn-primary flex items-center gap-2" onClick={() => setShowForm(v => !v)}>
+            {showForm ? <><X size={18} /> Close</> : <><Plus size={18} /> Upload Document</>}
           </button>
         </div>
       </header>
 
       <div className="page-body">
-        {success && <div className="alert alert-success">✓ {success}</div>}
+        {success && (
+          <div className="alert alert-success italic-none flex items-center gap-2">
+            <CheckCircle size={18} /> {success}
+          </div>
+        )}
 
         {/* Upload Form */}
         {showForm && (
-          <div className="card mb-6" style={{ borderLeft: '3px solid var(--hosp-teal)' }}>
-            <div className="section-title">📤 Upload Document</div>
+          <div className="card mb-6 border-l-4 border-primary shadow-sm italic-none">
+            <div className="section-title flex items-center gap-2">
+               <Plus size={20} className="text-primary" /> Upload New Document
+            </div>
             <form onSubmit={handleUpload}>
               <div className="form-grid">
                 <div className="form-group">
@@ -131,8 +156,8 @@ export default function Documents() {
                 <div className="form-group">
                   <label className="form-label">Document Type</label>
                   <select className="form-select" value={form.document_type} onChange={e => set('document_type', e.target.value)}>
-                    {Object.entries(DOC_ICONS).map(([k, icon]) => (
-                      <option key={k} value={k}>{icon} {k.replace('_', ' ')}</option>
+                    {Object.keys(DOC_ICONS).map((k) => (
+                      <option key={k} value={k}>{k.replace('_', ' ')}</option>
                     ))}
                   </select>
                 </div>
@@ -154,14 +179,14 @@ export default function Documents() {
                   )}
                 </div>
               </div>
-              <div className="form-group">
+              <div className="form-group mt-4">
                 <label className="form-label">Description</label>
                 <textarea className="form-textarea" rows={2} value={form.description} onChange={e => set('description', e.target.value)} />
               </div>
-              <div className="modal-footer" style={{ paddingTop: 16 }}>
+              <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-slate-100">
                 <button type="button" className="btn btn-ghost" onClick={() => setShowForm(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={saving || !selectedFile}>
-                  {saving ? 'Uploading…' : '📤 Upload'}
+                <button type="submit" className="btn btn-primary flex items-center gap-2" disabled={saving || !selectedFile}>
+                  {saving ? 'Uploading…' : <><Upload size={18} /> Upload Document</>}
                 </button>
               </div>
             </form>
@@ -173,38 +198,40 @@ export default function Documents() {
           <div className="loading-wrap"><div className="spinner" /></div>
         ) : docs.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">📁</div>
+            <div className="empty-icon"><FileIcon size={48} className="text-muted opacity-20" /></div>
             <div className="empty-title">No documents uploaded</div>
             <div className="empty-desc">Upload lab reports, ultrasounds, or scans.</div>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 16 }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 italic-none">
             {docs.map(d => (
-              <div key={d.id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ fontSize: '1.8rem' }}>{DOC_ICONS[d.document_type] || '📎'}</span>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontWeight: 700, fontSize: '0.9rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <div key={d.id} className="card hover:shadow-md transition-shadow flex flex-col gap-3">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">
+                    {DOC_ICONS[d.document_type] || <Paperclip size={18} className="text-slate-400" />}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-bold text-sm truncate" title={d.title}>
                       {d.title}
                     </div>
-                    <div className="text-muted text-sm">{d.patient_name}</div>
+                    <div className="text-slate-500 text-xs mt-0.5">{d.patient_name}</div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  <span className="badge badge-primary">{d.document_type_display}</span>
-                  <span className="badge badge-neutral">{formatSize(d.file_size_bytes)}</span>
+                <div className="flex gap-2 flex-wrap">
+                  <span className="badge badge-primary text-[10px]">{d.document_type_display}</span>
+                  <span className="badge badge-neutral text-[10px]">{formatSize(d.file_size_bytes)}</span>
                 </div>
-                <div className="text-muted text-sm">
+                <div className="text-slate-400 text-[11px] mt-1 border-t border-slate-50 pt-2">
                   {formatDate(d.created_at)}
                   {d.uploaded_by_name && ` · by ${d.uploaded_by_name}`}
                 </div>
-                {d.description && <p className="text-sm" style={{ color: 'var(--text-muted)' }}>{d.description}</p>}
-                <div style={{ display: 'flex', gap: 8, marginTop: 'auto' }}>
-                  <a href={d.file} target="_blank" rel="noopener" className="btn btn-ghost btn-sm" style={{ flex: 1, textAlign: 'center' }}>
-                    📥 Download
+                {d.description && <p className="text-xs text-slate-500 line-clamp-2 mt-1">{d.description}</p>}
+                <div className="flex gap-2 mt-auto pt-3 border-t border-slate-50">
+                  <a href={d.file} target="_blank" rel="noopener" className="btn btn-ghost btn-xs flex-1 flex items-center justify-center gap-2">
+                    <Download size={14} /> Download
                   </a>
-                  <button className="btn btn-ghost btn-sm" style={{ color: 'var(--danger)' }} onClick={() => handleDelete(d.id)}>
-                    🗑️
+                  <button className="btn btn-ghost btn-xs text-red-500 px-2" onClick={() => handleDelete(d.id)}>
+                    <Trash2 size={14} />
                   </button>
                 </div>
               </div>

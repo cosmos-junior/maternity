@@ -1,5 +1,12 @@
 from django.db import models
 
+try:
+    from simple_history.models import HistoricalRecords
+    _history_available = True
+except ImportError:
+    _history_available = False
+    HistoricalRecords = None
+
 
 class ClinicalNote(models.Model):
     """
@@ -103,3 +110,54 @@ class PatientDocument(models.Model):
 
     def __str__(self):
         return f"[{self.document_type}] {self.patient.full_name} — {self.title}"
+
+class ANCVisit(models.Model):
+    """
+    Structured Antenatal Care (ANC) visit data tracking.
+    """
+    patient = models.ForeignKey(
+        'patients.Patient', on_delete=models.CASCADE, related_name='anc_visits'
+    )
+    visit_number = models.PositiveIntegerField(help_text="e.g. 1 for ANC1, 2 for ANC2")
+    visit_date = models.DateField(auto_now_add=True)
+    
+    # Vitals & Measurements
+    weight_kg = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    bp_systolic = models.IntegerField(null=True, blank=True)
+    bp_diastolic = models.IntegerField(null=True, blank=True)
+    hemoglobin_gdl = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
+    
+    # Pregnancy Specifics
+    fundal_height_cm = models.IntegerField(null=True, blank=True)
+    fetal_heart_rate = models.IntegerField(null=True, blank=True)
+    PRESENTATION_CHOICES = [
+        ('CEPHALIC', 'Cephalic'),
+        ('BREECH', 'BREECH'),
+        ('TRANSVERSE', 'Transverse')
+    ]
+    fetal_presentation = models.CharField(max_length=15, choices=PRESENTATION_CHOICES, blank=True)
+    
+    # Clinical info
+    ultrasound_results = models.TextField(blank=True)
+    lab_tests_summary = models.TextField(blank=True)
+    complications_noted = models.TextField(blank=True, help_text="Notes on any high-risk complications")
+    medication_prescribed = models.TextField(blank=True)
+    general_notes = models.TextField(blank=True)
+
+    next_appointment_date = models.DateField(null=True, blank=True)
+
+    attending_staff = models.ForeignKey(
+        'users.StaffUser', on_delete=models.SET_NULL, null=True, related_name='anc_consultations'
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    # Audit trail
+    history = HistoricalRecords() if _history_available else None
+
+    class Meta:
+        db_table = 'anc_visits'
+        ordering = ['-visit_date', '-created_at']
+
+    def __str__(self):
+        return f"ANC Visit {self.visit_number} - {self.patient.full_name} on {self.visit_date}"

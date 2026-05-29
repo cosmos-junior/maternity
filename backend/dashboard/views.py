@@ -152,6 +152,20 @@ class TrendsView(APIView):
             .order_by('period')
         )
 
+        # High-risk ANC patients per period
+        high_risk_anc = (
+            Patient.objects.filter(
+                created_at__date__gte=start_date,
+                is_active=True,
+                risk_level='HIGH',
+                clinic_stage__in=['ANC1', 'ANC2', 'ANC3', 'ANC4'],
+            )
+            .annotate(period=trunc_fn('created_at'))
+            .values('period')
+            .annotate(count=Count('id'))
+            .order_by('period')
+        )
+
         # Deliveries per period
         deliveries = (
             PostnatalRecord.objects.filter(delivery_date__gte=start_date)
@@ -176,15 +190,17 @@ class TrendsView(APIView):
         reg_map = {r['period'].strftime(date_format): r['count'] for r in registrations}
         del_map = {d['period'].strftime(date_format): d['count'] for d in deliveries}
         mis_map = {m['period'].strftime(date_format): m['count'] for m in missed}
+        hr_map = {h['period'].strftime(date_format): h['count'] for h in high_risk_anc}
 
         # Generate all period labels
-        all_keys = sorted(set(list(reg_map.keys()) + list(del_map.keys()) + list(mis_map.keys())))
+        all_keys = sorted(set(list(reg_map.keys()) + list(del_map.keys()) + list(mis_map.keys()) + list(hr_map.keys())))
         series = [
             {
                 'period': k,
                 'registrations': reg_map.get(k, 0),
                 'deliveries': del_map.get(k, 0),
                 'missed_appointments': mis_map.get(k, 0),
+                'high_risk_anc': hr_map.get(k, 0),
             }
             for k in all_keys
         ]
@@ -193,6 +209,7 @@ class TrendsView(APIView):
         total_reg = sum(r['count'] for r in registrations)
         total_del = sum(d['count'] for d in deliveries)
         total_mis = sum(m['count'] for m in missed)
+        total_hr = sum(h['count'] for h in high_risk_anc)
 
         return Response({
             'period': period,
@@ -202,6 +219,7 @@ class TrendsView(APIView):
                 'registrations': total_reg,
                 'deliveries': total_del,
                 'missed_appointments': total_mis,
+                'high_risk_anc': total_hr,
             },
         })
 

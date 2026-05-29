@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'patients',
     'appointments',
     'postnatal',
+    'pediatrics',
     'reminders',
     'dashboard',
     'alerts',

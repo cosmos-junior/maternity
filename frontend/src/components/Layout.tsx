@@ -1,13 +1,32 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, ReactNode } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  Users,
+  Calendar,
+  Baby,
+  Stethoscope,
+  Folder,
+  Hospital,
+  MessageSquare,
+  AlertCircle,
+  UserCog,
+  FileText,
+  Search,
+  Menu,
+  ChevronUp,
+  Activity,
+  HeartPulse,
+  FolderOpen
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
 import AlertBanner from './AlertBanner';
 import OfflineBanner from './OfflineBanner';
+import ThemeToggle from './ThemeToggle';
+import UserMenu from './UserMenu';
 
-
-
-interface NavItem { to: string; icon: string; label: string; roles?: string[] }
+interface NavItem { to: string; icon: ReactNode; label: string; roles?: string[] }
 
 interface NavSection {
   label: string;
@@ -19,33 +38,34 @@ const NAV_SECTIONS: NavSection[] = [
   {
     label: 'DASHBOARD',
     items: [
-      { to: '/', icon: '⌂', label: 'Dashboard' },
+      { to: '/', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
     ]
   },
   {
     label: 'RECEPTION',
     items: [
-      { to: '/patients', icon: '👤', label: 'Patients Management' },
-      { to: '/appointments', icon: '📅', label: 'Appointments' },
+      { to: '/patients', icon: <Users size={18} />, label: 'Patients Management' },
+      { to: '/appointments', icon: <Calendar size={18} />, label: 'Appointments' },
     ]
   },
   {
     label: 'OUTPATIENT',
     items: [
-      { to: '/postnatal', icon: '⚕', label: 'Postnatal' },
-      { to: '/clinical-notes', icon: '🩺', label: 'Clinical Notes' },
-      { to: '/documents', icon: '📁', label: 'Documents' },
-      { to: '/procedures', icon: '🏥', label: 'Procedures' },
+      { to: '/children', icon: <Baby size={18} />, label: 'Child Profiles' },
+      { to: '/postnatal', icon: <Activity size={18} />, label: 'Postnatal' },
+      { to: '/clinical-notes', icon: <Stethoscope size={18} />, label: 'Clinical Notes' },
+      { to: '/documents', icon: <Folder size={18} />, label: 'Documents' },
+      { to: '/procedures', icon: <Hospital size={18} />, label: 'Procedures' },
     ]
   },
   {
     label: 'SYSTEM',
     roles: ['ADMIN', 'NURSE'],
     items: [
-      { to: '/reminders', icon: '💬', label: 'SMS Reminders', roles: ['ADMIN', 'NURSE'] },
-      { to: '/alerts', icon: '🚨', label: 'Clinical Alerts' },
-      { to: '/admin/users', icon: '👥', label: 'User Management', roles: ['ADMIN'] },
-      { to: '/admin/audit', icon: '📋', label: 'Audit Trail', roles: ['ADMIN'] },
+      { to: '/reminders', icon: <MessageSquare size={18} />, label: 'SMS Reminders', roles: ['ADMIN', 'NURSE'] },
+      { to: '/alerts', icon: <AlertCircle size={18} />, label: 'Clinical Alerts' },
+      { to: '/admin/users', icon: <UserCog size={18} />, label: 'User Management', roles: ['ADMIN'] },
+      { to: '/admin/audit', icon: <FileText size={18} />, label: 'Audit Trail', roles: ['ADMIN'] },
     ]
   }
 ];
@@ -53,7 +73,8 @@ const NAV_SECTIONS: NavSection[] = [
 export default function Layout() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const userRole = user?.role ?? '';
 
@@ -68,14 +89,24 @@ export default function Layout() {
 
   return (
     <div className="layout">
+      {/* ── Mobile Backdrop ── */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-[90] lg:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       {/* ── Sidebar ── */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${isSidebarOpen ? 'open' : ''}`}>
         {/* Logo */}
         <div className="sidebar-logo">
-          <div className="logo-mark" style={{ flexDirection: 'row', alignItems: 'center' }}>
-            <div className="logo-icon" style={{ fontSize: '1.2rem' }}>⚕️</div>
-            <div className="logo-text" style={{ fontSize: '0.8rem', lineHeight: '1.1', maxWidth: '140px', color: '#1E3A8A' }}>
-              ITIERIO MATERNITY AND NURSING HOME LIMITED
+          <div className="logo-mark" style={{ flexDirection: 'row', alignItems: 'center', gap: '10px' }}>
+            <div className="logo-icon" style={{ background: 'var(--bg-card)', padding: '6px', borderRadius: '8px', color: '#3B82F6' }}>
+              <HeartPulse size={20} />
+            </div>
+            <div className="logo-text" style={{ fontSize: '0.75rem', lineHeight: '1.2', maxWidth: '140px', color: 'var(--text-primary)', fontWeight: 700 }}>
+              ITIERIO MATERNITY AND NURSING HOME
             </div>
           </div>
         </div>
@@ -83,8 +114,8 @@ export default function Layout() {
         {/* Search menu */}
         <div style={{ padding: '16px 20px 0' }}>
           <div style={{ background: 'var(--bg-input)', padding: '8px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid var(--border)' }}>
-            <span style={{ color: 'var(--text-muted)' }}>🔍</span>
-            <input type="text" placeholder="Search menu..." style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%', fontSize: '0.85rem' }} />
+            <Search size={16} style={{ color: 'var(--text-muted)' }} />
+            <input type="text" placeholder="Search menu..." style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%', fontSize: '0.85rem', color: 'var(--text-primary)' }} />
           </div>
         </div>
 
@@ -97,8 +128,8 @@ export default function Layout() {
 
             return (
               <div key={section.label} style={{ marginBottom: 16 }}>
-                <div className="nav-section-label" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  📁 {section.label}
+                <div className="nav-section-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <FolderOpen size={12} /> {section.label}
                 </div>
                 {visibleItems.map(item => (
                   <NavLink
@@ -106,8 +137,9 @@ export default function Layout() {
                     to={item.to}
                     end={item.to === '/'}
                     className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+                    onClick={() => setIsSidebarOpen(false)}
                   >
-                    <span className="nav-icon" style={{ fontSize: '1.1rem' }}>{item.icon}</span>
+                    <span className="nav-icon">{item.icon}</span>
                     {item.label}
                   </NavLink>
                 ))}
@@ -118,14 +150,13 @@ export default function Layout() {
 
         {/* User footer */}
         <div className="sidebar-footer">
-          <div className="user-card cursor-pointer" style={{ marginBottom: 10, background: 'transparent', padding: '0 8px' }} onClick={() => setShowConfirm(true)}>
+          <div className="user-card cursor-pointer" style={{ marginBottom: 10, background: 'transparent', padding: '0 8px' }} onClick={() => setShowProfile(true)}>
             <div className="user-avatar" style={{ background: '#3B82F6', width: 40, height: 40 }}>{initials}</div>
             <div className="user-info">
-              <div className="user-name" style={{ fontSize: '0.9rem', color: '#1E293B' }}>{user?.full_name || 'Joachim Odhaimbo'}</div>
+              <div className="user-name" style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>{user?.full_name || 'Joachim Odhaimbo'}</div>
               <div className='email-name' style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>{user?.email || 'neville@itierionursin..'}</div>
-
-              <div style={{ color: 'var(--text-muted)' }}>⌃</div>
             </div>
+            <ChevronUp size={16} style={{ color: 'var(--text-muted)' }} />
           </div>
         </div>
       </aside>
@@ -138,21 +169,31 @@ export default function Layout() {
         }}
       >
         {/* Top Header */}
-        <header className="page-header" style={{ padding: '0 24px', justifyContent: 'flex-end', borderBottom: '1px solid var(--border)' }}>
+        <header className="page-header" style={{ padding: '0 24px', borderBottom: '1px solid var(--border)' }}>
+          <button 
+            className="lg:hidden p-2 -ml-2 text-primary"
+            onClick={() => setIsSidebarOpen(true)}
+          >
+            <Menu size={24} />
+          </button>
+
           <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px', width: '400px' }}>
-              <span style={{ color: 'var(--text-muted)' }}>🔍</span>
-              <input type="text" placeholder="Search..." style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%', fontSize: '0.9rem' }} />
+            <div className="hidden md:flex" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '8px 16px', alignItems: 'center', gap: '8px', width: '400px' }}>
+              <Search size={18} style={{ color: 'var(--text-muted)' }} />
+              <input type="text" placeholder="Search..." style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%', fontSize: '0.9rem', color: 'var(--text-primary)' }} />
               <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', background: 'var(--bg-input)', padding: '2px 6px', borderRadius: '4px' }}>⌘K</span>
             </div>
           </div>
           <div className="header-actions" style={{ gap: '20px', color: 'var(--text-muted)' }}>
-            <span className="cursor-pointer">🏥 IMNH</span>
+            <ThemeToggle />
+            <span className="cursor-pointer hidden sm:inline flex items-center gap-2">
+              <Hospital size={16} /> IMNH
+            </span>
 
 
-            <div className="cursor-pointer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="cursor-pointer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => setShowProfile(true)}>
               <div style={{ width: 24, height: 24, background: '#3B82F6', borderRadius: '50%', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem' }}>{initials}</div>
-              <span style={{ fontSize: '0.9rem', color: '#1E293B', fontWeight: 500 }}>{user?.full_name || 'JOACHIM ODHIAMBO'} </span>
+              <span className="hidden sm:inline" style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{user?.full_name || 'JOACHIM ODHIAMBO'} </span>
             </div>
           </div>
         </header>
@@ -164,40 +205,9 @@ export default function Layout() {
         </div>
       </main>
 
-      {/* ── Logout confirmation modal ── */}
-      {showConfirm && (
-        <div className="modal-overlay" onClick={() => setShowConfirm(false)}>
-          <div
-            className="modal"
-            style={{ maxWidth: 380, textAlign: 'center' }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div style={{ fontSize: '3rem', marginBottom: 12 }}></div>
-            <div className="modal-title" style={{ marginBottom: 8 }}>Sign Out</div>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem', marginBottom: 24 }}>
-              Are you sure you want to sign out,{' '}
-              <strong style={{ color: 'var(--text-primary)' }}>{user?.full_name?.split(' ')?.[0]}</strong>?
-              <br />Your session will be ended.
-            </p>
-            <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-              <button
-                className="btn btn-ghost"
-                style={{ flex: 1 }}
-                onClick={() => setShowConfirm(false)}
-              >
-                Cancel
-              </button>
-              <button
-                id="confirm-logout-btn"
-                className="btn btn-danger"
-                style={{ flex: 1 }}
-                onClick={handleLogout}
-              >
-                Sign Out
-              </button>
-            </div>
-          </div>
-        </div>
+      {/* ── User Menu (hamburger-style dropdown) ── */}
+      {showProfile && (
+        <UserMenu user={user} onClose={() => setShowProfile(false)} onLogout={handleLogout} />
       )}
     </div>
   );

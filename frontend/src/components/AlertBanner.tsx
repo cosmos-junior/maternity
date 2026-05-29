@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { AlertCircle, AlertTriangle, X, CheckCircle } from 'lucide-react';
 import { alertsApi } from '../api';
 import { ClinicalAlert } from '../types';
 
@@ -56,7 +57,7 @@ export default function AlertBanner() {
           role="alert"
         >
           <div className="alert-banner__icon">
-            {alert.severity === 'CRITICAL' ? '🚨' : '⚠️'}
+            {alert.severity === 'CRITICAL' ? <AlertCircle size={18} /> : <AlertTriangle size={18} />}
           </div>
           <div className="alert-banner__content">
             <strong>{alert.alert_type_display}</strong>
@@ -68,11 +69,11 @@ export default function AlertBanner() {
             </span>
           </div>
           <button
-            className="alert-banner__ack"
+            className="alert-banner__ack flex items-center gap-1"
             onClick={() => handleAcknowledge(alert.id)}
             title="Acknowledge alert"
           >
-            ✓ Acknowledge
+            <CheckCircle size={14} /> Acknowledge
           </button>
         </div>
       ))}

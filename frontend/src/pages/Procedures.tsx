@@ -1,4 +1,16 @@
 import { useEffect, useState } from 'react';
+import { 
+  Hospital, 
+  AlertTriangle, 
+  ClipboardList, 
+  ChevronDown, 
+  ChevronUp, 
+  Activity, 
+  ShieldAlert, 
+  FileText,
+  Stethoscope,
+  LifeBuoy
+} from 'lucide-react';
 import { proceduresApi } from '../api';
 
 export default function Procedures() {
@@ -29,25 +41,27 @@ export default function Procedures() {
   return (
     <>
       <header className="page-header">
-        <h1>🏥 Clinical Procedures & Emergency Dashboard</h1>
+        <h1 className="flex items-center gap-3">
+          <Hospital className="text-primary" size={28} /> Protocols & Procedures
+        </h1>
       </header>
 
       <div className="page-body">
         {/* Tabs */}
-        <div className="tabs" style={{ display: 'flex', gap: 16, marginBottom: 24, borderBottom: '2px solid var(--border)' }}>
+        <div className="tabs flex gap-6 mb-6 border-b-2 border-slate-200">
           <button
-            className={`btn btn-ghost ${activeTab === 'EMERGENCIES' ? 'active' : ''}`}
+            className={`btn btn-ghost flex items-center gap-2 pb-3 px-4 ${activeTab === 'EMERGENCIES' ? 'active' : ''}`}
             style={{ borderRadius: '8px 8px 0 0', borderBottom: activeTab === 'EMERGENCIES' ? '3px solid var(--danger)' : 'none', color: activeTab === 'EMERGENCIES' ? 'var(--danger)' : '' }}
             onClick={() => setActiveTab('EMERGENCIES')}
           >
-            🚨 Emergency Protocols
+            <ShieldAlert size={18} /> Emergency Protocols
           </button>
           <button
-            className={`btn btn-ghost ${activeTab === 'PROCEDURES' ? 'active' : ''}`}
+            className={`btn btn-ghost flex items-center gap-2 pb-3 px-4 ${activeTab === 'PROCEDURES' ? 'active' : ''}`}
             style={{ borderRadius: '8px 8px 0 0', borderBottom: activeTab === 'PROCEDURES' ? '3px solid var(--primary)' : 'none', color: activeTab === 'PROCEDURES' ? 'var(--primary)' : '' }}
             onClick={() => setActiveTab('PROCEDURES')}
           >
-            📋 Standard Procedures
+            <ClipboardList size={18} /> Standard Procedures
           </button>
         </div>
 
@@ -68,25 +82,29 @@ export default function Procedures() {
                         style={{ padding: '8px 0' }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                          <span style={{ fontSize: '1.8rem' }}>{em.icon}</span>
+                          <span className="text-danger"><ShieldAlert size={32} /></span>
                           <div>
                             <div style={{ fontSize: '1.2rem', fontWeight: 700 }}>{em.title}</div>
                             <div className="badge badge-danger mt-1">{em.emergency_type_display}</div>
                           </div>
                         </div>
-                        <div>{expandedId === em.id ? '▲' : '▼'}</div>
+                        <div>{expandedId === em.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}</div>
                       </div>
 
                       {expandedId === em.id && (
                         <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
                           <div className="form-grid-2">
                             <div>
-                              <div className="text-muted text-sm mb-1" style={{ fontWeight: 600 }}>Danger Signs</div>
+                              <div className="text-muted text-sm mb-1 flex items-center gap-1" style={{ fontWeight: 600 }}>
+                                <AlertTriangle size={14} /> Danger Signs
+                              </div>
                               <div className="alert alert-warning" style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem' }}>
                                 {em.danger_signs}
                               </div>
 
-                              <div className="text-muted text-sm mb-1 mt-4" style={{ fontWeight: 600 }}>Immediate Response Algorithm</div>
+                              <div className="text-muted text-sm mb-1 mt-4 flex items-center gap-1" style={{ fontWeight: 600 }}>
+                                <Activity size={14} /> Immediate Response Algorithm
+                              </div>
                               <div className="alert alert-danger" style={{ whiteSpace: 'pre-wrap', fontSize: '0.95rem', fontWeight: 500 }}>
                                 {em.immediate_response}
                               </div>
@@ -95,7 +113,9 @@ export default function Procedures() {
                             <div>
                               {em.drugs && em.drugs.length > 0 && (
                                 <>
-                                  <div className="text-muted text-sm mb-2" style={{ fontWeight: 600 }}>Required Emergency Drugs</div>
+                                  <div className="text-muted text-sm mb-2 flex items-center gap-1" style={{ fontWeight: 600 }}>
+                                    <LifeBuoy size={14} /> Required Emergency Drugs
+                                  </div>
                                   <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                                     {em.drugs.map((drug: any) => (
                                       <div key={drug.id} style={{ padding: 12, background: 'var(--bg-app)', borderRadius: 6, border: '1px solid var(--border)' }}>
@@ -142,13 +162,13 @@ export default function Procedures() {
                         style={{ padding: '8px 0' }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                          <span style={{ fontSize: '1.8rem' }}>{proc.icon}</span>
+                          <span className="text-primary"><Stethoscope size={32} /></span>
                           <div>
                             <div style={{ fontSize: '1.1rem', fontWeight: 600 }}>{proc.title}</div>
                             <div className="text-muted text-sm mt-1">{proc.category_display}</div>
                           </div>
                         </div>
-                        <div>{expandedId === proc.id ? '▲' : '▼'}</div>
+                        <div>{expandedId === proc.id ? <ChevronUp size={20} /> : <ChevronDown size={20} />}</div>
                       </div>
 
                       {expandedId === proc.id && (
@@ -169,8 +189,9 @@ export default function Procedures() {
                                   <div style={{ fontWeight: 600, marginBottom: 4 }}>{step.title}</div>
                                   <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>{step.description}</div>
                                   {step.warning_note && (
-                                    <div style={{ fontSize: '0.85rem', color: 'var(--danger)', marginTop: 6, fontWeight: 500 }}>
-                                      ⚠️ {step.warning_note}
+                                    <div className="flex items-start gap-2 text-danger mt-2 font-medium" style={{ fontSize: '0.85rem' }}>
+                                      <AlertTriangle size={14} className="mt-0.5" />
+                                      {step.warning_note}
                                     </div>
                                   )}
                                 </div>

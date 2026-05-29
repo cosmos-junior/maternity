@@ -199,3 +199,48 @@ export interface AuditEntry {
   changes: Record<string, { old: string | null; new: string | null }>;
 }
 
+// --- Pediatrics ---
+export interface ChildProfile {
+  id: number;
+  mother: number;
+  mother_details?: Patient;
+  first_name: string;
+  last_name: string;
+  gender: 'MALE' | 'FEMALE' | 'UNKNOWN';
+  date_of_birth: string;
+  birth_weight_kg: string;
+  birth_certificate_number: string;
+}
+
+export interface GrowthRecord {
+  id: number;
+  child: number;
+  date_recorded: string;
+  weight_kg: string;
+  height_cm: string;
+  head_circumference_cm: string;
+  notes: string;
+}
+
+export interface VaccinationRecord {
+  id: number;
+  child: number;
+  vaccine_name: string;
+  vaccine_name_display?: string;
+  expected_date: string;
+  given_date: string;
+  status: 'PENDING' | 'GIVEN' | 'MISSED';
+  status_display?: string;
+  notes: string;
+}
+
+export interface ChildClinicVisit {
+  id: number;
+  child: number;
+  visit_date: string;
+  fever_illness_history: string;
+  nutrition_status: string;
+  development_milestones: string;
+  doctor_recommendations: string;
+  next_visit_date: string;
+}

@@ -1,4 +1,5 @@
 import { useEddCountdown } from '../hooks/useEddCountdown';
+import { AlertTriangle, Zap, Clock, Calendar } from 'lucide-react';
 
 interface EddCountdownWidgetProps {
   edd: string | null | undefined;
@@ -43,7 +44,7 @@ export default function EddCountdownWidget({ edd, weeksPregnant, compact = false
       {/* Header */}
       <div className="edd-widget__header">
         <span className="edd-widget__icon">
-          {cd.isOverdue ? '🚨' : cd.isImminent ? '⚡' : cd.isDueSoon ? '⏰' : '🗓️'}
+          {cd.isOverdue ? <AlertTriangle size={16} /> : cd.isImminent ? <Zap size={16} /> : cd.isDueSoon ? <Clock size={16} /> : <Calendar size={16} />}
         </span>
         <div>
           <div className="edd-widget__label">EDD Countdown</div>

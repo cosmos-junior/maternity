@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, Building2, AlertCircle, LogIn, Activity, CheckCircle, Hospital, ShieldCheck } from 'lucide-react';
 import { authApi } from '../api';
 import { useAuth } from '../context/AuthContext';
 
@@ -38,7 +39,9 @@ export default function Login() {
       >
         <div className="login-image-overlay">
           <div className="login-image-content">
-            <div className="login-image-badge">🏥 Itierio Nursing Home</div>
+            <div className="login-image-badge flex items-center gap-2">
+               <Building2 size={16} /> Itierio Nursing Home
+            </div>
             <h2 className="login-image-headline">
               Compassionate Care<br />
               <span>for Every Mother</span>
@@ -70,7 +73,7 @@ export default function Login() {
         <div className="login-form-inner">
           {/* Logo */}
           <div className="login-form-logo">
-            <div className="login-form-icon">🏥</div>
+            <div className="login-form-icon"><Activity size={32} /></div>
             <h1>Materni<span>Track</span></h1>
             <p>Maternity Follow-Up Tracker</p>
             <span className="login-form-org">Itierio Nursing Home</span>
@@ -78,21 +81,21 @@ export default function Login() {
 
           {/* Error */}
           {error && (
-            <div className="alert alert-danger" style={{ marginBottom: 20 }}>
-              ⚠️ {error}
+            <div className="alert alert-danger flex items-center gap-2" style={{ marginBottom: 20 }}>
+              <AlertCircle size={18} /> {error}
             </div>
           )}
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="login-form">
             <div className="form-group">
-              <label className="form-label" htmlFor="email">
+              <label className="form-label outline-none" htmlFor="email">
                 Email Address
               </label>
               <input
                 id="email"
                 type="email"
-                className="form-input login-input"
+                className="form-input login-input outline-none"
                 placeholder="nurse@itierionursing.co.ke"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
@@ -120,8 +123,9 @@ export default function Login() {
                   className="login-pass-toggle"
                   onClick={() => setShowPass(v => !v)}
                   tabIndex={-1}
+                  aria-label={showPass ? "Hide password" : "Show password"}
                 >
-                  {showPass ? '🙈' : '👁️'}
+                  {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
@@ -129,12 +133,12 @@ export default function Login() {
             <button
               id="login-btn"
               type="submit"
-              className="btn login-submit-btn"
+              className="btn login-submit-btn flex items-center justify-center gap-2 italic-none"
               disabled={loading}
             >
               {loading
-                ? <><span className="spinner" style={{ width: 18, height: 18, borderWidth: 2 }} /> Signing in…</>
-                : 'Sign In to MaterniTrack'
+                ? <><span className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> Signing in…</>
+                : <><LogIn size={18} /> Sign In to MaterniTrack</>
               }
             </button>
           </form>
@@ -145,9 +149,9 @@ export default function Login() {
 
           <div className="login-divider" />
           <div className="login-trust-badges">
-            <span>✅ Secure Login</span>
-            <span>🏥 HIPAA Aligned</span>
-            <span>🛡️ Data Protected</span>
+            <span className="flex items-center gap-1"><CheckCircle size={14} className="text-success" /> Secure Login</span>
+            <span className="flex items-center gap-1"><Hospital size={14} className="text-primary" /> HIPAA Aligned</span>
+            <span className="flex items-center gap-1"><ShieldCheck size={14} className="text-success" /> Data Protected</span>
           </div>
         </div>
       </div>

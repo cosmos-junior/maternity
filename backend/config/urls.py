@@ -20,6 +20,7 @@ urlpatterns = [
     path('api/alerts/', include('alerts.urls')),
     path('api/core/', include('core.urls')),
     path('api/clinical/', include('clinical.urls')),
+    path('api/pediatrics/', include('pediatrics.urls')),
     path('api/nutrition/', include('nutrition.urls')),
     path('api/procedures/', include('procedures.urls')),
 ]

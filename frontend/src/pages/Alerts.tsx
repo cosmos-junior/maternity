@@ -1,4 +1,13 @@
 import { useEffect, useState } from 'react';
+import { 
+  AlertCircle, 
+  Bell, 
+  CheckCircle, 
+  RefreshCw, 
+  Filter,
+  AlertTriangle,
+  BellRing
+} from 'lucide-react';
 import { alertsApi } from '../api';
 import { ClinicalAlert } from '../types';
 
@@ -32,17 +41,25 @@ export default function Alerts() {
   return (
     <>
       <header className="page-header">
-        <h1>🚨 Clinical Alerts</h1>
+        <h1 className="flex items-center gap-3">
+          <Bell className="text-primary" size={28} /> Clinical Alerts
+        </h1>
         <div className="header-actions">
-          <select
-            className="form-select"
-            value={filter}
-            onChange={e => setFilter(e.target.value as any)}
-            style={{ width: 200 }}
-          >
-            <option value="unacknowledged">Unacknowledged</option>
-            <option value="all">All Alerts</option>
-          </select>
+          <div className="flex items-center gap-2">
+            <Filter size={18} className="text-muted" />
+            <select
+              className="form-select"
+              value={filter}
+              onChange={e => setFilter(e.target.value as any)}
+              style={{ width: 180 }}
+            >
+              <option value="unacknowledged">Unacknowledged</option>
+              <option value="all">All Alerts</option>
+            </select>
+            <button className="btn btn-ghost btn-sm" onClick={load}>
+              <RefreshCw size={14} />
+            </button>
+          </div>
         </div>
       </header>
 
@@ -52,8 +69,8 @@ export default function Alerts() {
         ) : alerts.length === 0 ? (
           <div className="card">
             <div className="empty-state">
-              <div className="empty-icon">✅</div>
-              <div className="empty-title">No alerts</div>
+              <div className="empty-icon"><CheckCircle size={48} className="text-success" /></div>
+              <div className="empty-title">All clear</div>
               <div className="empty-desc">
                 {filter === 'unacknowledged'
                   ? 'All clinical alerts have been acknowledged.'
@@ -83,10 +100,10 @@ export default function Alerts() {
                     <tr key={a.id}>
                       <td>
                         <span
-                          className="badge"
+                          className="badge flex items-center gap-1"
                           style={{ background: sevColor(a.severity), color: '#fff' }}
                         >
-                          {a.severity === 'CRITICAL' ? '🚨' : '⚠️'} {a.severity}
+                          {a.severity === 'CRITICAL' ? <BellRing size={12} /> : <AlertTriangle size={12} />} {a.severity}
                         </span>
                       </td>
                       <td>{a.alert_type_display}</td>

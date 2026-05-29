@@ -44,6 +44,8 @@ class Patient(models.Model):
 
     patient_number = models.CharField(max_length=20, unique=True, blank=True)
     full_name = models.CharField(max_length=200)
+    national_id = models.CharField(max_length=20, blank=True, null=True, verbose_name="National ID")
+    nhif_number = models.CharField(max_length=50, blank=True, null=True, verbose_name="NHIF Number")
     phone_number = models.CharField(max_length=15)
     next_of_kin_name = models.CharField(max_length=200, blank=True)
     next_of_kin_phone = models.CharField(max_length=15, blank=True)

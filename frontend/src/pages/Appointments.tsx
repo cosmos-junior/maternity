@@ -1,4 +1,14 @@
 import { useEffect, useState, useCallback } from 'react';
+import { 
+  Calendar, 
+  Plus, 
+  RefreshCw, 
+  Check, 
+  X, 
+  Clock,
+  ChevronRight,
+  Filter
+} from 'lucide-react';
 import { appointmentsApi, patientsApi } from '../api';
 import { Appointment, Patient, AppointmentStatus } from '../types';
 import { formatDate, STATUS_COLORS, APPT_TYPE_LABELS } from '../utils';
@@ -59,16 +69,22 @@ export default function Appointments() {
   return (
     <>
       <header className="page-header">
-        <h1>📅 Appointments</h1>
+        <h1 className="flex items-center gap-3">
+          <Calendar className="text-primary" size={28} /> Appointments
+        </h1>
         <div className="header-actions">
-          <button id="new-appointment-btn" className="btn btn-primary" onClick={() => setShowModal(true)}>+ New Appointment</button>
+          <button id="new-appointment-btn" className="btn btn-primary flex items-center gap-2" onClick={() => setShowModal(true)}>
+            <Plus size={18} /> New Appointment
+          </button>
         </div>
       </header>
 
       <div className="page-body">
-        {actionMsg && <div className="alert alert-success">✓ {actionMsg}</div>}
+        {actionMsg && <div className="alert alert-success flex items-center gap-2">
+          <Check size={16} /> {actionMsg}
+        </div>}
 
-        <div className="filter-bar">
+        <div className="filter-bar flex flex-wrap items-center gap-2">
           {STATUSES.map(s => (
             <button
               key={s.val}
@@ -76,13 +92,18 @@ export default function Appointments() {
               onClick={() => setStatusFilter(s.val)}
             >{s.label}</button>
           ))}
-          <button className="btn btn-ghost btn-sm" style={{ marginLeft: 'auto' }} onClick={load}>↻</button>
+          <button className="btn btn-ghost btn-sm flex items-center gap-2" style={{ marginLeft: 'auto' }} onClick={load}>
+            <RefreshCw size={14} /> Refresh
+          </button>
         </div>
 
         <div className="card">
           {loading ? <div className="loading-wrap"><div className="spinner" /></div>
           : appointments.length === 0
-          ? <div className="empty-state"><div className="empty-icon">📅</div><div className="empty-title">No appointments found</div></div>
+          ? <div className="empty-state">
+              <div className="empty-icon"><Calendar size={48} /></div>
+              <div className="empty-title">No appointments found</div>
+            </div>
           : (
             <div className="table-wrap">
               <table>
@@ -104,9 +125,15 @@ export default function Appointments() {
                       <td>
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                           {a.status === 'UPCOMING' && <>
-                            <button className="btn btn-success btn-sm" onClick={() => markAttended(a.id)}>✓ Attend</button>
-                            <button className="btn btn-danger btn-sm" onClick={() => markMissed(a.id)}>✕ Miss</button>
-                            <button className="btn btn-ghost btn-sm" onClick={() => { setShowReschedule(a.id); setNewDate(a.scheduled_date); }}>📆 Reschedule</button>
+                            <button className="btn btn-success btn-sm flex items-center gap-1" onClick={() => markAttended(a.id)}>
+                              <Check size={14} /> Attend
+                            </button>
+                            <button className="btn btn-danger btn-sm flex items-center gap-1" onClick={() => markMissed(a.id)}>
+                              <X size={14} /> Miss
+                            </button>
+                            <button className="btn btn-ghost btn-sm flex items-center gap-1" onClick={() => { setShowReschedule(a.id); setNewDate(a.scheduled_date); }}>
+                              <Clock size={14} /> Reschedule
+                            </button>
                           </>}
                           {a.status === 'MISSED' && (
                             <button className="btn btn-ghost btn-sm" onClick={() => { setShowReschedule(a.id); setNewDate(''); }}>📆 Reschedule</button>

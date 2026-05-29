@@ -1,4 +1,4 @@
-"""
+﻿"""
 Celery tasks for automated appointment reminders.
 
 Schedules two SMS reminders per appointment:
@@ -18,37 +18,34 @@ try:
     @shared_task(bind=True, max_retries=3, default_retry_delay=60)
     def send_appointment_reminder_task(self, appointment_id, hours_before=24):
         """
-        Send an SMS reminder for an upcoming appointment.
-        Called by Celery Beat at the scheduled time.
+        Send an SMS or Email reminder for an upcoming appointment.
         """
         from appointments.models import Appointment
         from reminders.sms_service import send_sms, build_appointment_reminder
+        from reminders.email_service import send_email_reminder
         from reminders.models import ReminderLog
 
         try:
             appt = Appointment.objects.select_related('patient').get(pk=appointment_id)
         except Appointment.DoesNotExist:
-            logger.warning('Appointment %s not found — skipping reminder.', appointment_id)
+            logger.warning('Appointment %s not found - skipping reminder.', appointment_id)
             return
 
-        # Only send if appointment is still upcoming
         if appt.status != 'UPCOMING':
-            logger.info('Appointment %s is %s — skipping.', appointment_id, appt.status)
+            logger.info('Appointment %s is %s - skipping.', appointment_id, appt.status)
             return
 
         patient = appt.patient
         phone = patient.phone_number or ''
-        if not phone:
-            logger.warning('No phone for patient %s — skipping.', patient.pk)
-            return
+        email = getattr(patient, 'email', None)
 
-        # Normalise phone
-        if phone.startswith('0') and len(phone) == 10:
-            phone = '+254' + phone[1:]
-        elif phone.startswith('254') and not phone.startswith('+'):
-            phone = '+' + phone
-        elif not phone.startswith('+'):
-            phone = '+254' + phone
+        if phone:
+            if phone.startswith('0') and len(phone) == 10:
+                phone = '+254' + phone[1:]
+            elif phone.startswith('254') and not phone.startswith('+'):
+                phone = '+' + phone
+            elif not phone.startswith('+'):
+                phone = '+254' + phone
 
         time_str = appt.scheduled_time.strftime('%H:%M') if appt.scheduled_time else None
         msg = build_appointment_reminder(
@@ -57,32 +54,142 @@ try:
             appointment_time=time_str,
         )
 
-        result = send_sms(phone, msg)
+        success = False
+        error_msg = ""
+        provider = 'AFRICAS_TALKING'
+        channel = 'SMS'
 
-        # Log the reminder
+        if phone:
+            result = send_sms(phone, msg)
+            success = result.get('success', False)
+            error_msg = result.get('error', '')
+        elif email:
+            result = send_email_reminder(email, "Upcoming Appointment Reminder", msg)
+            success = result.get('success', False)
+            error_msg = result.get('error', '')
+            provider = 'SMTP'
+            channel = 'EMAIL'
+        else:
+            logger.warning('No phone or email for patient %s - skipping.', patient.pk)
+            return
+
         ReminderLog.objects.create(
             patient=patient,
             appointment=appt,
-            phone_number=phone,
+            channel=channel,
+            phone_number=phone if phone else '',
+            email_address=email if email else '',
             message_body=msg,
-            delivery_status='SENT' if result.get('success') else 'FAILED',
-            provider='africastalking',
-            error_message=result.get('error', ''),
+            delivery_status='SENT' if success else 'FAILED',
+            provider=provider,
+            error_message=error_msg,
         )
 
-        if not result.get('success'):
-            logger.error('SMS failed for appt %s: %s', appointment_id, result.get('error'))
-            raise self.retry(exc=Exception(result.get('error', 'SMS failed')))
+        if not success:
+            logger.error('Reminder failed for appt %s: %s', appointment_id, error_msg)
+            raise self.retry(exc=Exception(error_msg or 'Reminder failed'))
 
         logger.info('Reminder sent for appointment %s (%sh before)', appointment_id, hours_before)
 
+    @shared_task
+    def check_upcoming_vaccinations():
+        """
+        Runs daily to find vaccinations due in 3 days & sends reminders.
+        """
+        from pediatrics.models import VaccinationRecord
+        from reminders.sms_service import send_sms
+        from reminders.email_service import build_vaccination_reminder
+        from reminders.models import ReminderLog
+        from django.utils import timezone
+        
+        target_date = timezone.now().date() + timedelta(days=3)
+        due_vaccines = VaccinationRecord.objects.filter(
+            status='PENDING', 
+            expected_date=target_date
+        ).select_related('child__mother')
+
+        for vac in due_vaccines:
+            mother = vac.child.mother
+            phone = mother.phone_number
+            if phone:
+                msg = build_vaccination_reminder(
+                    patient_name=mother.full_name,
+                    baby_name=vac.child.first_name,
+                    vaccine_name=vac.get_vaccine_name_display(),
+                    expected_date=str(vac.expected_date)
+                )
+                
+                if phone.startswith('0') and len(phone) == 10:
+                    phone = '+254' + phone[1:]
+                elif phone.startswith('254') and not phone.startswith('+'):
+                    phone = '+' + phone
+                elif not phone.startswith('+'):
+                    phone = '+254' + phone
+                
+                res = send_sms(phone, msg)
+                
+                ReminderLog.objects.create(
+                    patient=mother,
+                    channel='SMS',
+                    phone_number=phone,
+                    message_body=msg,
+                    delivery_status='SENT' if res.get('success') else 'FAILED',
+                    provider='AFRICAS_TALKING',
+                    error_message=res.get('error', ''),
+                )
+
+    @shared_task
+    def check_missed_appointments():
+        """
+        Runs daily to find ANC/appointments missed yesterday, 
+        flags as missed and triggers alerts.
+        """
+        from appointments.models import Appointment
+        from reminders.sms_service import send_sms
+        from reminders.email_service import build_missed_visit_alert
+        from reminders.models import ReminderLog
+        from django.utils import timezone
+
+        yesterday = timezone.now().date() - timedelta(days=1)
+        missed_appts = Appointment.objects.filter(
+            status='UPCOMING',
+            scheduled_date=yesterday
+        ).select_related('patient')
+
+        for appt in missed_appts:
+            appt.status = 'MISSED'
+            appt.save(update_fields=['status'])
+
+            patient = appt.patient
+            phone = patient.phone_number
+            if phone:
+                msg = build_missed_visit_alert(
+                    patient_name=patient.full_name,
+                    visit_type=appt.get_appointment_type_display(),
+                    missed_date=str(appt.scheduled_date)
+                )
+                
+                if phone.startswith('0') and len(phone) == 10:
+                    phone = '+254' + phone[1:]
+                elif phone.startswith('254') and not phone.startswith('+'):
+                    phone = '+' + phone
+                elif not phone.startswith('+'):
+                    phone = '+254' + phone
+
+                res = send_sms(phone, msg)
+                ReminderLog.objects.create(
+                    patient=patient,
+                    appointment=appt,
+                    channel='SMS',
+                    phone_number=phone,
+                    message_body=msg,
+                    delivery_status='SENT' if res.get('success') else 'FAILED',
+                    provider='AFRICAS_TALKING',
+                    error_message=res.get('error', ''),
+                )
 
     @shared_task
     def schedule_appointment_reminders(appointment_id):
-        """
-        Called when an appointment is created/updated.
-        Schedules the 24h and 1h reminders via Celery ETA.
-        """
         from appointments.models import Appointment
         from django.utils import timezone
         from datetime import datetime
@@ -99,11 +206,9 @@ try:
             appt.scheduled_date,
             appt.scheduled_time or datetime.min.time(),
         )
-        # Make timezone-aware
         if timezone.is_naive(scheduled_dt):
             scheduled_dt = timezone.make_aware(scheduled_dt)
 
-        # 24 hours before
         eta_24h = scheduled_dt - timedelta(hours=24)
         if eta_24h > timezone.now():
             send_appointment_reminder_task.apply_async(
@@ -111,9 +216,7 @@ try:
                 eta=eta_24h,
                 task_id=f'reminder-24h-{appointment_id}',
             )
-            logger.info('Scheduled 24h reminder for appointment %s at %s', appointment_id, eta_24h)
 
-        # 1 hour before
         eta_1h = scheduled_dt - timedelta(hours=1)
         if eta_1h > timezone.now():
             send_appointment_reminder_task.apply_async(
@@ -121,15 +224,18 @@ try:
                 eta=eta_1h,
                 task_id=f'reminder-1h-{appointment_id}',
             )
-            logger.info('Scheduled 1h reminder for appointment %s at %s', appointment_id, eta_1h)
-
 
 except ImportError:
-    # Celery not installed — provide stub functions
-    logger.info('Celery not available — automated reminders disabled.')
+    logger.info('Celery not available - automated reminders disabled.')
 
     def send_appointment_reminder_task(*args, **kwargs):
-        logger.warning('Celery not installed — cannot send automated reminder.')
+        pass
 
     def schedule_appointment_reminders(*args, **kwargs):
-        logger.warning('Celery not installed — cannot schedule reminders.')
+        pass
+    
+    def check_upcoming_vaccinations(*args, **kwargs):
+        pass
+        
+    def check_missed_appointments(*args, **kwargs):
+        pass

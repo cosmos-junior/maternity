@@ -1,5 +1,21 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { 
+  Users, 
+  UserPlus, 
+  Search, 
+  RefreshCw, 
+  X, 
+  ChevronRight,
+  Plus,
+  Calendar,
+  Filter,
+  Check,
+  ChevronLeft,
+  Eye,
+  Salad,
+  Activity
+} from 'lucide-react';
 import { patientsApi } from '../api';
 import { Patient, PatientForm, ClinicStage, RiskLevel } from '../types';
 import { formatDate, STAGE_LABELS, STAGE_COLORS } from '../utils';
@@ -97,37 +113,52 @@ export default function Patients() {
   return (
     <>
       <header className="page-header">
-        <h1>🤰 Patient Registry</h1>
+        <h1 className="flex items-center gap-3">
+          <Users className="text-primary" size={28} /> Patient Registry
+        </h1>
         <div className="header-actions">
-          <button id="register-patient-btn" className="btn btn-primary" onClick={openModal}>+ Register Patient</button>
+          <button id="register-patient-btn" className="btn btn-primary flex items-center gap-2" onClick={openModal}>
+            <UserPlus size={18} /> Register Patient
+          </button>
         </div>
       </header>
 
       <div className="page-body">
-        <div className="filter-bar">
-          <div className="search-wrap">
-            <span className="search-icon">🔍</span>
-            <input className="form-input" placeholder="Search by name, ID, phone or address…"
+        <div className="filter-bar flex flex-wrap items-center gap-3 mb-4">
+          <div className="search-wrap flex-1 min-w-[200px]" style={{ position: 'relative' }}>
+            <Search 
+              size={18} 
+              style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} 
+            />
+            <input
+              className="form-input" placeholder="Search by name, ID, phone or address…"
+              style={{ paddingLeft: 40 }}
               value={search} onChange={e => setSearch(e.target.value)} />
           </div>
-          <select className="form-select" style={{ width: 150 }} value={stageFilter} onChange={e => setStageFilter(e.target.value)}>
-            <option value="">All Stages</option>
-            {(Object.keys(STAGE_LABELS) as ClinicStage[]).map(s => (
-              <option key={s} value={s}>{STAGE_LABELS[s]}</option>
-            ))}
-          </select>
-          <select className="form-select" style={{ width: 130 }} value={riskFilter} onChange={e => setRiskFilter(e.target.value)}>
-            <option value="">All Risk</option>
-            <option value="LOW">Low</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="HIGH">High</option>
-          </select>
-          <button className="btn btn-ghost btn-sm" onClick={load}>↻ Refresh</button>
+          <div className="flex items-center gap-2">
+            <Filter size={16} className="text-muted" />
+            <select className="form-select w-auto" style={{ width: 150 }} value={stageFilter} onChange={e => setStageFilter(e.target.value)}>
+              <option value="">All Stages</option>
+              {(Object.keys(STAGE_LABELS) as ClinicStage[]).map(s => (
+                <option key={s} value={s}>{STAGE_LABELS[s]}</option>
+              ))}
+            </select>
+            <select className="form-select w-auto" style={{ width: 130 }} value={riskFilter} onChange={e => setRiskFilter(e.target.value)}>
+              <option value="">All Risk</option>
+              <option value="LOW">Low</option>
+              <option value="MEDIUM">Medium</option>
+              <option value="HIGH">High</option>
+            </select>
+          </div>
+          <button className="btn btn-ghost btn-sm flex items-center gap-2" onClick={load}>
+            <RefreshCw size={14} /> Refresh
+          </button>
         </div>
 
         {/* EDD Date Range + Active Filters */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+            <Calendar size={14} />
             <span>EDD from</span>
             <input
               type="date" className="form-input"
@@ -148,11 +179,11 @@ export default function Patients() {
             </span>
             {hasFilters && (
               <button
-                className="btn btn-ghost btn-sm"
+                className="btn btn-ghost btn-sm flex items-center gap-1"
                 onClick={clearFilters}
                 style={{ color: 'var(--danger)', fontSize: '0.76rem' }}
               >
-                ✕ Clear all filters
+                <X size={14} /> Clear all filters
               </button>
             )}
           </div>
@@ -161,7 +192,11 @@ export default function Patients() {
         <div className="card">
           {loading ? <div className="loading-wrap"><div className="spinner" /></div>
           : patients.length === 0
-          ? <div className="empty-state"><div className="empty-icon">🤰</div><div className="empty-title">No patients found</div><div className="empty-desc">Register a patient to get started.</div></div>
+          ? <div className="empty-state">
+              <div className="empty-icon"><Users size={48} /></div>
+              <div className="empty-title">No patients found</div>
+              <div className="empty-desc">Register a patient to get started.</div>
+            </div>
           : (
             <div className="table-wrap">
               <table>
@@ -188,7 +223,11 @@ export default function Patients() {
                       <td>{p.weeks_pregnant != null ? `${p.weeks_pregnant}w` : '—'}</td>
                       <td><span className={`badge badge-${STAGE_COLORS[p.clinic_stage]}`}>{STAGE_LABELS[p.clinic_stage]}</span></td>
                       <td><HighRiskBadge riskLevel={p.risk_level} inline /></td>
-                      <td><Link to={`/patients/${p.id}`} className="btn btn-ghost btn-sm">View →</Link></td>
+                      <td>
+                        <Link to={`/patients/${p.id}`} className="btn btn-ghost btn-sm flex items-center gap-1">
+                          <Eye size={14} /> View
+                        </Link>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -204,7 +243,7 @@ export default function Patients() {
           <div className="modal modal-wide">
             <div className="modal-header">
               <div className="modal-title">Register New Patient</div>
-              <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
+              <button className="modal-close" onClick={() => setShowModal(false)}><X size={20} /></button>
             </div>
             {error && <div className="alert alert-danger">{error}</div>}
             <form onSubmit={handleSave} noValidate>
@@ -310,8 +349,8 @@ export default function Patients() {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancel</button>
-                <button id="save-patient-btn" type="submit" className="btn btn-primary" disabled={saving}>
-                  {saving ? 'Saving…' : '✓ Register Patient'}
+                <button id="save-patient-btn" type="submit" className="btn btn-primary flex items-center gap-2" disabled={saving}>
+                  {saving ? 'Saving…' : <><Check size={18} /> Register Patient</>}
                 </button>
               </div>
             </form>

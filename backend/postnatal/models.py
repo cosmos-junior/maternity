@@ -25,8 +25,14 @@ class PostnatalRecord(models.Model):
     delivery_type = models.CharField(max_length=15, choices=DELIVERY_TYPE_CHOICES)
     baby_weight_kg = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     baby_gender = models.CharField(max_length=10, choices=[('MALE', 'Male'), ('FEMALE', 'Female'), ('UNKNOWN', 'Unknown')], default='UNKNOWN')
+    apgar_score_1min = models.IntegerField(null=True, blank=True, help_text="APGAR score at 1 minute (0-10)")
+    apgar_score_5min = models.IntegerField(null=True, blank=True, help_text="APGAR score at 5 minutes (0-10)")
     mother_condition = models.CharField(max_length=200, blank=True)
     baby_condition = models.CharField(max_length=200, blank=True)
+    postpartum_complications = models.TextField(blank=True, help_text="Record any PPH, infections, or other complications.")
+    
+    # Mental Health & Recovery
+    mental_health_screening = models.TextField(blank=True, help_text="Postpartum depression screening notes")
 
     # Review tracking
     review_7day_date = models.DateField(null=True, blank=True)

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Wifi, WifiOff } from 'lucide-react';
 
 /**
  * OfflineBanner
@@ -39,12 +40,12 @@ export default function OfflineBanner() {
     >
       {offline ? (
         <>
-          <span className="offline-banner__icon">📡</span>
+          <span className="offline-banner__icon"><WifiOff size={16} /></span>
           <span>You are offline — viewing cached data only. Changes will sync when reconnected.</span>
         </>
       ) : (
         <>
-          <span className="offline-banner__icon">✅</span>
+          <span className="offline-banner__icon"><Wifi size={16} /></span>
           <span>Back online — data is syncing.</span>
         </>
       )}
