@@ -698,7 +698,7 @@ td .mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8rem; co
     rgba(30,111,165,0.75) 50%,
     rgba(5,14,26,0.85) 100%
   );
-  display: flex; align-items: flex-end; padding: 52px;
+  display: flex; align-items: flex-end; padding: 52px 52px 24px 52px;
 }
 .login-image-content { color: #fff; max-width: 480px; }
 .login-image-badge {
