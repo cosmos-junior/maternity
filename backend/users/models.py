@@ -30,6 +30,8 @@ class StaffUser(AbstractBaseUser, PermissionsMixin):
     full_name = models.CharField(max_length=200)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='NURSE')
     phone_number = models.CharField(max_length=15, blank=True)
+    bio = models.TextField(blank=True, default='', help_text='Professional bio or about section')
+    profile_completed = models.BooleanField(default=False, help_text='Whether the user has completed their initial profile setup')
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)

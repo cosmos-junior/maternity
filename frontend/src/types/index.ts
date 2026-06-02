@@ -5,6 +5,8 @@ export interface User {
   full_name: string;
   role: 'ADMIN' | 'NURSE' | 'DOCTOR';
   phone_number: string;
+  bio: string;
+  profile_completed: boolean;
   date_joined: string;
 }
 

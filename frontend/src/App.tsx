@@ -18,6 +18,7 @@ import Nutrition from './pages/Nutrition';
 import Procedures from './pages/Procedures';
 import ChildProfile from './pages/ChildProfile';
 import Children from './pages/Children';
+import UserProfile from './pages/UserProfile';
 
 function PrivateRoute({ children }: { children: React.ReactElement }) {
   const { isAuthenticated } = useAuth();
@@ -43,6 +44,7 @@ function AppRoutes() {
       <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} />
       <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
         <Route index element={<Dashboard />} />
+        <Route path="profile" element={<UserProfile />} />
         <Route path="patients" element={<Patients />} />
         <Route path="patients/:id" element={<PatientDetail />} />
         <Route path="patients/:id/partograph" element={<Partograph />} />

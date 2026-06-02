@@ -6,8 +6,8 @@ from .models import StaffUser
 class StaffUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = StaffUser
-        fields = ['id', 'email', 'full_name', 'role', 'phone_number', 'date_joined']
-        read_only_fields = ['id', 'date_joined']
+        fields = ['id', 'email', 'full_name', 'role', 'phone_number', 'bio', 'profile_completed', 'date_joined']
+        read_only_fields = ['id', 'email', 'role', 'date_joined']
 
 
 class RegisterSerializer(serializers.ModelSerializer):

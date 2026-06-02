@@ -1,4 +1,4 @@
-import { useState, useMemo, ReactNode } from 'react';
+import { useState, useMemo, ReactNode, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -26,6 +26,7 @@ import AlertBanner from './AlertBanner';
 import OfflineBanner from './OfflineBanner';
 import ThemeToggle from './ThemeToggle';
 import UserMenu from './UserMenu';
+import ProfileOnboardingModal from './ProfileOnboardingModal';
 
 interface NavItem { to: string; icon: ReactNode; label: string; roles?: string[] }
 
@@ -76,6 +77,19 @@ export default function Layout() {
   const navigate = useNavigate();
   const [showProfile, setShowProfile] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Show onboarding modal only if profile is not completed
+  useEffect(() => {
+    if (user && !user.profile_completed) {
+      // Small delay to ensure page has rendered
+      const timer = setTimeout(() => setShowOnboarding(true), 500);
+      return () => clearTimeout(timer);
+    } else {
+      // Hide modal if profile becomes completed
+      setShowOnboarding(false);
+    }
+  }, [user?.profile_completed, user?.id]);
 
   const userRole = user?.role ?? '';
 
@@ -226,6 +240,16 @@ export default function Layout() {
       {showProfile && (
         <UserMenu user={user} onClose={() => setShowProfile(false)} onLogout={handleLogout} />
       )}
+
+      {/* ── Profile Onboarding Modal ── */}
+      <ProfileOnboardingModal
+        isOpen={showOnboarding}
+        onClose={() => setShowOnboarding(false)}
+        onProfileClick={() => {
+          setShowOnboarding(false);
+          navigate('/profile');
+        }}
+      />
     </div>
   );
 }

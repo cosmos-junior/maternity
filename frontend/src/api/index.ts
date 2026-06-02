@@ -138,11 +138,13 @@ export const alertsApi = {
 
 // ─── Staff Management (admin) ─────────────────────────────────────────────────
 export const staffApi = {
-  list:        (params?: Record<string, string>) => api.get('/users/staff/', { params }),
-  register:    (data: object) => api.post('/users/register/', data),
-  deactivate:  (id: number) => api.post(`/users/staff/${id}/deactivate/`),
-  reactivate:  (id: number) => api.post(`/users/staff/${id}/reactivate/`),
-  changeRole:  (id: number, role: string) => api.patch(`/users/staff/${id}/role/`, { role }),
+  list:           (params?: Record<string, string>) => api.get('/users/staff/', { params }),
+  register:       (data: object) => api.post('/users/register/', data),
+  deactivate:     (id: number) => api.post(`/users/staff/${id}/deactivate/`),
+  reactivate:     (id: number) => api.post(`/users/staff/${id}/reactivate/`),
+  changeRole:     (id: number, role: string) => api.patch(`/users/staff/${id}/role/`, { role }),
+  updateProfile:  (data: object) => api.patch('/users/me/', data),
+  getProfile:     () => api.get('/users/me/'),
 };
 
 // ─── Audit Trail (admin) ──────────────────────────────────────────────────────
