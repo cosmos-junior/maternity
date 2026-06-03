@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'clinical',
     'nutrition',
     'procedures',
+    'tickets',
 ]
 
 MIDDLEWARE = [
@@ -137,6 +138,7 @@ CORS_ALLOW_CREDENTIALS = True
 AT_USERNAME = config('AT_USERNAME', default='sandbox')
 AT_API_KEY = config('AT_API_KEY', default='atsk_37a2e0eb14ca1b9e71d48ac0e214f6f2f6b276050f2c262d0e10adfac1f09eaf26131ef5')
 AT_SENDER_ID = config('AT_SENDER_ID', default='MATERNITY')
+ADMIN_PHONE_NUMBER = config('ADMIN_PHONE_NUMBER', default='')
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Clinical Alert Configuration

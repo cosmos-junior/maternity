@@ -174,6 +174,21 @@ export const clinicalApi = {
   deleteDoc:   (id: number) => api.delete(`/clinical/documents/${id}/`),
 };
 
+// ─── Clinical Ticketing & Notifications ───────────────────────────────────
+export const ticketsApi = {
+  create: (data: object) => api.post('/tickets/create/', data),
+  list: (params?: Record<string, string>) => api.get('/tickets/', { params }),
+  get: (id: number) => api.get(`/tickets/${id}/`),
+  updateStatus: (id: number, status: string) => api.patch(`/tickets/${id}/status/`, { status }),
+  unresolvedCount: () => api.get('/tickets/unresolved_count/'),
+};
+
+export const notificationsApi = {
+  list: (params?: Record<string, string>) => api.get('/tickets/notifications/', { params }),
+  markRead: (id: number) => api.patch(`/tickets/notifications/${id}/read/`, {}),
+  unreadCount: () => api.get('/tickets/notifications/unread_count/'),
+};
+
 // ─── FHIR R4 Export (Phase 3G) ────────────────────────────────────────────────
 export const fhirApi = {
   patient: (id: number) => api.get(`/core/fhir/patient/${id}/`),
