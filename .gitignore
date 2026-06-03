@@ -1,8 +1,18 @@
-node_modules
+# Dependencies
 node_modules/
+
+# Python virtual environment
 backend/.venv/
 backend/.env
-.vscode/
-**/__pycache__/
+
+# Python cache
+__pycache__/
 *.pyc
+*.pyo
+*.pyd
+
+# VS Code
+.vscode/
+
+# Frontend build
 frontend/dist/
