@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import ClinicalNote, PatientDocument
+from .models import ClinicalNote, PatientDocument, ANCVisit
 
 
 class ClinicalNoteSerializer(serializers.ModelSerializer):
@@ -35,3 +35,15 @@ class PatientDocumentSerializer(serializers.ModelSerializer):
 
     def get_patient_name(self, obj):
         return obj.patient.full_name
+
+
+class ANCVisitSerializer(serializers.ModelSerializer):
+    recorded_by_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ANCVisit
+        fields = '__all__'
+        read_only_fields = ['id', 'visit_date', 'created_at', 'updated_at', 'attending_staff', 'recorded_by_name']
+
+    def get_recorded_by_name(self, obj):
+        return obj.attending_staff.full_name if obj.attending_staff else None

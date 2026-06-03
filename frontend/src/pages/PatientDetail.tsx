@@ -119,6 +119,8 @@ export default function PatientDetail() {
               {[
                 ['Patient #', patient.patient_number],
                 ['Phone', patient.phone_number],
+                ['National ID', patient.national_id || '—'],
+                ['NHIF Number', patient.nhif_number || '—'],
                 ['Date of Birth', formatDate(patient.date_of_birth)],
                 ['Age', patient.age != null ? `${patient.age} years` : '—'],
                 ['Next of Kin', patient.next_of_kin_name || '—'],
@@ -145,11 +147,26 @@ export default function PatientDetail() {
                   ['LMP', formatDate(patient.lmp)],
                   ['EDD', formatDate(patient.edd)],
                   ['Weeks Pregnant', patient.weeks_pregnant != null ? `${patient.weeks_pregnant} weeks` : '—'],
-                  ['Blood Group', (patient as any).blood_group || '—'],
+                  ['Blood Group', patient.blood_group || '—'],
                 ].map(([label, val]) => (
                   <div key={label}>
                     <div className="text-muted" style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
                     <div style={{ fontWeight: 500, fontSize: '0.88rem', marginTop: 2 }}>{val}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="divider" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 mb-5">
+                {[
+                  ['Medical History', patient.medical_history || '—'],
+                  ['Surgical History', patient.surgical_history || '—'],
+                  ['Allergies', patient.allergies || '—'],
+                  ['Family History', patient.family_history || '—'],
+                ].map(([label, val]) => (
+                  <div key={label}>
+                    <div className="text-muted" style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
+                    <div style={{ fontWeight: 500, fontSize: '0.88rem', marginTop: 2, whiteSpace: 'pre-wrap' }}>{val}</div>
                   </div>
                 ))}
               </div>

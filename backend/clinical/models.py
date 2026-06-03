@@ -126,6 +126,8 @@ class ANCVisit(models.Model):
     bp_systolic = models.IntegerField(null=True, blank=True)
     bp_diastolic = models.IntegerField(null=True, blank=True)
     hemoglobin_gdl = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
+    urine_test_result = models.CharField(max_length=200, blank=True)
+    muac_cm = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
     
     # Pregnancy Specifics
     fundal_height_cm = models.IntegerField(null=True, blank=True)
@@ -143,6 +145,7 @@ class ANCVisit(models.Model):
     complications_noted = models.TextField(blank=True, help_text="Notes on any high-risk complications")
     medication_prescribed = models.TextField(blank=True)
     general_notes = models.TextField(blank=True)
+    remarks = models.TextField(blank=True)
 
     next_appointment_date = models.DateField(null=True, blank=True)
 

@@ -161,6 +161,11 @@ export const clinicalApi = {
   getNote:     (id: number) => api.get(`/clinical/notes/${id}/`),
   updateNote:  (id: number, data: object) => api.patch(`/clinical/notes/${id}/`, data),
   deleteNote:  (id: number) => api.delete(`/clinical/notes/${id}/`),
+  // ANC visits
+  listAncVisits: (params?: object) => api.get('/clinical/anc-visits/', { params }),
+  createAncVisit: (data: object) => api.post('/clinical/anc-visits/', data),
+  updateAncVisit: (id: number, data: object) => api.patch(`/clinical/anc-visits/${id}/`, data),
+  deleteAncVisit: (id: number) => api.delete(`/clinical/anc-visits/${id}/`),
   // Documents
   listDocs:    (params?: object) => api.get('/clinical/documents/', { params }),
   uploadDoc:   (formData: FormData) => api.post('/clinical/documents/', formData, {

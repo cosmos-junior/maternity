@@ -1,6 +1,6 @@
 from rest_framework import generics, permissions, filters, parsers
-from .models import ClinicalNote, PatientDocument
-from .serializers import ClinicalNoteSerializer, PatientDocumentSerializer
+from .models import ClinicalNote, PatientDocument, ANCVisit
+from .serializers import ClinicalNoteSerializer, PatientDocumentSerializer, ANCVisitSerializer
 
 
 class ClinicalNoteListCreateView(generics.ListCreateAPIView):
@@ -69,4 +69,30 @@ class PatientDocumentDetailView(generics.RetrieveDestroyAPIView):
     """
     queryset = PatientDocument.objects.select_related('patient', 'uploaded_by')
     serializer_class = PatientDocumentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class ANCVisitListCreateView(generics.ListCreateAPIView):
+    """
+    GET  /api/clinical/anc-visits/?patient=<id>
+    POST /api/clinical/anc-visits/
+    """
+    serializer_class = ANCVisitSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    ordering = ['-visit_date', '-created_at']
+
+    def get_queryset(self):
+        qs = ANCVisit.objects.select_related('patient', 'attending_staff').all()
+        patient_id = self.request.query_params.get('patient')
+        if patient_id:
+            qs = qs.filter(patient_id=patient_id)
+        return qs
+
+    def perform_create(self, serializer):
+        serializer.save(attending_staff=self.request.user)
+
+
+class ANCVisitDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = ANCVisit.objects.select_related('patient', 'attending_staff')
+    serializer_class = ANCVisitSerializer
     permission_classes = [permissions.IsAuthenticated]
