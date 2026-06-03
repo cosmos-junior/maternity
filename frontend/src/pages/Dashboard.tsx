@@ -684,7 +684,7 @@ function ModernMetricCard({
   value: number;
   trend: string;
   className: string;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
 }) {
   const gradients: Record<string, string> = {
     blue: 'linear-gradient(135deg, #2563EB, #3B82F6)',
@@ -732,48 +732,6 @@ function ModernMetricCard({
           background: 'rgba(255,255,255,0.08)',
         }}
       />
-
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 1,
-        }}
-      >
-        <div
-          style={{
-            fontSize: '0.9rem',
-            opacity: 0.9,
-            marginBottom: 12,
-          }}
-        >
-          {title}
-        </div>
-
-        <div
-          style={{
-            fontSize: '2.2rem',
-            fontWeight: 900,
-            marginBottom: 14,
-          }}
-        >
-          {value}
-        </div>
-
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 6,
-            background: 'rgba(255,255,255,0.15)',
-            padding: '5px 10px',
-            borderRadius: 999,
-            fontSize: '0.75rem',
-            fontWeight: 600,
-          }}
-        >
-          {trend} This month vs last
-        </div>
-      </div>
     </div>
   );
 }

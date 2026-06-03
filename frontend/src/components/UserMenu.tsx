@@ -132,8 +132,7 @@ export default function UserMenu({ user, onClose, onLogout }: Props) {
                   padding: '12px',
                   borderRadius: 8,
                   background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.1))',
-                  border: '1px solid var(--hosp-blue)',
-                  borderOpacity: 0.3,
+                  border: '1px solid rgba(59, 130, 246, 0.3)',
                 }}>
                   <p style={{
                     margin: '0 0 8px 0',
