@@ -23,6 +23,7 @@ urlpatterns = [
     path('api/pediatrics/', include('pediatrics.urls')),
     path('api/nutrition/', include('nutrition.urls')),
     path('api/procedures/', include('procedures.urls')),
+    path('api/tickets/', include('tickets.urls')),
 ]
 
 # Serve uploaded media in development

@@ -81,6 +81,33 @@ export interface Appointment {
   updated_at: string;
 }
 
+export interface Ticket {
+  id: number;
+  title: string;
+  description: string;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
+  created_by: number;
+  created_by_name: string;
+  created_by_role: 'ADMIN' | 'NURSE' | 'DOCTOR';
+  patient: number | null;
+  patient_name: string | null;
+  patient_number: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Notification {
+  id: number;
+  user: number;
+  user_email: string;
+  ticket: number | null;
+  ticket_title: string | null;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+}
+
 // ─── Postnatal ────────────────────────────────────────────────────────────────
 export interface PostnatalRecord {
   id: number;

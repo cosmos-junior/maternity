@@ -17,7 +17,9 @@ import {
   ChevronUp,
   Activity,
   HeartPulse,
-  FolderOpen
+  FolderOpen,
+  Ticket,
+  Bell
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
@@ -27,6 +29,8 @@ import OfflineBanner from './OfflineBanner';
 import ThemeToggle from './ThemeToggle';
 import UserMenu from './UserMenu';
 import ProfileOnboardingModal from './ProfileOnboardingModal';
+import NotificationBell from './NotificationBell';
+import { ticketsApi } from '../api';
 
 interface NavItem { to: string; icon: ReactNode; label: string; roles?: string[] }
 
@@ -66,6 +70,9 @@ const NAV_SECTIONS: NavSection[] = [
     items: [
       { to: '/reminders', icon: <MessageSquare size={18} />, label: 'SMS Reminders', roles: ['ADMIN', 'NURSE'] },
       { to: '/alerts', icon: <AlertCircle size={18} />, label: 'Clinical Alerts' },
+      { to: '/tickets/create', icon: <Ticket size={18} />, label: 'Raise Ticket', roles: ['DOCTOR', 'NURSE'] },
+      { to: '/tickets', icon: <Ticket size={18} />, label: 'Ticket Dashboard', roles: ['ADMIN'] },
+      { to: '/notifications', icon: <Bell size={18} />, label: 'Notifications', roles: ['ADMIN'] },
       { to: '/admin/users', icon: <UserCog size={18} />, label: 'User Management', roles: ['ADMIN'] },
       { to: '/admin/audit', icon: <FileText size={18} />, label: 'Audit Trail', roles: ['ADMIN'] },
     ]
@@ -78,6 +85,7 @@ export default function Layout() {
   const [showProfile, setShowProfile] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [unresolvedCount, setUnresolvedCount] = useState<number>(0);
 
   // Show onboarding modal only if profile is not completed
   useEffect(() => {
@@ -92,6 +100,23 @@ export default function Layout() {
   }, [user?.profile_completed, user?.id]);
 
   const userRole = user?.role ?? '';
+
+  // Load unresolved tickets count for admin badge
+  useEffect(() => {
+    let mounted = true;
+    const loadUnresolved = async () => {
+      if (userRole !== 'ADMIN') return;
+      try {
+        const { data } = await ticketsApi.unresolvedCount();
+        if (mounted) setUnresolvedCount(data?.unresolved_count ?? 0);
+      } catch (err) {
+        if (mounted) setUnresolvedCount(0);
+      }
+    };
+    loadUnresolved();
+    const interval = window.setInterval(loadUnresolved, 20000);
+    return () => { mounted = false; window.clearInterval(interval); };
+  }, [userRole]);
 
   const handleLogout = () => {
     logout();
@@ -156,6 +181,11 @@ export default function Layout() {
                   >
                     <span className="nav-icon">{item.icon}</span>
                     {item.label}
+                    {item.to === '/tickets' && userRole === 'ADMIN' && unresolvedCount > 0 && (
+                      <span style={{ marginLeft: 8, background: '#ef4444', color: '#fff', borderRadius: 999, padding: '2px 8px', fontSize: 12, fontWeight: 700 }}>
+                        {unresolvedCount}
+                      </span>
+                    )}
                   </NavLink>
                 ))}
               </div>
@@ -200,6 +230,7 @@ export default function Layout() {
             </div>
           </div>
           <div className="header-actions" style={{ gap: '20px', color: 'var(--text-muted)' }}>
+            {user?.role === 'ADMIN' && <NotificationBell />}
             <ThemeToggle />
             <button
               className="btn btn-ghost hidden sm:inline-flex"

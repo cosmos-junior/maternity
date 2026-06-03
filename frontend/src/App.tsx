@@ -14,6 +14,9 @@ import AdminUsers from './pages/AdminUsers';
 import AuditLog from './pages/AuditLog';
 import ClinicalNotes from './pages/ClinicalNotes';
 import Documents from './pages/Documents';
+import CreateTicket from './pages/CreateTicket';
+import TicketDashboard from './pages/TicketDashboard';
+import Notifications from './pages/Notifications';
 import Nutrition from './pages/Nutrition';
 import Procedures from './pages/Procedures';
 import ChildProfile from './pages/ChildProfile';
@@ -64,6 +67,15 @@ function AppRoutes() {
         } />
         <Route path="admin/audit" element={
           <RoleRoute roles={['ADMIN']}><AuditLog /></RoleRoute>
+        } />
+        <Route path="tickets/create" element={
+          <RoleRoute roles={['DOCTOR', 'NURSE']}><CreateTicket /></RoleRoute>
+        } />
+        <Route path="tickets" element={
+          <RoleRoute roles={['ADMIN']}><TicketDashboard /></RoleRoute>
+        } />
+        <Route path="notifications" element={
+          <RoleRoute roles={['ADMIN']}><Notifications /></RoleRoute>
         } />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
