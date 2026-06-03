@@ -25,6 +25,8 @@ export interface Patient {
   patient_number: string;
   full_name: string;
   phone_number: string;
+  national_id: string | null;
+  nhif_number: string | null;
   next_of_kin_name: string;
   next_of_kin_phone: string;
   date_of_birth: string | null;
@@ -32,6 +34,11 @@ export interface Patient {
   edd: string;
   clinic_stage: ClinicStage;
   risk_level: RiskLevel;
+  blood_group: string;
+  medical_history: string;
+  surgical_history: string;
+  allergies: string;
+  family_history: string;
   address: string;
   notes: string;
   is_active: boolean;

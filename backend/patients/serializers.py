@@ -14,8 +14,10 @@ class PatientSerializer(serializers.ModelSerializer):
         model = Patient
         fields = [
             'id', 'patient_number', 'full_name', 'phone_number',
+            'national_id', 'nhif_number',
             'next_of_kin_name', 'next_of_kin_phone', 'date_of_birth',
             'lmp', 'edd', 'clinic_stage', 'risk_level', 'blood_group',
+            'medical_history', 'surgical_history', 'allergies', 'family_history',
             'address', 'notes', 'is_active', 'registered_by', 'registered_by_name',
             'created_at', 'updated_at',
             # Computed
