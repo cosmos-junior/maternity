@@ -23,14 +23,5 @@ class AuditMiddleware:
 
     def __call__(self, request):
         _thread_locals.request = request
-
-        # Let simple_history know who is making the change
-        if request.user and request.user.is_authenticated:
-            try:
-                from simple_history.middleware import HistoryRequestMiddleware
-                HistoryRequestMiddleware(self.get_response)(request)
-            except Exception:
-                pass
-
         response = self.get_response(request)
         return response

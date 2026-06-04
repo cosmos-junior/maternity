@@ -7,8 +7,8 @@ from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config('SECRET_KEY', default='dev-secret-key-change-in-production')
-DEBUG = config('DEBUG', default=True, cast=bool)
+SECRET_KEY = config('SECRET_KEY')
+DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 INSTALLED_APPS = [
@@ -84,7 +84,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': config('DB_NAME', default='maternity_db'),
         'USER': config('DB_USER', default='root'),
-        'PASSWORD': config('DB_PASSWORD', default='#Itierio@254'),
+        'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST', default='127.0.0.1'),
         'PORT': config('DB_PORT', default='3306'),
         'OPTIONS': {
@@ -118,7 +118,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
@@ -136,7 +136,7 @@ CORS_ALLOW_CREDENTIALS = True
 # Africa's Talking SMS
 # ──────────────────────────────────────────────────────────────────────────────
 AT_USERNAME = config('AT_USERNAME', default='sandbox')
-AT_API_KEY = config('AT_API_KEY', default='atsk_37a2e0eb14ca1b9e71d48ac0e214f6f2f6b276050f2c262d0e10adfac1f09eaf26131ef5')
+AT_API_KEY = config('AT_API_KEY')
 AT_SENDER_ID = config('AT_SENDER_ID', default='MATERNITY')
 ADMIN_PHONE_NUMBER = config('ADMIN_PHONE_NUMBER', default='')
 

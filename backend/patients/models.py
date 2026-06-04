@@ -1,4 +1,4 @@
-from django.db import models
+from django.db import models, transaction
 from datetime import date, timedelta
 try:
     from simple_history.models import HistoricalRecords
@@ -9,16 +9,17 @@ except ImportError:
 
 
 def generate_patient_number():
-    """Auto-generate patient number in format MAT-001"""
-    last = Patient.objects.order_by('-id').first()
-    if last and last.patient_number:
-        try:
-            num = int(last.patient_number.split('-')[1]) + 1
-        except (IndexError, ValueError):
+    """Atomically generate a unique patient number in format MAT-001."""
+    with transaction.atomic():
+        last = Patient.objects.select_for_update().order_by('-id').first()
+        if last and last.patient_number:
+            try:
+                num = int(last.patient_number.split('-')[1]) + 1
+            except (IndexError, ValueError):
+                num = 1
+        else:
             num = 1
-    else:
-        num = 1
-    return f"MAT-{num:03d}"
+        return f'MAT-{num:03d}'
 
 
 class Patient(models.Model):
@@ -75,6 +76,12 @@ class Patient(models.Model):
     class Meta:
         db_table = 'patients'
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['edd'],          name='patients_edd_idx'),
+            models.Index(fields=['risk_level'],    name='patients_risk_idx'),
+            models.Index(fields=['clinic_stage'],  name='patients_stage_idx'),
+            models.Index(fields=['is_active'],     name='patients_active_idx'),
+        ]
 
     def save(self, *args, **kwargs):
         if not self.patient_number:

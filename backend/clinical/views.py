@@ -1,6 +1,35 @@
 from rest_framework import generics, permissions, filters, parsers
+from rest_framework.exceptions import ValidationError
 from .models import ClinicalNote, PatientDocument, ANCVisit
 from .serializers import ClinicalNoteSerializer, PatientDocumentSerializer, ANCVisitSerializer
+
+ALLOWED_MIME_TYPES = {
+    'application/pdf',
+    'image/jpeg',
+    'image/png',
+    'image/gif',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+}
+
+ALLOWED_EXTENSIONS = {'.pdf', '.jpg', '.jpeg', '.png', '.gif', '.doc', '.docx'}
+
+
+def validate_upload(file):
+    """Raise ValidationError if the uploaded file type is not permitted."""
+    import os
+    if not file:
+        return
+    ext = os.path.splitext(file.name)[1].lower()
+    if file.content_type not in ALLOWED_MIME_TYPES:
+        raise ValidationError(
+            f'File type "{file.content_type}" is not allowed. '
+            f'Permitted types: PDF, JPEG, PNG, GIF, DOC, DOCX.'
+        )
+    if ext not in ALLOWED_EXTENSIONS:
+        raise ValidationError(
+            f'File extension "{ext}" is not allowed.'
+        )
 
 
 class ClinicalNoteListCreateView(generics.ListCreateAPIView):
@@ -59,6 +88,7 @@ class PatientDocumentListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         uploaded_file = self.request.FILES.get('file')
+        validate_upload(uploaded_file)
         mime = uploaded_file.content_type if uploaded_file else ''
         serializer.save(uploaded_by=self.request.user, mime_type=mime)
 

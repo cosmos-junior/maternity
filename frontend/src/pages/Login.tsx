@@ -52,12 +52,12 @@ export default function Login() {
             </p>
             <div className="login-stats-row">
               <div className="login-stat">
-                <span className="login-stat-value">500+</span>
-                <span className="login-stat-label">Mothers Served</span>
+                <span className="login-stat-value">ANC</span>
+                <span className="login-stat-label">Antenatal Care</span>
               </div>
               <div className="login-stat">
-                <span className="login-stat-value">98%</span>
-                <span className="login-stat-label">Delivery Success</span>
+                <span className="login-stat-value">PNC</span>
+                <span className="login-stat-label">Postnatal Care</span>
               </div>
               <div className="login-stat">
                 <span className="login-stat-value">24/7</span>
@@ -89,7 +89,7 @@ export default function Login() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="login-form">
             <div className="form-group">
-              <label className="form-label outline-none" htmlFor="email">
+              <label className="form-label" htmlFor="email">
                 Email Address
               </label>
               <input
@@ -150,7 +150,7 @@ export default function Login() {
           <div className="login-divider" />
           <div className="login-trust-badges">
             <span className="flex items-center gap-1"><CheckCircle size={14} className="text-success" /> Secure Login</span>
-            <span className="flex items-center gap-1"><Hospital size={14} className="text-primary" /> HIPAA Aligned</span>
+            <span className="flex items-center gap-1"><Hospital size={14} className="text-primary" /> Kenya DPA Compliant</span>
             <span className="flex items-center gap-1"><ShieldCheck size={14} className="text-success" /> Data Protected</span>
           </div>
         </div>

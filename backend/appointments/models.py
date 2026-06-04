@@ -47,6 +47,14 @@ class Appointment(models.Model):
     class Meta:
         db_table = 'appointments'
         ordering = ['scheduled_date']
+        indexes = [
+            models.Index(fields=['status'],         name='appointments_status_idx'),
+            models.Index(fields=['scheduled_date'], name='appointments_date_idx'),
+        ]
+        indexes = [
+            models.Index(fields=['status'],         name='appointments_status_idx'),
+            models.Index(fields=['scheduled_date'], name='appointments_date_idx'),
+        ]
 
     def __str__(self):
         return f"{self.patient.patient_number} — {self.appointment_type} on {self.scheduled_date}"

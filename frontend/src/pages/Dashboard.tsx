@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
   LayoutDashboard,
@@ -95,20 +95,21 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const reportRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const [sumRes, trendRes] = await Promise.all([
-          dashboardApi.summary(),
-          dashboardApi.trends('weekly', 12)
-        ]);
-        setSummary(sumRes.data);
-        setTrends(trendRes.data);
-      } catch (err) {
-        console.error(err);
-      } finally { setLoading(false); }
-    })();
+  const loadData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [sumRes, trendRes] = await Promise.all([
+        dashboardApi.summary(),
+        dashboardApi.trends('weekly', 12)
+      ]);
+      setSummary(sumRes.data);
+      setTrends(trendRes.data);
+    } catch (err) {
+      console.error(err);
+    } finally { setLoading(false); }
   }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
 
   const pieData = summary?.appointment_breakdown ? Object.entries(summary.appointment_breakdown).map(([k, v]) => ({
     name: k.charAt(0).toUpperCase() + k.slice(1), value: v,
@@ -277,7 +278,7 @@ export default function Dashboard() {
                       marginBottom: 6,
                     }}
                   >
-                    Hello, {user?.full_name?.split(' ')?.[0] || 'Joachim'}
+                    Hello, {user?.full_name?.split(' ')?.[0] || 'there'}
                   </h1>
 
                   <p
@@ -318,6 +319,7 @@ export default function Dashboard() {
                   </button>
 
                   <button
+                    aria-label="Refresh dashboard"
                     className="btn btn-ghost btn-icon"
                     style={{
                       ...glassButton,
@@ -326,8 +328,10 @@ export default function Dashboard() {
                       alignItems: 'center',
                       justifyContent: 'center'
                     }}
+                    onClick={loadData}
+                    disabled={loading}
                   >
-                    <RefreshCw size={18} />
+                    <RefreshCw size={18} style={{ animation: loading ? 'spin 0.7s linear infinite' : 'none' }} />
                   </button>
                 </div>
               </div>
@@ -338,32 +342,32 @@ export default function Dashboard() {
                     <ModernMetricCard
                       className="blue"
                       title="Total Active Patients"
-                      value={summary?.kpis?.total_patients || 0}
-                      trend="~ 86.1%"
+                      value={summary?.kpis?.total_patients ?? 0}
+                      trend=""
                       icon={<Users size={24} />}
                     />
 
                     <ModernMetricCard
                       className="green"
                       title="Due This Week"
-                      value={summary?.kpis?.due_this_week || 0}
-                      trend="~ 20.8%"
+                      value={summary?.kpis?.due_this_week ?? 0}
+                      trend=""
                       icon={<Baby size={24} />}
                     />
 
                     <ModernMetricCard
                       className="purple"
                       title="Upcoming Appts"
-                      value={summary?.kpis?.upcoming_this_week || 0}
-                      trend="~ 35%"
+                      value={summary?.kpis?.upcoming_this_week ?? 0}
+                      trend=""
                       icon={<Calendar size={24} />}
                     />
 
                     <ModernMetricCard
                       className="orange"
                       title="High-Risk Patients"
-                      value={summary?.kpis?.high_risk_patients || 0}
-                      trend="~ 88.1%"
+                      value={summary?.kpis?.high_risk_patients ?? 0}
+                      trend=""
                       icon={<AlertTriangle size={24} />}
                     />
                   </div>
@@ -391,7 +395,7 @@ export default function Dashboard() {
                                 color: 'var(--text-muted)',
                               }}
                             >
-                              Today - 1 periods • Granularity: daily
+                              Last 12 weeks • Granularity: weekly
                             </div>
                           </div>
 
@@ -406,7 +410,7 @@ export default function Dashboard() {
                               border: '1px solid rgba(52,211,153,0.2)',
                             }}
                           >
-                            ● Total: {trends?.totals?.registrations || 87}
+                            ● Total: {trends?.totals?.registrations ?? 0}
                           </div>
                         </div>
 
@@ -502,34 +506,34 @@ export default function Dashboard() {
                   {/* Additional Stats Row */}
                   <div className="stats-row">
                     <div className="stat-card blue">
-                      <div className="stat-value">{trends?.totals?.registrations || 87}</div>
+                      <div className="stat-value">{trends?.totals?.registrations ?? 0}</div>
                       <div className="stat-label">Total Registrations</div>
-                      <div className="stat-trend flex items-center gap-1"><ArrowUpRight size={14} /> 20.8% increase</div>
+                      <div className="stat-trend flex items-center gap-1"><ArrowUpRight size={14} /> This period</div>
                     </div>
                     <div className="stat-card green">
-                      <div className="stat-value">{trends?.totals?.deliveries || 54}</div>
+                      <div className="stat-value">{trends?.totals?.deliveries ?? 0}</div>
                       <div className="stat-label">New Deliveries</div>
                       <div className="stat-trend flex items-center gap-1"><ArrowUpRight size={14} /> This period</div>
                     </div>
                     <div className="stat-card orange">
-                      <div className="stat-value">{summary?.kpis?.postnatal_pending_7day || 0}</div>
+                      <div className="stat-value">{summary?.kpis?.postnatal_pending_7day ?? 0}</div>
                       <div className="stat-label">Pending Reviews</div>
                       <div style={{ fontSize: '0.7rem', color: '#D97706' }}>Awaiting action</div>
                     </div>
                     <div className="stat-card green">
-                      <div className="stat-value">{summary?.kpis?.upcoming_this_week || 0}</div>
-                      <div className="stat-label">Completed Appts</div>
-                      <div className="stat-trend">↗ Done today</div>
+                      <div className="stat-value">{summary?.appointment_breakdown?.attended ?? 0}</div>
+                      <div className="stat-label">Attended Appointments</div>
+                      <div className="stat-trend">↗ Total attended</div>
                     </div>
                     <div className="stat-card purple">
-                      <div className="stat-value">{summary?.kpis?.missed_appointments || 0}</div>
+                      <div className="stat-value">{summary?.kpis?.missed_appointments ?? 0}</div>
                       <div className="stat-label">Total Missed</div>
                       <div style={{ fontSize: '0.7rem', color: '#8B5CF6' }}>This period</div>
                     </div>
                     <div className="stat-card blue">
-                      <div className="stat-value">8.3%</div>
-                      <div className="stat-label">Bed Occupancy</div>
-                      <div style={{ fontSize: '0.7rem', color: '#EF4444' }}>348 total beds</div>
+                      <div className="stat-value">{trends?.totals?.missed_appointments ?? 0}</div>
+                      <div className="stat-label">Missed (Trend)</div>
+                      <div style={{ fontSize: '0.7rem', color: '#64748B' }}>Last 12 weeks</div>
                     </div>
                   </div>
 
