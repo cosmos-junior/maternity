@@ -115,7 +115,7 @@ export default function Layout() {
       }
     };
     loadUnresolved();
-    const interval = window.setInterval(loadUnresolved, 20000);
+    const interval = window.setInterval(loadUnresolved, 60000);
     return () => { mounted = false; window.clearInterval(interval); };
   }, [userRole]);
 

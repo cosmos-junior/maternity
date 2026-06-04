@@ -1,5 +1,5 @@
 """
-Django settings for Maternity Follow-Up Tracker
+Django settings for Maternity Follow-Up Tracker (Base Configuration)
 """
 from pathlib import Path
 from decouple import config
@@ -167,6 +167,16 @@ USE_I18N = True
 USE_TZ = True
 
 # ──────────────────────────────────────────────────────────────────────────────
+# Cache — Redis
+# ──────────────────────────────────────────────────────────────────────────────
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': config('CELERY_BROKER_URL', default='redis://localhost:6379/0'),
+    }
+}
+
+# ──────────────────────────────────────────────────────────────────────────────
 # Celery — async task queue for automated SMS reminders
 # ──────────────────────────────────────────────────────────────────────────────
 CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
@@ -181,21 +191,13 @@ CELERY_TASK_TIME_LIMIT = 30  # 30 second hard limit per task
 # ──────────────────────────────────────────────────────────────────────────────
 # Production Security Hardening (Phase 3C)
 # ──────────────────────────────────────────────────────────────────────────────
-# Security headers (active in production when DEBUG=False)
+# Security headers (active in development & production base)
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
-if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
 
 # File upload limits
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
-

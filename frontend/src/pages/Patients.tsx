@@ -39,7 +39,9 @@ export default function Patients() {
   const [riskFilter, setRiskFilter] = useState('');
   const [eddFrom, setEddFrom] = useState('');
   const [eddTo, setEddTo] = useState('');
-  const [resultCount, setResultCount] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const PAGE_SIZE = 20;
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState<PatientForm>(BLANK_FORM);
   const [saving, setSaving] = useState(false);
@@ -56,7 +58,7 @@ export default function Patients() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const params: Record<string,string> = {};
+    const params: Record<string,string> = { page: String(page) };
     if (search) params.search = search;
     if (stageFilter) params.stage = stageFilter;
     if (riskFilter) params.risk = riskFilter;
@@ -65,10 +67,11 @@ export default function Patients() {
     const { data } = await patientsApi.list(params);
     const list = data.results ?? data;
     setPatients(list);
-    setResultCount(data.count ?? list.length);
+    setTotalCount(data.count ?? list.length);
     setLoading(false);
-  }, [search, stageFilter, riskFilter, eddFrom, eddTo]);
+  }, [search, stageFilter, riskFilter, eddFrom, eddTo, page]);
 
+  useEffect(() => { setPage(1); }, [search, stageFilter, riskFilter, eddFrom, eddTo]);
   useEffect(() => { load(); }, [load]);
 
   const openModal = () => { setForm(BLANK_FORM); setError(''); reset(); setShowModal(true); };
@@ -184,7 +187,7 @@ export default function Patients() {
 
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 8 }}>
             <span className="badge badge-neutral" style={{ padding: '5px 12px' }}>
-              {resultCount} result{resultCount !== 1 ? 's' : ''}
+              {totalCount} result{totalCount !== 1 ? 's' : ''}
             </span>
             {hasFilters && (
               <button
@@ -241,6 +244,28 @@ export default function Patients() {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+          {/* Pagination */}
+          {totalCount > PAGE_SIZE && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderTop: '1px solid var(--border)' }}>
+              <button
+                className="btn btn-ghost btn-sm"
+                disabled={page === 1}
+                onClick={() => setPage(p => p - 1)}
+              >
+                ← Previous
+              </button>
+              <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                Page {page} of {Math.ceil(totalCount / PAGE_SIZE)} &nbsp;·&nbsp; {totalCount} patients
+              </span>
+              <button
+                className="btn btn-ghost btn-sm"
+                disabled={page * PAGE_SIZE >= totalCount}
+                onClick={() => setPage(p => p + 1)}
+              >
+                Next →
+              </button>
             </div>
           )}
         </div>

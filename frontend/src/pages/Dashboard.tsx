@@ -16,8 +16,7 @@ import {
 import { dashboardApi, pediatricsApi } from '../api';
 import { DashboardSummary, VaccinationRecord } from '../types';
 import { formatDate, STAGE_LABELS } from '../utils';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend,
@@ -106,10 +105,32 @@ export default function Dashboard() {
       setTrends(trendRes.data);
     } catch (err) {
       console.error(err);
-    } finally { setLoading(false); }
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    const controller = new AbortController();
+    (async () => {
+      try {
+        const [sumRes, trendRes] = await Promise.all([
+          dashboardApi.summary(),
+          dashboardApi.trends('weekly', 12)
+        ]);
+        if (!controller.signal.aborted) {
+          setSummary(sumRes.data);
+          setTrends(trendRes.data);
+        }
+      } catch (err) {
+        if (!controller.signal.aborted) console.error(err);
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    })();
+    return () => controller.abort();
+  }, []);
+
 
   const pieData = summary?.appointment_breakdown ? Object.entries(summary.appointment_breakdown).map(([k, v]) => ({
     name: k.charAt(0).toUpperCase() + k.slice(1), value: v,
@@ -121,54 +142,36 @@ export default function Dashboard() {
 
   const exportReport = async (type: 'png' | 'pdf') => {
     if (!reportRef.current) return;
-
+    const { default: html2canvas } = await import('html2canvas');
     const canvas = await html2canvas(reportRef.current, {
       scale: 2,
       backgroundColor: document.documentElement.classList.contains('dark') ? '#0D102B' : '#F8FAFC',
     });
-
-    const dateStamp = new Date()
-      .toISOString()
-      .split('T')[0];
-
+    const dateStamp = new Date().toISOString().split('T')[0];
     if (type === 'png') {
       const link = document.createElement('a');
-
       link.href = canvas.toDataURL('image/png');
       link.download = `dashboard-report-${dateStamp}.png`;
-
       link.click();
-
       return;
     }
-
+    const { default: jsPDF } = await import('jspdf');
     const pdf = new jsPDF('p', 'mm', 'a4');
-
     const pageWidth = pdf.internal.pageSize.getWidth();
     const pageHeight = pdf.internal.pageSize.getHeight();
-
     const imgData = canvas.toDataURL('image/png');
-
     const imgWidth = pageWidth;
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
     let heightLeft = imgHeight;
     let position = 0;
-
     pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-
     heightLeft -= pageHeight;
-
     while (heightLeft > 0) {
       position = heightLeft - imgHeight;
-
       pdf.addPage();
-
       pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
-
       heightLeft -= pageHeight;
     }
-
     pdf.save(`dashboard-report-${dateStamp}.pdf`);
   };
 
