@@ -458,6 +458,12 @@ input, select, textarea { font-family: inherit; color: var(--text-primary); }
   }
 }
 
+@media (max-width: 640px) {
+  .stats-row {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
 .stat-card {
   background: var(--bg-card);
   border: 1px solid var(--border);

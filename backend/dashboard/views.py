@@ -1,6 +1,6 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from datetime import date, timedelta
@@ -225,5 +225,20 @@ class TrendsView(APIView):
                 'missed_appointments': total_mis,
                 'high_risk_anc': total_hr,
             },
+        })
+
+
+class PublicStatsView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        from reminders.models import ReminderLog
+        patients_count = Patient.objects.filter(is_active=True).count()
+        active_deliveries = Patient.objects.filter(is_active=True, clinic_stage='DELIVERED').count()
+        clinic_reminders_sent = ReminderLog.objects.filter(delivery_status='SENT').count()
+        return Response({
+            'patients_count': patients_count,
+            'active_deliveries': active_deliveries,
+            'clinic_reminders_sent': clinic_reminders_sent,
         })
 

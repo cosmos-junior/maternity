@@ -1,4 +1,4 @@
-﻿"""
+"""
 Celery tasks for automated appointment reminders.
 
 Schedules two SMS reminders per appointment:
@@ -52,6 +52,7 @@ try:
             patient_name=patient.full_name,
             appointment_date=str(appt.scheduled_date),
             appointment_time=time_str,
+            lang=getattr(patient, 'lang', 'en'),
         )
 
         success = False

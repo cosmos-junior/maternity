@@ -222,6 +222,7 @@ export default function Layout() {
           <button 
             className="lg:hidden p-2 -ml-2 text-primary"
             onClick={() => setIsSidebarOpen(true)}
+            aria-label="Open sidebar"
           >
             <Menu size={24} />
           </button>

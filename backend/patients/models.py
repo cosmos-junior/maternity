@@ -56,6 +56,11 @@ class Patient(models.Model):
     clinic_stage = models.CharField(max_length=20, choices=CLINIC_STAGE_CHOICES, default='ANC1')
     risk_level = models.CharField(max_length=10, choices=RISK_CHOICES, default='LOW')
     blood_group = models.CharField(max_length=5, choices=BLOOD_GROUP_CHOICES, default='O+')
+    LANG_CHOICES = [
+        ('en', 'English'),
+        ('sw', 'Swahili'),
+    ]
+    lang = models.CharField(max_length=2, choices=LANG_CHOICES, default='en', verbose_name='Preferred Language')
     medical_history = models.TextField(blank=True)
     surgical_history = models.TextField(blank=True)
     allergies = models.TextField(blank=True)

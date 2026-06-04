@@ -395,7 +395,7 @@ export default function Partograph() {
                     <td>{e.temperature_celsius ? `${e.temperature_celsius}°C` : '—'}</td>
                     <td className="text-sm text-muted">{e.recorded_by_name}</td>
                     <td>
-                       <Link to={`/partograph/entry/${e.id}/edit`} className="btn btn-ghost btn-sm p-1" title="Edit">
+                       <Link to={`/partograph/entry/${e.id}/edit`} className="btn btn-ghost btn-sm p-1" title="Edit" aria-label="Edit observation">
                           <ExternalLink size={14} />
                        </Link>
                     </td>

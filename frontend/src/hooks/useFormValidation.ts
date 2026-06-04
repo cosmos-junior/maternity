@@ -188,6 +188,7 @@ export type PatientFormFields = {
   clinic_stage: string;
   risk_level: string;
   blood_group: string;
+  lang?: string;
   address: string;
   medical_history?: string;
   surgical_history?: string;

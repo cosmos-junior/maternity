@@ -107,6 +107,7 @@ export const pediatricsApi = {
 export const remindersApi = {
   list: () => api.get('/reminders/'),
   send: (data: object) => api.post('/reminders/send/', data),
+  preview: (data: object) => api.post('/reminders/preview/', data),
 };
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────
@@ -117,6 +118,7 @@ export const dashboardApi = {
   recentActivity: () => api.get('/dashboard/recent-activity/'),
   trends: (period = 'weekly', weeks = 12) =>
     api.get('/dashboard/trends/', { params: { period, weeks } }),
+  publicStats: () => api.get('/dashboard/public-stats/'),
 };
 
 // ─── Partograph ───────────────────────────────────────────────────────────────
@@ -149,8 +151,8 @@ export const staffApi = {
 
 // ─── Audit Trail (admin) ──────────────────────────────────────────────────────
 export const auditApi = {
-  getHistory: (modelName: string, pk: number) =>
-    api.get(`/core/audit/${modelName}/${pk}/`),
+  getHistory: (modelName: string, pk: number, params?: object) =>
+    api.get(`/core/audit/${modelName}/${pk}/`, { params }),
 };
 
 // ─── Clinical Notes & Documents (Phase 3A/3B) ────────────────────────────────

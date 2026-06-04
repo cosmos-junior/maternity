@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Building2, AlertCircle, LogIn, Activity, CheckCircle, Hospital, ShieldCheck } from 'lucide-react';
-import { authApi } from '../api';
+import { authApi, dashboardApi } from '../api';
 import { useAuth } from '../context/AuthContext';
 
 // Vite static asset import for the left login panel
 const loginPanelImage = new URL('../../images/login_image.jpg', import.meta.url).href;
+
+interface PublicStats {
+  patients_count: number;
+  active_deliveries: number;
+  clinic_reminders_sent: number;
+}
 
 export default function Login() {
   const { login } = useAuth();
@@ -15,6 +21,13 @@ export default function Login() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
+  const [stats, setStats] = useState<PublicStats | null>(null);
+
+  useEffect(() => {
+    dashboardApi.publicStats()
+      .then(({ data }) => setStats(data))
+      .catch(err => console.error('Failed to load public stats:', err));
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,16 +65,16 @@ export default function Login() {
             </p>
             <div className="login-stats-row">
               <div className="login-stat">
-                <span className="login-stat-value">ANC</span>
-                <span className="login-stat-label">Antenatal Care</span>
+                <span className="login-stat-value">{stats ? stats.patients_count : '—'}</span>
+                <span className="login-stat-label">Registered Patients</span>
               </div>
               <div className="login-stat">
-                <span className="login-stat-value">PNC</span>
-                <span className="login-stat-label">Postnatal Care</span>
+                <span className="login-stat-value">{stats ? stats.active_deliveries : '—'}</span>
+                <span className="login-stat-label">Active Deliveries</span>
               </div>
               <div className="login-stat">
-                <span className="login-stat-value">24/7</span>
-                <span className="login-stat-label">Care Available</span>
+                <span className="login-stat-value">{stats ? stats.clinic_reminders_sent : '—'}</span>
+                <span className="login-stat-label">SMS Reminders Sent</span>
               </div>
             </div>
           </div>
@@ -150,7 +163,9 @@ export default function Login() {
           <div className="login-divider" />
           <div className="login-trust-badges">
             <span className="flex items-center gap-1"><CheckCircle size={14} className="text-success" /> Secure Login</span>
-            <span className="flex items-center gap-1"><Hospital size={14} className="text-primary" /> Kenya DPA Compliant</span>
+            <span className="flex items-center gap-1" title="Compliant with Kenya Data Protection Act 2019">
+              <ShieldCheck size={14} className="text-primary" /> Kenya DPA Compliant
+            </span>
             <span className="flex items-center gap-1"><ShieldCheck size={14} className="text-success" /> Data Protected</span>
           </div>
         </div>

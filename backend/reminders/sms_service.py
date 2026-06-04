@@ -44,13 +44,22 @@ def build_appointment_reminder(
     appointment_date: str,
     appointment_time: str = None,
     facility_name: str = 'Itierio Nursing Home',
+    lang: str = 'en',
 ) -> str:
-    time_str = f' at {appointment_time}' if appointment_time else ''
-    return (
-        f'Dear {patient_name}, your ANC appointment at {facility_name} '
-        f'is scheduled for {appointment_date}{time_str}. '
-        f'Please attend. For queries call us. Thank you.'
-    )
+    if lang == 'sw':
+        time_str = f' saa {appointment_time}' if appointment_time else ''
+        return (
+            f'Mpendwa {patient_name}, miadi yako ya ANC katika {facility_name} '
+            f'imeratibiwa kufanyika tarehe {appointment_date}{time_str}. '
+            f'Tafadhali hudhuria. Kwa maswali tupigie. Asante.'
+        )
+    else:
+        time_str = f' at {appointment_time}' if appointment_time else ''
+        return (
+            f'Dear {patient_name}, your ANC appointment at {facility_name} '
+            f'is scheduled for {appointment_date}{time_str}. '
+            f'Please attend. For queries call us. Thank you.'
+        )
 
 
 def build_postnatal_reminder(
@@ -58,8 +67,15 @@ def build_postnatal_reminder(
     review_type: str,
     review_date: str,
     facility_name: str = 'Itierio Nursing Home',
+    lang: str = 'en',
 ) -> str:
-    return (
-        f'Dear {patient_name}, your {review_type} postnatal review at {facility_name} '
-        f'is due on {review_date}. Please ensure you attend. Thank you.'
-    )
+    if lang == 'sw':
+        return (
+            f'Mpendwa {patient_name}, uchunguzi wako wa postnatal ({review_type}) katika {facility_name} '
+            f'unatarajiwa tarehe {review_date}. Tafadhali hakikisha unahudhuria. Asante.'
+        )
+    else:
+        return (
+            f'Dear {patient_name}, your {review_type} postnatal review at {facility_name} '
+            f'is due on {review_date}. Please ensure you attend. Thank you.'
+        )

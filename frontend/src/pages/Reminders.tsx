@@ -24,6 +24,10 @@ export default function Reminders() {
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ success: boolean; msg: string } | null>(null);
 
+  // Preview flow
+  const [step, setStep] = useState<'compose' | 'preview'>('compose');
+  const [preview, setPreview] = useState<{ message: string; length: number } | null>(null);
+
   const load = async () => {
     setLoading(true);
     const [lRes, pRes, aRes] = await Promise.all([
@@ -38,8 +42,37 @@ export default function Reminders() {
   };
   useEffect(() => { load(); }, []);
 
-  const handleSend = async (e: React.FormEvent) => {
-    e.preventDefault(); setSending(true); setResult(null);
+  const openModal = () => {
+    setForm({ patient_id: '', appointment_id: '', use_template: true, message: '' });
+    setStep('compose');
+    setPreview(null);
+    setResult(null);
+    setShowModal(true);
+  };
+
+  const handlePreview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.patient_id) return;
+    setSending(true);
+    setResult(null);
+    try {
+      const payload: any = { patient_id: +form.patient_id, use_template: form.use_template };
+      if (form.appointment_id) payload.appointment_id = +form.appointment_id;
+      if (!form.use_template && form.message) payload.message = form.message;
+
+      const { data } = await remindersApi.preview(payload);
+      setPreview({ message: data.message, length: data.length });
+      setStep('preview');
+    } catch (err: any) {
+      const detail = err.response?.data?.error || err.response?.data?.detail || err.message;
+      setResult({ success: false, msg: `Preview Error: ${detail || 'Could not fetch preview.'}` });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleSend = async () => {
+    setSending(true); setResult(null);
     try {
       const payload: any = { patient_id: +form.patient_id, use_template: form.use_template };
       if (form.appointment_id) payload.appointment_id = +form.appointment_id;
@@ -66,7 +99,7 @@ export default function Reminders() {
           <MessageSquare className="text-primary" size={28} /> SMS Reminders
         </h1>
         <div className="header-actions">
-          <button id="send-reminder-btn" className="btn btn-primary flex items-center gap-2" onClick={() => setShowModal(true)}>
+          <button id="send-reminder-btn" className="btn btn-primary flex items-center gap-2" onClick={openModal}>
             <Send size={18} /> Send Reminder
           </button>
         </div>
@@ -137,60 +170,89 @@ export default function Reminders() {
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowModal(false)}>
           <div className="modal">
             <div className="modal-header">
-              <div className="modal-title">Send SMS Reminder</div>
-              <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
+              <div className="modal-title">
+                {step === 'compose' ? 'Send SMS Reminder' : 'Confirm SMS Details'}
+              </div>
+              <button className="modal-close" onClick={() => setShowModal(false)} aria-label="Close modal">✕</button>
             </div>
             {result && (
               <div className={`alert alert-${result.success ? 'success' : 'danger'}`}>
                 {result.success ? '✓' : '⚠️'} {result.msg}
               </div>
             )}
-            <form onSubmit={handleSend}>
-              <div className="form-group">
-                <label className="form-label">Patient *</label>
-                <select className="form-select" required value={form.patient_id} onChange={e => setForm(f => ({...f, patient_id: e.target.value, appointment_id: ''}))}>
-                  <option value="">— Select Patient —</option>
-                  {patients.map(p => <option key={p.id} value={p.id}>{p.patient_number} — {p.full_name} ({p.phone_number})</option>)}
-                </select>
-              </div>
-              {patientAppointments.length > 0 && (
+
+            {step === 'compose' ? (
+              <form onSubmit={handlePreview}>
                 <div className="form-group">
-                  <label className="form-label">Link to Appointment (optional)</label>
-                  <select className="form-select" value={form.appointment_id} onChange={e => setForm(f => ({...f, appointment_id: e.target.value}))}>
-                    <option value="">— None —</option>
-                    {patientAppointments.map(a => (
-                      <option key={a.id} value={a.id}>{APPT_TYPE_LABELS[a.appointment_type]} on {a.scheduled_date}</option>
-                    ))}
+                  <label className="form-label">Patient *</label>
+                  <select className="form-select" required value={form.patient_id} onChange={e => setForm(f => ({...f, patient_id: e.target.value, appointment_id: ''}))}>
+                    <option value="">— Select Patient —</option>
+                    {patients.map(p => <option key={p.id} value={p.id}>{p.patient_number} — {p.full_name} ({p.phone_number})</option>)}
                   </select>
                 </div>
-              )}
-              <div className="form-group">
-                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.88rem' }}>
-                  <input type="checkbox" checked={form.use_template} onChange={e => setForm(f => ({...f, use_template: e.target.checked}))} />
-                  Use automatic message template
-                </label>
-              </div>
-              {!form.use_template && (
+                {patientAppointments.length > 0 && (
+                  <div className="form-group">
+                    <label className="form-label">Link to Appointment (optional)</label>
+                    <select className="form-select" value={form.appointment_id} onChange={e => setForm(f => ({...f, appointment_id: e.target.value}))}>
+                      <option value="">— None —</option>
+                      {patientAppointments.map(a => (
+                        <option key={a.id} value={a.id}>{APPT_TYPE_LABELS[a.appointment_type]} on {a.scheduled_date}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
                 <div className="form-group">
-                  <label className="form-label">Custom Message *</label>
-                  <textarea className="form-textarea" rows={4} required={!form.use_template}
-                    value={form.message} onChange={e => setForm(f => ({...f, message: e.target.value}))}
-                    placeholder="Dear Jane, your appointment at Itierio Nursing Home…" />
-                  <span className="form-hint">{form.message.length}/160 characters</span>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.88rem' }}>
+                    <input type="checkbox" checked={form.use_template} onChange={e => setForm(f => ({...f, use_template: e.target.checked}))} />
+                    Use automatic message template
+                  </label>
                 </div>
-              )}
-              {form.use_template && form.patient_id && (
-                <div className="alert alert-warning" style={{ fontSize: '0.8rem' }}>
-                  📱 Message preview: "Dear [Patient Name], your ANC appointment at Itierio Nursing Home is scheduled for [date] at [time]. Please attend…"
+                {!form.use_template && (
+                  <div className="form-group">
+                    <label className="form-label">Custom Message *</label>
+                    <textarea className="form-textarea" rows={4} required={!form.use_template}
+                      value={form.message} onChange={e => setForm(f => ({...f, message: e.target.value}))}
+                      placeholder="Dear Jane, your appointment at Itierio Nursing Home…" />
+                    <span className="form-hint">{form.message.length}/160 characters</span>
+                  </div>
+                )}
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancel</button>
+                  <button type="submit" className="btn btn-primary" disabled={sending}>
+                    {sending ? 'Loading Preview…' : 'Continue to Preview'}
+                  </button>
                 </div>
-              )}
-              <div className="modal-footer">
-                <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancel</button>
-                <button id="confirm-send-btn" type="submit" className="btn btn-primary" disabled={sending}>
-                  {sending ? 'Sending…' : '📱 Send SMS'}
-                </button>
+              </form>
+            ) : (
+              <div>
+                <div className="form-group">
+                  <label className="form-label">Recipient Phone</label>
+                  <input className="form-input" type="text" readOnly value={patients.find(p => String(p.id) === form.patient_id)?.phone_number || ''} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">SMS Message Body</label>
+                  <div className="alert alert-warning" style={{ color: 'var(--text-primary)', background: 'var(--bg-input)', border: '1px solid var(--border)', fontFamily: 'monospace', fontSize: '0.88rem', whiteSpace: 'pre-wrap', minHeight: 60 }}>
+                    {preview?.message}
+                  </div>
+                  <span className="form-hint" style={{ fontWeight: 600, color: (preview?.length ?? 0) > 160 ? 'var(--danger)' : 'inherit' }}>
+                    {preview?.length} / 160 characters ({(preview?.length ?? 0) > 0 ? Math.ceil((preview?.length ?? 0) / 160) : 0} segment{Math.ceil((preview?.length ?? 0) / 160) !== 1 ? 's' : ''})
+                  </span>
+                </div>
+
+                {preview && preview.length > 160 && (
+                  <div className="alert alert-danger" style={{ fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
+                    <span>⚠️ SMS exceeds 160 characters (1 segment) and may cost extra.</span>
+                  </div>
+                )}
+
+                <div className="modal-footer" style={{ marginTop: 20 }}>
+                  <button type="button" className="btn btn-ghost" onClick={() => setStep('compose')}>Edit Message</button>
+                  <button id="confirm-send-btn" type="button" className="btn btn-primary flex items-center gap-1" onClick={handleSend} disabled={sending}>
+                    {sending ? 'Sending…' : <><Send size={14} /> Confirm & Send</>}
+                  </button>
+                </div>
               </div>
-            </form>
+            )}
           </div>
         </div>
       )}

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import DashboardSummaryView, DueSoonView, OverdueDeliveryView, RecentActivityView, TrendsView
+from .views import DashboardSummaryView, DueSoonView, OverdueDeliveryView, RecentActivityView, TrendsView, PublicStatsView
 
 urlpatterns = [
     path('summary/', DashboardSummaryView.as_view(), name='dashboard_summary'),
@@ -7,5 +7,6 @@ urlpatterns = [
     path('overdue-delivery/', OverdueDeliveryView.as_view(), name='overdue_delivery'),
     path('recent-activity/', RecentActivityView.as_view(), name='recent_activity'),
     path('trends/', TrendsView.as_view(), name='dashboard_trends'),
+    path('public-stats/', PublicStatsView.as_view(), name='public_stats'),
 ]
 

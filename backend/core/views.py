@@ -17,12 +17,12 @@ class AuditLogView(APIView):
 
     def get(self, request, model_name, pk):
         try:
-            history = self._get_history(model_name, pk)
+            history = self._get_history(model_name, pk, request)
         except (LookupError, Exception) as e:
             return Response({'error': str(e)}, status=400)
         return Response(history)
 
-    def _get_history(self, model_name, pk):
+    def _get_history(self, model_name, pk, request=None):
         model_map = {
             'patient': ('patients', 'Patient'),
             'appointment': ('appointments', 'Appointment'),
@@ -37,6 +37,25 @@ class AuditLogView(APIView):
         Model = apps.get_model(app, model_cls_name)
         instance = Model.objects.get(pk=pk)
         history_qs = instance.history.all().order_by('-history_date')
+
+        if request:
+            from_date = request.GET.get('from_date')
+            to_date = request.GET.get('to_date')
+            action_type = request.GET.get('action_type')
+            user_val = request.GET.get('user')
+
+            if from_date:
+                history_qs = history_qs.filter(history_date__date__gte=from_date)
+            if to_date:
+                history_qs = history_qs.filter(history_date__date__lte=to_date)
+            if action_type:
+                history_qs = history_qs.filter(history_type=action_type)
+            if user_val:
+                from django.db.models import Q
+                history_qs = history_qs.filter(
+                    Q(history_user__email__icontains=user_val) |
+                    Q(history_user__full_name__icontains=user_val)
+                )
 
         records = []
         history_list = list(history_qs)
