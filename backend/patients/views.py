@@ -26,12 +26,16 @@ class PatientListCreateView(generics.ListCreateAPIView):
         filters.SearchFilter,
         filters.OrderingFilter,
     ] + ([DjangoFilterBackend] if _django_filter else [])
-    search_fields = ['full_name', 'patient_number', 'phone_number', 'address']
-    ordering_fields = ['full_name', 'edd', 'created_at', 'clinic_stage', 'risk_level']
+    search_fields = [
+        'full_name', 'patient_number', 'phone_number', 'address',
+        'residence_county', 'residence_village', 'national_id', 'next_of_kin_name',
+    ]
+    ordering_fields = ['full_name', 'edd', 'created_at', 'clinic_stage', 'risk_level', 'registration_stage']
     ordering = ['-created_at']
     filterset_fields = {
         'clinic_stage': ['exact'],
         'risk_level':   ['exact'],
+        'registration_stage': ['exact'],
         'edd':          ['gte', 'lte'],
     } if _django_filter else {}
 
@@ -41,10 +45,13 @@ class PatientListCreateView(generics.ListCreateAPIView):
         if not _django_filter:
             stage = self.request.query_params.get('stage')
             risk  = self.request.query_params.get('risk')
+            reg_stage = self.request.query_params.get('registration_stage')
             if stage:
                 qs = qs.filter(clinic_stage=stage)
             if risk:
                 qs = qs.filter(risk_level=risk)
+            if reg_stage:
+                qs = qs.filter(registration_stage=reg_stage)
         # Additional convenience filters
         edd_from = self.request.query_params.get('edd_from')
         edd_to   = self.request.query_params.get('edd_to')

@@ -151,13 +151,13 @@ export default function Patients() {
           </div>
           <div className="flex items-center gap-2">
             <Filter size={16} className="text-muted" />
-            <select className="form-select w-auto" style={{ width: 150 }} value={stageFilter} onChange={e => setStageFilter(e.target.value)}>
+            <select className="form-select w-auto" style={{ width: '100%', maxWidth: 150, minWidth: 0 }} value={stageFilter} onChange={e => setStageFilter(e.target.value)}>
               <option value="">All Stages</option>
               {(Object.keys(STAGE_LABELS) as ClinicStage[]).map(s => (
                 <option key={s} value={s}>{STAGE_LABELS[s]}</option>
               ))}
             </select>
-            <select className="form-select w-auto" style={{ width: 130 }} value={riskFilter} onChange={e => setRiskFilter(e.target.value)}>
+            <select className="form-select w-auto" style={{ width: '100%', maxWidth: 130, minWidth: 0 }} value={riskFilter} onChange={e => setRiskFilter(e.target.value)}>
               <option value="">All Risk</option>
               <option value="LOW">Low</option>
               <option value="MEDIUM">Medium</option>
@@ -176,13 +176,13 @@ export default function Patients() {
             <span>EDD from</span>
             <input
               type="date" className="form-input"
-              style={{ width: 140, padding: '5px 8px', fontSize: '0.78rem' }}
+              style={{ width: '100%', maxWidth: 140, minWidth: 0, padding: '5px 8px', fontSize: '0.78rem' }}
               value={eddFrom} onChange={e => setEddFrom(e.target.value)}
             />
             <span>to</span>
             <input
               type="date" className="form-input"
-              style={{ width: 140, padding: '5px 8px', fontSize: '0.78rem' }}
+              style={{ width: '100%', maxWidth: 140, minWidth: 0, padding: '5px 8px', fontSize: '0.78rem' }}
               value={eddTo} onChange={e => setEddTo(e.target.value)}
             />
           </div>

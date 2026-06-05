@@ -236,7 +236,7 @@ export default function Layout() {
           </button>
 
           <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
-            <div className="hidden md:flex" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '8px 16px', alignItems: 'center', gap: '8px', width: '400px' }}>
+            <div className="hidden md:flex" style={{ background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', padding: '8px 16px', alignItems: 'center', gap: '8px', width: '100%', maxWidth: 'min(420px, 100%)' }}>
               <Search size={18} style={{ color: 'var(--text-muted)' }} />
               <input type="text" placeholder="Search..." style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%', fontSize: '0.9rem', color: 'var(--text-primary)' }} />
               <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', background: 'var(--bg-input)', padding: '2px 6px', borderRadius: '4px' }}>⌘K</span>

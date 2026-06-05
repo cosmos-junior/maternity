@@ -150,7 +150,7 @@ export default function ClinicalNotes() {
         {/* Filters */}
         <div className="filter-bar flex items-center gap-2">
           <Filter size={18} className="text-muted" />
-          <select className="form-select" style={{ width: 180 }} value={catFilter} onChange={e => setCatFilter(e.target.value)}>
+          <select className="form-select" style={{ width: '100%', maxWidth: 180, minWidth: 0 }} value={catFilter} onChange={e => setCatFilter(e.target.value)}>
             <option value="">All Categories</option>
             {CATEGORIES.map(c => (
               <option key={c} value={c}>{c.replace('_', ' ')}</option>

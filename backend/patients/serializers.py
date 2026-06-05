@@ -1,5 +1,51 @@
 from rest_framework import serializers
-from .models import Patient, PartographEntry
+from .models import (
+    Patient, PartographEntry,
+    PatientMedicalCondition, PatientSurgicalHistory,
+    PatientAllergy, PatientFamilyHistory,
+)
+
+
+class PatientMedicalConditionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PatientMedicalCondition
+        fields = [
+            'id', 'condition', 'diagnosis_date', 'status', 'notes',
+            'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class PatientSurgicalHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PatientSurgicalHistory
+        fields = [
+            'id', 'procedure_name', 'procedure_date', 'facility', 'outcome', 'notes',
+            'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class PatientAllergySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PatientAllergy
+        fields = [
+            'id', 'allergen', 'reaction', 'severity', 'first_noted', 'notes',
+            'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class PatientFamilyHistorySerializer(serializers.ModelSerializer):
+    relation_display = serializers.CharField(source='get_relation_display', read_only=True)
+
+    class Meta:
+        model = PatientFamilyHistory
+        fields = [
+            'id', 'relation', 'relation_display', 'condition', 'age_at_diagnosis', 'notes',
+            'created_at', 'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
 
 
 class PatientSerializer(serializers.ModelSerializer):
@@ -9,16 +55,26 @@ class PatientSerializer(serializers.ModelSerializer):
     is_overdue = serializers.ReadOnlyField()
     is_due_soon = serializers.ReadOnlyField()
     registered_by_name = serializers.SerializerMethodField()
+    medical_history_entries = PatientMedicalConditionSerializer(many=True, required=False)
+    surgical_history_entries = PatientSurgicalHistorySerializer(many=True, required=False)
+    allergy_entries = PatientAllergySerializer(many=True, required=False)
+    family_history_entries = PatientFamilyHistorySerializer(many=True, required=False)
 
     class Meta:
         model = Patient
         fields = [
-            'id', 'patient_number', 'full_name', 'phone_number',
+            'id', 'patient_number', 'full_name', 'first_name', 'middle_name', 'last_name', 'preferred_name',
+            'gender', 'marital_status', 'education_level', 'occupation', 'spouse_name', 'spouse_phone',
             'national_id', 'nhif_number',
+            'phone_number', 'address', 'residence_county', 'residence_subcounty', 'residence_ward',
+            'residence_village', 'birth_registration_number', 'place_of_birth', 'birth_country',
+            'emergency_contact_relationship', 'emergency_contact_address', 'household_size',
             'next_of_kin_name', 'next_of_kin_phone', 'date_of_birth',
-            'lmp', 'edd', 'clinic_stage', 'risk_level', 'blood_group', 'lang',
+            'lmp', 'edd', 'clinic_stage', 'risk_level', 'registration_stage', 'profile_completed',
+            'profile_verified', 'blood_group', 'lang',
             'medical_history', 'surgical_history', 'allergies', 'family_history',
-            'address', 'notes', 'is_active', 'registered_by', 'registered_by_name',
+            'medical_history_entries', 'surgical_history_entries', 'allergy_entries', 'family_history_entries',
+            'notes', 'is_active', 'registered_by', 'registered_by_name',
             'created_at', 'updated_at',
             # Computed
             'age', 'weeks_pregnant', 'days_to_edd', 'is_overdue', 'is_due_soon',
@@ -29,6 +85,54 @@ class PatientSerializer(serializers.ModelSerializer):
         if obj.registered_by:
             return obj.registered_by.full_name
         return None
+
+    def create(self, validated_data):
+        history_data = validated_data.pop('medical_history_entries', [])
+        surgical_data = validated_data.pop('surgical_history_entries', [])
+        allergy_data = validated_data.pop('allergy_entries', [])
+        family_data = validated_data.pop('family_history_entries', [])
+        patient = Patient.objects.create(**validated_data)
+
+        for item in history_data:
+            PatientMedicalCondition.objects.create(patient=patient, **item)
+        for item in surgical_data:
+            PatientSurgicalHistory.objects.create(patient=patient, **item)
+        for item in allergy_data:
+            PatientAllergy.objects.create(patient=patient, **item)
+        for item in family_data:
+            PatientFamilyHistory.objects.create(patient=patient, **item)
+
+        return patient
+
+    def update(self, instance, validated_data):
+        history_data = validated_data.pop('medical_history_entries', None)
+        surgical_data = validated_data.pop('surgical_history_entries', None)
+        allergy_data = validated_data.pop('allergy_entries', None)
+        family_data = validated_data.pop('family_history_entries', None)
+
+        instance = super().update(instance, validated_data)
+
+        if history_data is not None:
+            instance.medical_history_entries.all().delete()
+            for item in history_data:
+                PatientMedicalCondition.objects.create(patient=instance, **item)
+
+        if surgical_data is not None:
+            instance.surgical_history_entries.all().delete()
+            for item in surgical_data:
+                PatientSurgicalHistory.objects.create(patient=instance, **item)
+
+        if allergy_data is not None:
+            instance.allergy_entries.all().delete()
+            for item in allergy_data:
+                PatientAllergy.objects.create(patient=instance, **item)
+
+        if family_data is not None:
+            instance.family_history_entries.all().delete()
+            for item in family_data:
+                PatientFamilyHistory.objects.create(patient=instance, **item)
+
+        return instance
 
 
 class PatientListSerializer(serializers.ModelSerializer):
@@ -42,7 +146,8 @@ class PatientListSerializer(serializers.ModelSerializer):
         model = Patient
         fields = [
             'id', 'patient_number', 'full_name', 'phone_number',
-            'lmp', 'edd', 'clinic_stage', 'risk_level', 'blood_group', 'lang', 'is_active',
+            'lmp', 'edd', 'clinic_stage', 'risk_level', 'registration_stage',
+            'blood_group', 'lang', 'residence_county', 'residence_village', 'is_active',
             'days_to_edd', 'is_due_soon', 'is_overdue', 'weeks_pregnant',
         ]
 

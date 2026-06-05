@@ -105,7 +105,7 @@ export default function AuditLog() {
             <Search size={20} className="text-primary" /> Lookup Record History
           </div>
           <form onSubmit={handleSearch} style={{ display: 'flex', gap: 12, alignItems: 'flex-end', flexWrap: 'wrap' }}>
-            <div className="form-group" style={{ minWidth: 180 }}>
+            <div className="form-group" style={{ flex: '1 1 180px', minWidth: 0 }}>
               <label className="form-label flex items-center gap-1">
                 <Database size={14} /> Record Type
               </label>
@@ -115,7 +115,7 @@ export default function AuditLog() {
                 ))}
               </select>
             </div>
-            <div className="form-group" style={{ minWidth: 100 }}>
+            <div className="form-group" style={{ flex: '1 1 100px', minWidth: 0 }}>
               <label className="form-label flex items-center gap-1">
                 <Database size={14} /> Record ID
               </label>
@@ -123,7 +123,7 @@ export default function AuditLog() {
                 onChange={e => setPk(e.target.value)} />
             </div>
 
-            <div className="form-group" style={{ minWidth: 130 }}>
+            <div className="form-group" style={{ flex: '1 1 130px', minWidth: 0 }}>
               <label className="form-label">Action Type</label>
               <select className="form-select" value={actionType} onChange={e => setActionType(e.target.value)}>
                 <option value="">All Actions</option>
@@ -133,17 +133,17 @@ export default function AuditLog() {
               </select>
             </div>
 
-            <div className="form-group" style={{ minWidth: 130 }}>
+            <div className="form-group" style={{ flex: '1 1 130px', minWidth: 0 }}>
               <label className="form-label">From Date</label>
               <input className="form-input" type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} />
             </div>
 
-            <div className="form-group" style={{ minWidth: 130 }}>
+            <div className="form-group" style={{ flex: '1 1 130px', minWidth: 0 }}>
               <label className="form-label">To Date</label>
               <input className="form-input" type="date" value={toDate} onChange={e => setToDate(e.target.value)} />
             </div>
 
-            <div className="form-group" style={{ minWidth: 160 }}>
+            <div className="form-group" style={{ flex: '1 1 160px', minWidth: 0 }}>
               <label className="form-label">Changed By</label>
               <input className="form-input" type="text" placeholder="Name or email..." value={userFilter} onChange={e => setUserFilter(e.target.value)} />
             </div>

@@ -43,8 +43,46 @@ class Patient(models.Model):
         ('O+', 'O+'), ('O-', 'O-'),
     ]
 
+    GENDER_CHOICES = [
+        ('FEMALE', 'Female'),
+        ('MALE', 'Male'),
+        ('OTHER', 'Other'),
+    ]
+    MARITAL_STATUS_CHOICES = [
+        ('SINGLE', 'Single'),
+        ('MARRIED', 'Married'),
+        ('COHABITING', 'Cohabiting'),
+        ('DIVORCED', 'Divorced'),
+        ('WIDOWED', 'Widowed'),
+    ]
+    EDUCATION_LEVEL_CHOICES = [
+        ('NONE', 'None'),
+        ('PRIMARY', 'Primary'),
+        ('SECONDARY', 'Secondary'),
+        ('TERTIARY', 'Tertiary'),
+        ('UNIVERSITY', 'University'),
+        ('OTHER', 'Other'),
+    ]
+    REGISTRATION_STAGE_CHOICES = [
+        ('NEW', 'New Registration'),
+        ('IDENTITY_CAPTURED', 'Identity Captured'),
+        ('PROFILE_COMPLETE', 'Profile Complete'),
+        ('VERIFIED', 'Verified'),
+        ('UPDATED', 'Updated'),
+    ]
+
     patient_number = models.CharField(max_length=20, unique=True, blank=True)
     full_name = models.CharField(max_length=200)
+    first_name = models.CharField(max_length=100, blank=True)
+    middle_name = models.CharField(max_length=100, blank=True)
+    last_name = models.CharField(max_length=100, blank=True)
+    preferred_name = models.CharField(max_length=100, blank=True)
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='FEMALE')
+    marital_status = models.CharField(max_length=20, choices=MARITAL_STATUS_CHOICES, blank=True, default='SINGLE')
+    education_level = models.CharField(max_length=20, choices=EDUCATION_LEVEL_CHOICES, blank=True)
+    occupation = models.CharField(max_length=150, blank=True)
+    spouse_name = models.CharField(max_length=200, blank=True)
+    spouse_phone = models.CharField(max_length=15, blank=True)
     national_id = models.CharField(max_length=20, blank=True, null=True, verbose_name="National ID")
     nhif_number = models.CharField(max_length=50, blank=True, null=True, verbose_name="NHIF Number")
     phone_number = models.CharField(max_length=15)
@@ -66,6 +104,19 @@ class Patient(models.Model):
     allergies = models.TextField(blank=True)
     family_history = models.TextField(blank=True)
     address = models.TextField(blank=True)
+    birth_registration_number = models.CharField(max_length=50, blank=True)
+    place_of_birth = models.CharField(max_length=200, blank=True)
+    birth_country = models.CharField(max_length=100, blank=True)
+    residence_county = models.CharField(max_length=100, blank=True)
+    residence_subcounty = models.CharField(max_length=100, blank=True)
+    residence_ward = models.CharField(max_length=100, blank=True)
+    residence_village = models.CharField(max_length=100, blank=True)
+    emergency_contact_relationship = models.CharField(max_length=100, blank=True)
+    emergency_contact_address = models.TextField(blank=True)
+    household_size = models.PositiveIntegerField(null=True, blank=True, help_text='Number of people in household')
+    registration_stage = models.CharField(max_length=20, choices=REGISTRATION_STAGE_CHOICES, default='NEW')
+    profile_completed = models.BooleanField(default=False)
+    profile_verified = models.BooleanField(default=False)
     notes = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
     registered_by = models.ForeignKey(
@@ -85,6 +136,7 @@ class Patient(models.Model):
             models.Index(fields=['edd'],          name='patients_edd_idx'),
             models.Index(fields=['risk_level'],    name='patients_risk_idx'),
             models.Index(fields=['clinic_stage'],  name='patients_stage_idx'),
+            models.Index(fields=['registration_stage'], name='patient_reg_stage_idx'),
             models.Index(fields=['is_active'],     name='patients_active_idx'),
         ]
 
@@ -128,6 +180,114 @@ class Patient(models.Model):
 
     def __str__(self):
         return f"{self.patient_number} — {self.full_name}"
+
+
+class PatientMedicalCondition(models.Model):
+    CONDITION_STATUS_CHOICES = [
+        ('KNOWN', 'Known'),
+        ('ONGOING', 'Ongoing'),
+        ('RESOLVED', 'Resolved'),
+        ('UNKNOWN', 'Unknown'),
+    ]
+
+    patient = models.ForeignKey(
+        Patient, on_delete=models.CASCADE, related_name='medical_history_entries'
+    )
+    condition = models.CharField(max_length=200)
+    diagnosis_date = models.DateField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=CONDITION_STATUS_CHOICES, default='KNOWN')
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    history = HistoricalRecords() if _history_available else None
+
+    class Meta:
+        db_table = 'patient_medical_conditions'
+        ordering = ['-created_at']
+        verbose_name = 'Maternal Medical Condition'
+
+    def __str__(self):
+        return f"{self.condition} ({self.patient.patient_number})"
+
+
+class PatientSurgicalHistory(models.Model):
+    patient = models.ForeignKey(
+        Patient, on_delete=models.CASCADE, related_name='surgical_history_entries'
+    )
+    procedure_name = models.CharField(max_length=200)
+    procedure_date = models.DateField(null=True, blank=True)
+    facility = models.CharField(max_length=200, blank=True)
+    outcome = models.CharField(max_length=150, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    history = HistoricalRecords() if _history_available else None
+
+    class Meta:
+        db_table = 'patient_surgical_histories'
+        ordering = ['-procedure_date', '-created_at']
+        verbose_name = 'Maternal Surgical History'
+
+    def __str__(self):
+        return f"{self.procedure_name} ({self.patient.patient_number})"
+
+
+class PatientAllergy(models.Model):
+    ALLERGY_SEVERITY_CHOICES = [
+        ('MILD', 'Mild'),
+        ('MODERATE', 'Moderate'),
+        ('SEVERE', 'Severe'),
+    ]
+
+    patient = models.ForeignKey(
+        Patient, on_delete=models.CASCADE, related_name='allergy_entries'
+    )
+    allergen = models.CharField(max_length=200)
+    reaction = models.CharField(max_length=200, blank=True)
+    severity = models.CharField(max_length=10, choices=ALLERGY_SEVERITY_CHOICES, blank=True)
+    first_noted = models.DateField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    history = HistoricalRecords() if _history_available else None
+
+    class Meta:
+        db_table = 'patient_allergies'
+        ordering = ['-created_at']
+        verbose_name = 'Maternal Allergy'
+
+    def __str__(self):
+        return f"{self.allergen} ({self.patient.patient_number})"
+
+
+class PatientFamilyHistory(models.Model):
+    RELATION_CHOICES = [
+        ('MOTHER', 'Mother'),
+        ('FATHER', 'Father'),
+        ('SIBLING', 'Sibling'),
+        ('GRANDPARENT', 'Grandparent'),
+        ('OTHER', 'Other'),
+    ]
+
+    patient = models.ForeignKey(
+        Patient, on_delete=models.CASCADE, related_name='family_history_entries'
+    )
+    relation = models.CharField(max_length=50, choices=RELATION_CHOICES, blank=True)
+    condition = models.CharField(max_length=200)
+    age_at_diagnosis = models.PositiveIntegerField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    history = HistoricalRecords() if _history_available else None
+
+    class Meta:
+        db_table = 'patient_family_histories'
+        ordering = ['-created_at']
+        verbose_name = 'Family History Entry'
+
+    def __str__(self):
+        relation_display = self.get_relation_display() if self.relation else 'Family'
+        return f"{relation_display}: {self.condition} ({self.patient.patient_number})"
 
 
 # ─── Partograph ────────────────────────────────────────────────────────────────

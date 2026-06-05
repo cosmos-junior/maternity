@@ -304,7 +304,7 @@ input, select, textarea { font-family: inherit; color: var(--text-primary); }
 }
 
 .page-header {
-  height: var(--header-h);
+  min-height: var(--header-h);
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center;
   padding: 0 28px;
@@ -312,19 +312,30 @@ input, select, textarea { font-family: inherit; color: var(--text-primary); }
   position: sticky; top: 0; z-index: 50;
   gap: 16px;
   box-shadow: 0 1px 0 rgba(255,255,255,0.8), 0 8px 24px rgba(15,23,42,0.03);
+  flex-wrap: wrap;
 }
 
 @media (max-width: 768px) {
   .page-header {
-    padding: 0 16px;
+    padding: 16px 16px;
+    align-items: flex-start;
   }
 }
 
 .page-header h1 {
   font-family: var(--font-display); font-size: 1.15rem; font-weight: 700;
-  flex: 1;
+  flex: 1 1 100%;
+  min-width: 0;
 }
-.header-actions { display: flex; align-items: center; gap: 12px; }
+.header-actions {
+  display: flex; align-items: center; gap: 12px;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.header-actions > * {
+  min-width: 0;
+}
 
 .page-body { padding: 28px; flex: 1; }
 
@@ -581,7 +592,10 @@ td .mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8rem; co
   display: flex; align-items: center; gap: 10px;
   margin-bottom: 20px; flex-wrap: wrap;
 }
-.search-wrap { position: relative; flex: 1; min-width: 200px; }
+.filter-bar > * {
+  min-width: 0;
+}
+.search-wrap { position: relative; flex: 1 1 320px; min-width: 0; }
 .search-wrap .search-icon {
   position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
   color: var(--text-muted); font-size: 0.9rem; pointer-events: none;
@@ -908,6 +922,20 @@ td .mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8rem; co
 @media (max-width: 900px) {
   :root { --sidebar-w: 220px; }
   .form-grid, .form-grid-3 { grid-template-columns: 1fr; }
+  .dash-grid, .dash-grid-3 { grid-template-columns: 1fr; }
+  .col-span-2 { grid-column: span 1; }
+}
+@media (max-width: 768px) {
+  .page-header { height: auto; }
+  .header-actions { justify-content: flex-start; }
+  .page-header h1 { flex: 1 1 100%; margin-bottom: 12px; }
+  .filter-bar { gap: 8px; }
+  .filter-bar > * { width: 100%; }
+  .search-wrap { flex: 1 1 100%; }
+  .search-wrap input { width: 100%; }
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  thead th { white-space: normal; }
+  td, th { padding: 12px 10px; }
   .dash-grid, .dash-grid-3 { grid-template-columns: 1fr; }
   .col-span-2 { grid-column: span 1; }
 }
