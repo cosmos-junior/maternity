@@ -1,5 +1,5 @@
 """
-Django settings for Maternity Follow-Up Tracker
+Django settings for Maternity Follow-Up Tracker (Base Configuration)
 """
 from pathlib import Path
 from decouple import config
@@ -7,8 +7,8 @@ from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = config('SECRET_KEY', default='dev-secret-key-change-in-production')
-DEBUG = config('DEBUG', default=True, cast=bool)
+SECRET_KEY = config('SECRET_KEY')
+DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
 INSTALLED_APPS = [
@@ -84,7 +84,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': config('DB_NAME', default='maternity_db'),
         'USER': config('DB_USER', default='root'),
-        'PASSWORD': config('DB_PASSWORD', default='#Itierio@254'),
+        'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST', default='127.0.0.1'),
         'PORT': config('DB_PORT', default='3306'),
         'OPTIONS': {
@@ -118,7 +118,7 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=8),
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
     'ROTATE_REFRESH_TOKENS': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
@@ -136,7 +136,7 @@ CORS_ALLOW_CREDENTIALS = True
 # Africa's Talking SMS
 # ──────────────────────────────────────────────────────────────────────────────
 AT_USERNAME = config('AT_USERNAME', default='sandbox')
-AT_API_KEY = config('AT_API_KEY', default='atsk_37a2e0eb14ca1b9e71d48ac0e214f6f2f6b276050f2c262d0e10adfac1f09eaf26131ef5')
+AT_API_KEY = config('AT_API_KEY')
 AT_SENDER_ID = config('AT_SENDER_ID', default='MATERNITY')
 ADMIN_PHONE_NUMBER = config('ADMIN_PHONE_NUMBER', default='')
 
@@ -167,6 +167,16 @@ USE_I18N = True
 USE_TZ = True
 
 # ──────────────────────────────────────────────────────────────────────────────
+# Cache — Redis
+# ──────────────────────────────────────────────────────────────────────────────
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+        'LOCATION': config('CELERY_BROKER_URL', default='redis://localhost:6379/0'),
+    }
+}
+
+# ──────────────────────────────────────────────────────────────────────────────
 # Celery — async task queue for automated SMS reminders
 # ──────────────────────────────────────────────────────────────────────────────
 CELERY_BROKER_URL = config('CELERY_BROKER_URL', default='redis://localhost:6379/0')
@@ -181,21 +191,13 @@ CELERY_TASK_TIME_LIMIT = 30  # 30 second hard limit per task
 # ──────────────────────────────────────────────────────────────────────────────
 # Production Security Hardening (Phase 3C)
 # ──────────────────────────────────────────────────────────────────────────────
-# Security headers (active in production when DEBUG=False)
+# Security headers (active in development & production base)
 SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 X_FRAME_OPTIONS = 'DENY'
 CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_HTTPONLY = True
-if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
 
 # File upload limits
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
-

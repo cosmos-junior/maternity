@@ -189,6 +189,10 @@ export type PatientFormFields = {
   risk_level: string;
   blood_group: string;
   address: string;
+  medical_history?: string;
+  surgical_history?: string;
+  allergies?: string;
+  family_history?: string;
 };
 
 export const patientSchema: ValidationSchema<PatientFormFields> = {

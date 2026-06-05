@@ -3,7 +3,11 @@ node_modules/
 
 # Python virtual environment
 backend/.venv/
+
+# Environment files — never commit secrets
 backend/.env
+.env
+*.env
 
 # Python cache
 __pycache__/
@@ -14,5 +18,22 @@ __pycache__/
 # VS Code
 .vscode/
 
-# Frontend build
+# Frontend build output
 frontend/dist/
+frontend/.vite/
+
+# Vite compiled assets — do not commit build artifacts
+frontend/src/assets/*.css
+frontend/src/assets/*.js
+
+# Audit and plan docs (optional — remove if you want them tracked)
+# AUDIT_REPORT.md
+# IMPLEMENTATION_PLAN.txt
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Django static/media collected files
+backend/staticfiles/
+backend/media/

@@ -1,3 +1,4 @@
+import React from 'react';
 import { RiskLevel } from '../types';
 import { AlertTriangle, ShieldCheck } from 'lucide-react';
 

@@ -1,6 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 from datetime import date, timedelta
 from patients.models import Patient
 from appointments.models import Appointment
@@ -9,6 +11,7 @@ from patients.serializers import PatientListSerializer
 from appointments.serializers import AppointmentSerializer
 
 
+@method_decorator(cache_page(60), name='dispatch')
 class DashboardSummaryView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -121,6 +124,7 @@ class RecentActivityView(APIView):
         })
 
 
+@method_decorator(cache_page(300), name='dispatch')
 class TrendsView(APIView):
     """
     GET /api/dashboard/trends/?period=weekly&weeks=12

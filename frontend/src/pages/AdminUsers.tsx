@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { staffApi } from '../api';
 import { StaffUser } from '../types';
 import { Users, UserPlus, ShieldCheck, Trash2, Mail, Phone, Shield } from 'lucide-react';

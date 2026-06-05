@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import date
 
 try:
     from simple_history.models import HistoricalRecords
@@ -119,7 +120,7 @@ class ANCVisit(models.Model):
         'patients.Patient', on_delete=models.CASCADE, related_name='anc_visits'
     )
     visit_number = models.PositiveIntegerField(help_text="e.g. 1 for ANC1, 2 for ANC2")
-    visit_date = models.DateField(auto_now_add=True)
+    visit_date = models.DateField(default=date.today)
     
     # Vitals & Measurements
     weight_kg = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)

@@ -86,6 +86,7 @@ export default function Layout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [unresolvedCount, setUnresolvedCount] = useState<number>(0);
+  const [navSearch, setNavSearch] = useState('');
 
   // Show onboarding modal only if profile is not completed
   useEffect(() => {
@@ -114,7 +115,7 @@ export default function Layout() {
       }
     };
     loadUnresolved();
-    const interval = window.setInterval(loadUnresolved, 20000);
+    const interval = window.setInterval(loadUnresolved, 60000);
     return () => { mounted = false; window.clearInterval(interval); };
   }, [userRole]);
 
@@ -155,7 +156,7 @@ export default function Layout() {
         <div style={{ padding: '16px 20px 0' }}>
           <div style={{ background: 'var(--bg-input)', padding: '8px 12px', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px', border: '1px solid var(--border)' }}>
             <Search size={16} style={{ color: 'var(--text-muted)' }} />
-            <input type="text" placeholder="Search menu..." style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%', fontSize: '0.85rem', color: 'var(--text-primary)' }} />
+            <input type="text" placeholder="Search menu..." value={navSearch} onChange={e => setNavSearch(e.target.value)} style={{ background: 'transparent', border: 'none', outline: 'none', width: '100%', fontSize: '0.85rem', color: 'var(--text-primary)' }} />
           </div>
         </div>
 
@@ -163,7 +164,10 @@ export default function Layout() {
         <nav className="sidebar-nav">
           {NAV_SECTIONS.map(section => {
             if (section.roles && !section.roles.includes(userRole)) return null;
-            const visibleItems = section.items.filter(item => !item.roles || item.roles.includes(userRole));
+            const visibleItems = section.items.filter(item =>
+              (!item.roles || item.roles.includes(userRole)) &&
+              (!navSearch || item.label.toLowerCase().includes(navSearch.toLowerCase()))
+            );
             if (visibleItems.length === 0) return null;
 
             return (
@@ -198,8 +202,8 @@ export default function Layout() {
           <div className="user-card cursor-pointer" style={{ marginBottom: 10, background: 'transparent', padding: '0 8px' }} onClick={() => setShowProfile(true)}>
             <div className="user-avatar" style={{ background: '#3B82F6', width: 40, height: 40 }}>{initials}</div>
             <div className="user-info">
-              <div className="user-name" style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>{user?.full_name || 'Joachim Odhaimbo'}</div>
-              <div className='email-name' style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>{user?.email || 'neville@itierionursin..'}</div>
+              <div className="user-name" style={{ fontSize: '0.9rem', color: 'var(--text-primary)' }}>{user?.full_name || ''}</div>
+              <div className='email-name' style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 500 }}>{user?.email || ''}</div>
             </div>
             <ChevronUp size={16} style={{ color: 'var(--text-muted)' }} />
           </div>
@@ -255,7 +259,7 @@ export default function Layout() {
 
             <div className="cursor-pointer" style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => setShowProfile(true)}>
               <div style={{ width: 24, height: 24, background: '#3B82F6', borderRadius: '50%', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem' }}>{initials}</div>
-              <span className="hidden sm:inline" style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{user?.full_name || 'JOACHIM ODHIAMBO'} </span>
+              <span className="hidden sm:inline" style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{user?.full_name || 'User'}</span>
             </div>
           </div>
         </header>

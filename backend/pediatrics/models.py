@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import date
 
 class ChildProfile(models.Model):
     mother = models.ForeignKey('patients.Patient', on_delete=models.CASCADE, related_name='children')
@@ -30,7 +31,7 @@ class ChildProfile(models.Model):
 
 class GrowthRecord(models.Model):
     child = models.ForeignKey(ChildProfile, on_delete=models.CASCADE, related_name='growth_records')
-    date_recorded = models.DateField(auto_now_add=True)
+    date_recorded = models.DateField(default=date.today)
     weight_kg = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     height_cm = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     head_circumference_cm = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
@@ -83,7 +84,7 @@ class VaccinationRecord(models.Model):
 
 class ChildClinicVisit(models.Model):
     child = models.ForeignKey(ChildProfile, on_delete=models.CASCADE, related_name='clinic_visits')
-    visit_date = models.DateField(auto_now_add=True)
+    visit_date = models.DateField(default=date.today)
     fever_illness_history = models.TextField(blank=True, help_text="History of fever or illnesses since last visit")
     nutrition_status = models.TextField(blank=True, help_text="Breastfeeding, weaning, general nutrition")
     development_milestones = models.TextField(blank=True, help_text="Milestones achieved (e.g. sitting, crawling)")
