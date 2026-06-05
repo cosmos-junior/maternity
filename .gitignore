@@ -37,3 +37,4 @@ Thumbs.db
 # Django static/media collected files
 backend/staticfiles/
 backend/media/
+frontend/package-lock.json
