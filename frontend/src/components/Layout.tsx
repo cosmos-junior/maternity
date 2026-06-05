@@ -94,6 +94,27 @@ export default function Layout() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [unresolvedCount, setUnresolvedCount] = useState<number>(0);
   const [navSearch, setNavSearch] = useState('');
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [queueSize, setQueueSize] = useState(0);
+
+  useEffect(() => {
+    const handleOnlineStatus = () => setIsOnline(navigator.onLine);
+    window.addEventListener('online', handleOnlineStatus);
+    window.addEventListener('offline', handleOnlineStatus);
+
+    const updateQueueSize = async () => {
+      const { getOfflineQueue } = await import('../utils/offlineQueue');
+      setQueueSize(getOfflineQueue().length);
+    };
+    updateQueueSize();
+    window.addEventListener('offline-queue-changed', updateQueueSize);
+
+    return () => {
+      window.removeEventListener('online', handleOnlineStatus);
+      window.removeEventListener('offline', handleOnlineStatus);
+      window.removeEventListener('offline-queue-changed', updateQueueSize);
+    };
+  }, []);
 
   // Show onboarding modal only if profile is not completed
   useEffect(() => {
@@ -243,6 +264,37 @@ export default function Layout() {
             </div>
           </div>
           <div className="header-actions" style={{ gap: '20px', color: 'var(--text-muted)' }}>
+            {/* Sync & Connection Status Indicator */}
+            <div className="hidden sm:flex items-center gap-2" style={{
+              background: isOnline ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+              color: isOnline ? '#22c55e' : '#ef4444',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              fontSize: '0.85rem',
+              fontWeight: 500,
+              border: `1px solid ${isOnline ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              {isOnline ? (
+                <>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
+                  <span>Online</span>
+                  {queueSize > 0 && (
+                    <span style={{ marginLeft: '4px', background: '#3B82F6', color: 'white', borderRadius: '50%', width: '18px', height: '18px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.7rem', fontWeight: 600 }}>
+                      {queueSize}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <>
+                  <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
+                  <span>Offline {queueSize > 0 ? `(${queueSize} queued)` : ''}</span>
+                </>
+              )}
+            </div>
+
             {user?.role === 'ADMIN' && <NotificationBell />}
             <ThemeToggle />
             <button

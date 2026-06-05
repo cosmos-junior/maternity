@@ -1,5 +1,7 @@
 from django.db import models, transaction
 from datetime import date, timedelta
+from core.fields import EncryptedCharField
+import hashlib
 try:
     from simple_history.models import HistoricalRecords
     _history_available = True
@@ -126,6 +128,10 @@ class Patient(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    national_id_hash = models.CharField(max_length=64, blank=True, null=True, db_index=True)
+    nhif_number_hash = models.CharField(max_length=64, blank=True, null=True, db_index=True)
+    phone_number_hash = models.CharField(max_length=64, blank=True, null=True, db_index=True)
+
     # Audit trail
     history = HistoricalRecords() if _history_available else None
 
@@ -138,6 +144,9 @@ class Patient(models.Model):
             models.Index(fields=['clinic_stage'],  name='patients_stage_idx'),
             models.Index(fields=['registration_stage'], name='patient_reg_stage_idx'),
             models.Index(fields=['is_active'],     name='patients_active_idx'),
+            models.Index(fields=['national_id_hash'], name='patients_nat_hash_idx'),
+            models.Index(fields=['nhif_number_hash'], name='patients_nhif_hash_idx'),
+            models.Index(fields=['phone_number_hash'], name='patients_ph_hash_idx'),
         ]
 
     def save(self, *args, **kwargs):
@@ -145,6 +154,26 @@ class Patient(models.Model):
             self.patient_number = generate_patient_number()
         if self.lmp and not self.edd:
             self.edd = self.lmp + timedelta(days=280)
+
+        # Calculate SHA-256 hashes for searching
+        if self.national_id:
+            normalized = str(self.national_id).strip()
+            self.national_id_hash = hashlib.sha256(normalized.encode('utf-8')).hexdigest()
+        else:
+            self.national_id_hash = None
+
+        if self.nhif_number:
+            normalized = str(self.nhif_number).strip()
+            self.nhif_number_hash = hashlib.sha256(normalized.encode('utf-8')).hexdigest()
+        else:
+            self.nhif_number_hash = None
+
+        if self.phone_number:
+            normalized = str(self.phone_number).strip()
+            self.phone_number_hash = hashlib.sha256(normalized.encode('utf-8')).hexdigest()
+        else:
+            self.phone_number_hash = None
+
         super().save(*args, **kwargs)
 
     @property

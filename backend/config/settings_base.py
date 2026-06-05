@@ -8,6 +8,7 @@ from datetime import timedelta
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = config('SECRET_KEY')
+FIELD_ENCRYPTION_KEY = config('FIELD_ENCRYPTION_KEY', default='Z7iHf1QHDFlUrNFPBIRzUKsitZbK1trKw4K5XFuduiI=')
 DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'referrals',
     'mortality',
     'pmtct',
+    'drf_spectacular',
 ]
 
 MIDDLEWARE = [
@@ -101,6 +103,7 @@ DATABASES = {
 # REST Framework + JWT Auth
 # ──────────────────────────────────────────────────────────────────────────────
 REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
@@ -204,3 +207,10 @@ SESSION_COOKIE_HTTPONLY = True
 # File upload limits
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10 MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Maternity Follow-Up Tracker API',
+    'DESCRIPTION': 'API documentation for the Maternity Follow-Up Tracker system.',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}

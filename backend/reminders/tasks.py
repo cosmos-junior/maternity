@@ -228,6 +228,10 @@ try:
                 task_id=f'reminder-1h-{appointment_id}',
             )
 
+        @shared_task
+        def send_bulk_reminders_task(patient_ids, use_template, message, lang, user_id=None):
+            return send_bulk_reminders_sync(patient_ids, use_template, message, lang, user_id)
+
 except ImportError:
     logger.info('Celery not available - automated reminders disabled.')
 
@@ -242,3 +246,87 @@ except ImportError:
         
     def check_missed_appointments(*args, **kwargs):
         pass
+
+    def send_bulk_reminders_task(*args, **kwargs):
+        pass
+
+
+def send_bulk_reminders_sync(patient_ids, use_template, message, lang, user_id=None):
+    from patients.models import Patient
+    from appointments.models import Appointment
+    from reminders.sms_service import send_sms, build_appointment_reminder
+    from reminders.models import ReminderLog
+    from django.contrib.auth import get_user_model
+    
+    User = get_user_model()
+    sender = None
+    if user_id:
+        try:
+            sender = User.objects.get(pk=user_id)
+        except User.DoesNotExist:
+            pass
+
+    patients = Patient.objects.filter(pk__in=patient_ids)
+    results = {'sent': 0, 'failed': 0, 'details': []}
+
+    for patient in patients:
+        # Check if an upcoming appointment exists
+        appointment = Appointment.objects.filter(patient=patient, status='UPCOMING').first()
+        
+        # Build message
+        if use_template and appointment:
+            time_str = str(appointment.scheduled_time) if appointment.scheduled_time else None
+            msg = build_appointment_reminder(
+                patient.full_name,
+                str(appointment.scheduled_date),
+                time_str,
+                lang=lang or getattr(patient, 'lang', 'en')
+            )
+        elif use_template:
+            if lang == 'sw':
+                msg = f"Mpendwa {patient.full_name}, tafadhali wasiliana na Itierio Nursing Home kwa ajili ya miadi yako ijayo. Asante."
+            else:
+                msg = f"Dear {patient.full_name}, please contact Itierio Nursing Home for your upcoming appointment. Thank you."
+        else:
+            msg = message or (
+                f"Mpendwa {patient.full_name}, tafadhali wasiliana na Itierio Nursing Home kwa ajili ya miadi yako ijayo. Asante."
+                if lang == 'sw'
+                else f"Dear {patient.full_name}, please contact Itierio Nursing Home for your upcoming appointment. Thank you."
+            )
+
+        # Normalize phone
+        phone = patient.phone_number.strip()
+        if phone.startswith('0') and len(phone) == 10:
+            phone = '+254' + phone[1:]
+        elif phone.startswith('254') and not phone.startswith('+'):
+            phone = '+' + phone
+        elif not phone.startswith('+'):
+            phone = '+254' + phone
+
+        res = send_sms(phone, msg)
+        
+        # Log it
+        ReminderLog.objects.create(
+            patient=patient,
+            appointment=appointment,
+            phone_number=phone,
+            message_body=msg,
+            delivery_status='SENT' if res['success'] else 'FAILED',
+            error_message=res.get('error', ''),
+            sent_by=sender,
+        )
+
+        if res['success']:
+            results['sent'] += 1
+        else:
+            results['failed'] += 1
+            
+        results['details'].append({
+            'patient_id': patient.id,
+            'patient_name': patient.full_name,
+            'phone_number': phone,
+            'success': res['success'],
+            'error': res.get('error', '')
+        })
+        
+    return results

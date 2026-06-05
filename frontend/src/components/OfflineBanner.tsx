@@ -10,12 +10,41 @@ import { Wifi, WifiOff } from 'lucide-react';
 export default function OfflineBanner() {
   const [offline, setOffline] = useState(!navigator.onLine);
   const [showReconnect, setShowReconnect] = useState(false);
+  const [queueCount, setQueueCount] = useState(0);
 
   useEffect(() => {
+    const updateQueueCount = async () => {
+      const { getOfflineQueue } = await import('../utils/offlineQueue');
+      setQueueCount(getOfflineQueue().length);
+    };
+
+    updateQueueCount();
+    window.addEventListener('offline-queue-changed', updateQueueCount);
+    return () => {
+      window.removeEventListener('offline-queue-changed', updateQueueCount);
+    };
+  }, []);
+
+  useEffect(() => {
+    const performSync = async () => {
+      try {
+        const { syncOfflineQueue } = await import('../utils/offlineQueue');
+        await syncOfflineQueue();
+      } catch (err) {
+        console.error('[OfflineBanner] Error syncing offline queue:', err);
+      }
+    };
+
+    // Auto-sync on mount if online
+    if (navigator.onLine) {
+      performSync();
+    }
+
     const handleOnline = () => {
       setOffline(false);
       setShowReconnect(true);
-      setTimeout(() => setShowReconnect(false), 2000);
+      performSync();
+      setTimeout(() => setShowReconnect(false), 3000);
     };
     const handleOffline = () => {
       setOffline(true);
@@ -41,12 +70,15 @@ export default function OfflineBanner() {
       {offline ? (
         <>
           <span className="offline-banner__icon"><WifiOff size={16} /></span>
-          <span>You are offline — viewing cached data only. Changes will sync when reconnected.</span>
+          <span>
+            You are offline — viewing cached data. 
+            {queueCount > 0 ? ` ${queueCount} pending changes will sync when online.` : ' Changes will sync when reconnected.'}
+          </span>
         </>
       ) : (
         <>
           <span className="offline-banner__icon"><Wifi size={16} /></span>
-          <span>Back online — data is syncing.</span>
+          <span>Back online — data synced successfully.</span>
         </>
       )}
     </div>
