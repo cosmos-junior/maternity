@@ -131,7 +131,7 @@ export default function Partograph() {
       setShowForm(false);
       load();
     } catch (err: any) {
-      setApiError(err.response?.data ? JSON.stringify(err.response.data) : 'Failed to save entry.');
+      setApiError('Unable to record labour observation. Please check that values are within reasonable clinical ranges (e.g. cervical dilation 0-10 cm), ensure you are connected to the network, and try again.');
     } finally {
       setSaving(false);
     }
@@ -379,7 +379,14 @@ export default function Partograph() {
             </thead>
             <tbody>
               {entries.length === 0 ? (
-                <tr><td colSpan={10} className="text-center py-8 text-muted">No data points recorded yet.</td></tr>
+                <tr>
+                  <td colSpan={10} className="text-center py-8 text-muted">
+                    <div style={{ fontWeight: 600 }}>No labour observations logged.</div>
+                    <div style={{ fontSize: '0.85rem', marginTop: 4, maxWidth: 500, margin: '4px auto 0' }}>
+                      This log displays patient labour data points plotted on the WHO Partograph chart. Click 'Add Observation' above to document hours in labour, cervical dilation, descent, and fetal heart rate.
+                    </div>
+                  </td>
+                </tr>
               ) : (
                 entries.map(e => (
                   <tr key={e.id}>

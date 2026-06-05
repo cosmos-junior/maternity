@@ -123,7 +123,7 @@ export default function LabourWard() {
       setBoardPatients(mapped);
       setLastRefreshed(new Date());
     } catch (err) {
-      setError('Failed to refresh Labour Ward Board.');
+      setError('Unable to refresh the Labour Ward Board. Please check your network connection, click the refresh button above, or contact system support if the connection persists.');
     } finally {
       setLoading(false);
     }
@@ -280,7 +280,7 @@ export default function LabourWard() {
                         textAlign: 'center'
                       }}
                     >
-                      Drag here or empty
+                      No mothers in this stage. Drag and drop a patient card here, or use the drop-down selector on the patient card to update their labour progress.
                     </div>
                   ) : (
                     patientsInCol.map((bp) => {

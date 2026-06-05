@@ -102,7 +102,7 @@ export default function Patients() {
       await patientsApi.create(form);
       setShowModal(false); load();
     } catch (err: any) {
-      setError(err.response?.data ? JSON.stringify(err.response.data) : 'Failed to register patient.');
+      setError('Registration failed. Please make sure the Phone Number or National ID is not already in use. Ensure all required fields are correctly formatted, check your connection, and try again.');
     } finally { setSaving(false); }
   };
 
@@ -210,7 +210,7 @@ export default function Patients() {
           ? <div className="empty-state">
               <div className="empty-icon"><Users size={48} /></div>
               <div className="empty-title">No patients found</div>
-              <div className="empty-desc">Register a patient to get started.</div>
+              <div className="empty-desc">This section tracks all maternal patients. Use the 'Register Patient' button at the top right to register a new pregnant mother and begin monitoring her gestation timeline.</div>
             </div>
           : (
             <div className="table-wrap">

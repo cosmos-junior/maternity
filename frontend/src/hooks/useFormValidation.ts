@@ -123,6 +123,12 @@ export function useFormValidation<T extends Record<string, unknown>>(
       if (!rules) return null;
       const err = validateField(value, rules, form);
       setErrors(prev => ({ ...prev, [field]: err ?? undefined }));
+      
+      // Mark field as touched immediately if it contains a value (live typing feedback)
+      const hasValue = value !== undefined && value !== null && String(value).trim() !== '';
+      if (hasValue) {
+        setTouched(prev => ({ ...prev, [field]: true }));
+      }
       return err;
     },
     [schema]

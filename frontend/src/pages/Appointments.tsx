@@ -30,40 +30,72 @@ export default function Appointments() {
   const [form, setForm] = useState({ patient: '', appointment_type: 'ANC1', scheduled_date: '', scheduled_time: '', notes: '' });
   const [saving, setSaving] = useState(false);
   const [actionMsg, setActionMsg] = useState('');
+  const [error, setError] = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
-    const params: Record<string,string> = {};
-    if (statusFilter) params.status = statusFilter;
-    const [aRes, pRes] = await Promise.all([
-      appointmentsApi.list(params),
-      patientsApi.list(),
-    ]);
-    setAppointments(aRes.data.results ?? aRes.data);
-    setPatients(pRes.data.results ?? pRes.data);
-    setLoading(false);
+    setError('');
+    try {
+      const params: Record<string,string> = {};
+      if (statusFilter) params.status = statusFilter;
+      const [aRes, pRes] = await Promise.all([
+        appointmentsApi.list(params),
+        patientsApi.list(),
+      ]);
+      setAppointments(aRes.data.results ?? aRes.data);
+      setPatients(pRes.data.results ?? pRes.data);
+    } catch (err) {
+      setError('Unable to load appointments. Please check your connection, refresh the page, or contact system administration if the issue persists.');
+    } finally {
+      setLoading(false);
+    }
   }, [statusFilter]);
   useEffect(() => { load(); }, [load]);
 
-  const flash = (msg: string) => { setActionMsg(msg); setTimeout(() => setActionMsg(''), 3000); };
+  const flash = (msg: string) => { setActionMsg(msg); setError(''); setTimeout(() => setActionMsg(''), 3000); };
 
   const markAttended = async (id: number) => {
-    await appointmentsApi.markAttended(id); flash('Marked as attended ✓'); load();
+    try {
+      await appointmentsApi.markAttended(id);
+      flash('Marked as attended ✓');
+      load();
+    } catch (err) {
+      setError('Unable to mark appointment as attended. Please try again or verify that the patient record is active.');
+    }
   };
   const markMissed = async (id: number) => {
-    await appointmentsApi.markMissed(id); flash('Marked as missed'); load();
+    try {
+      await appointmentsApi.markMissed(id);
+      flash('Marked as missed');
+      load();
+    } catch (err) {
+      setError('Unable to update appointment status. Please check your connection and try again.');
+    }
   };
   const handleReschedule = async () => {
     if (!showReschedule || !newDate) return;
-    await appointmentsApi.reschedule(showReschedule, { scheduled_date: newDate });
-    setShowReschedule(null); flash('Rescheduled ✓'); load();
+    try {
+      await appointmentsApi.reschedule(showReschedule, { scheduled_date: newDate });
+      setShowReschedule(null);
+      flash('Rescheduled ✓');
+      load();
+    } catch (err) {
+      setError('Failed to reschedule. Please select a valid future date and ensure the server is online.');
+    }
   };
   const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault(); setSaving(true);
+    e.preventDefault();
+    setSaving(true);
+    setError('');
     try {
       await appointmentsApi.create(form);
-      setShowModal(false); load();
-    } finally { setSaving(false); }
+      setShowModal(false);
+      load();
+    } catch (err) {
+      setError('Failed to schedule new appointment. Please verify patient availability and ensure the selected date is valid.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -80,6 +112,13 @@ export default function Appointments() {
       </header>
 
       <div className="page-body">
+        {error && (
+          <div className="alert alert-danger mb-4 flex items-center justify-between gap-2">
+            <span>⚠️ {error}</span>
+            <button className="btn btn-ghost btn-sm" onClick={() => setError('')}>Dismiss</button>
+          </div>
+        )}
+
         {actionMsg && <div className="alert alert-success flex items-center gap-2">
           <Check size={16} /> {actionMsg}
         </div>}
@@ -103,6 +142,7 @@ export default function Appointments() {
           ? <div className="empty-state">
               <div className="empty-icon"><Calendar size={48} /></div>
               <div className="empty-title">No appointments found</div>
+              <div className="empty-desc">This section manages upcoming and past clinical checkups. Use the 'New Appointment' button at the top right to schedule a new ANC or postnatal visit.</div>
             </div>
           : (
             <div className="table-wrap">

@@ -83,6 +83,7 @@ export default function Referrals() {
   const loadData = async () => {
     try {
       setLoading(true);
+      setError('');
       const [rRes, pRes] = await Promise.all([
         referralsApi.list(),
         patientsApi.list({ limit: '100' })
@@ -90,7 +91,7 @@ export default function Referrals() {
       setReferrals(rRes.data.results ?? rRes.data);
       setPatients(pRes.data.results ?? pRes.data);
     } catch (err) {
-      setError('Failed to load referral data.');
+      setError('Unable to retrieve clinical referrals. Please check your network connection, refresh the page, or contact system support if the issue persists.');
     } finally {
       setLoading(false);
     }
@@ -148,7 +149,7 @@ export default function Referrals() {
       resetCreateForm();
       loadData();
     } catch (err: any) {
-      setError(err?.response?.data?.detail || 'Failed to create referral.');
+      setError('Failed to log referral. Please check that all required fields are filled, verify the destination facility code/name, and ensure the server is online.');
     }
   };
 
@@ -166,7 +167,7 @@ export default function Referrals() {
       setSelectedReferral(null);
       loadData();
     } catch (err) {
-      setError('Failed to update referral status.');
+      setError('Failed to update referral outcome. Please check your network connection and try again.');
     }
   };
 
@@ -220,7 +221,7 @@ export default function Referrals() {
           <div className="card empty-state" style={{ padding: '40px' }}>
             <ArrowUpRight size={48} className="text-muted opacity-20 mb-3" />
             <h3>No referrals tracked yet</h3>
-            <p className="text-muted">Create a referral to log patient transfers to other institutions.</p>
+            <p className="text-muted">This section tracks patient transfers to other facilities (e.g. specialized care or emergencies). To record a transfer, click 'Create Referral' at the top right, select a patient, search for the KMHFL facility, and submit.</p>
           </div>
         ) : (
           <div className="grid gap-4">

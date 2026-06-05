@@ -70,8 +70,7 @@ export default function Reminders() {
       setPreview({ message: data.message, length: data.length });
       setStep('preview');
     } catch (err: any) {
-      const detail = err.response?.data?.error || err.response?.data?.detail || err.message;
-      setResult({ success: false, msg: `Preview Error: ${detail || 'Could not fetch preview.'}` });
+      setResult({ success: false, msg: 'Unable to generate message preview. Please ensure the patient is correctly selected, check your network connection, and try again.' });
     } finally {
       setSending(false);
     }
@@ -88,11 +87,10 @@ export default function Reminders() {
         setResult({ success: true, msg: 'SMS sent successfully! ✓' });
         setShowModal(false); load();
       } else {
-        setResult({ success: false, msg: `SMS failed: ${data.error || 'Unknown error'}` });
+        setResult({ success: false, msg: 'SMS delivery failed. Please verify the customer\'s connection or try using the fallback message template.' });
       }
     } catch (err: any) {
-      const detail = err.response?.data?.error || err.response?.data?.detail || err.message;
-      setResult({ success: false, msg: `Error: ${detail || 'Could not reach the server.'}` });
+      setResult({ success: false, msg: 'Failed to send SMS reminder. Please check your Africa\'s Talking configuration (API key and Username), verify that the patient has a valid phone number, and ensure you have internet access.' });
     } finally { setSending(false); }
   };
 
@@ -134,8 +132,7 @@ export default function Reminders() {
         load();
       }
     } catch (err: any) {
-      const detail = err.response?.data?.error || err.response?.data?.detail || err.message;
-      setBulkResult({ success: false, msg: `Error sending bulk reminders: ${detail}` });
+      setBulkResult({ success: false, msg: 'Failed to dispatch bulk SMS reminders. Please check your SMS provider credentials in the environment setup, verify cohort selection, and try again.' });
     } finally {
       setSending(false);
     }
@@ -201,7 +198,7 @@ export default function Reminders() {
               ? <div className="empty-state" style={{ padding: '30px' }}>
                   <div className="empty-icon"><MessageSquare size={48} className="text-muted" /></div>
                   <div className="empty-title">No reminders sent yet</div>
-                  <div className="empty-desc">Use the button above to send your first SMS reminder.</div>
+                  <div className="empty-desc">This section stores logs of all outgoing text message reminders sent to patients. To transmit a notification, click 'Send Reminder' or 'Send Bulk Reminders' above, choose your target patient/cohort, write or select a template, and send.</div>
                 </div>
               : (
                 <div className="table-wrap">
