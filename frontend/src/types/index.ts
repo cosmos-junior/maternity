@@ -35,6 +35,7 @@ export interface Patient {
   clinic_stage: ClinicStage;
   risk_level: RiskLevel;
   blood_group: string;
+  lang: 'en' | 'sw';
   medical_history: string;
   surgical_history: string;
   allergies: string;

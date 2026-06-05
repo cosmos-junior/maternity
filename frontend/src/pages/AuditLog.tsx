@@ -28,19 +28,51 @@ export default function AuditLog() {
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState('');
 
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Filters
+  const [fromDate, setFromDate]     = useState('');
+  const [toDate, setToDate]         = useState('');
+  const [actionType, setActionType] = useState('');
+  const [userFilter, setUserFilter] = useState('');
+
+  const handleSearch = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!pk) return;
     setLoading(true);
     setError('');
+
+    const params: any = {};
+    if (fromDate) params.from_date = fromDate;
+    if (toDate) params.to_date = toDate;
+    if (actionType) params.action_type = actionType;
+    if (userFilter) params.user = userFilter;
+
     try {
-      const { data } = await auditApi.getHistory(model, Number(pk));
+      const { data } = await auditApi.getHistory(model, Number(pk), params);
       setEntries(data);
     } catch (err: any) {
       setError(err.response?.data?.error ?? 'Failed to load audit history.');
       setEntries([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleClearFilters = () => {
+    setFromDate('');
+    setToDate('');
+    setActionType('');
+    setUserFilter('');
+    // Trigger reload with only model and pk
+    if (pk) {
+      setLoading(true);
+      setError('');
+      auditApi.getHistory(model, Number(pk))
+        .then(({ data }) => setEntries(data))
+        .catch((err: any) => {
+          setError(err.response?.data?.error ?? 'Failed to load audit history.');
+          setEntries([]);
+        })
+        .finally(() => setLoading(false));
     }
   };
 
@@ -83,16 +115,47 @@ export default function AuditLog() {
                 ))}
               </select>
             </div>
-            <div className="form-group" style={{ minWidth: 120 }}>
+            <div className="form-group" style={{ minWidth: 100 }}>
               <label className="form-label flex items-center gap-1">
                 <Database size={14} /> Record ID
               </label>
               <input className="form-input" type="number" min="1" placeholder="e.g. 1" value={pk}
                 onChange={e => setPk(e.target.value)} />
             </div>
-            <button type="submit" className="btn btn-primary flex items-center gap-2" disabled={loading || !pk}>
-              <Search size={18} /> {loading ? 'Loading…' : 'Search'}
-            </button>
+
+            <div className="form-group" style={{ minWidth: 130 }}>
+              <label className="form-label">Action Type</label>
+              <select className="form-select" value={actionType} onChange={e => setActionType(e.target.value)}>
+                <option value="">All Actions</option>
+                <option value="+">Created</option>
+                <option value="~">Updated</option>
+                <option value="-">Deleted</option>
+              </select>
+            </div>
+
+            <div className="form-group" style={{ minWidth: 130 }}>
+              <label className="form-label">From Date</label>
+              <input className="form-input" type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} />
+            </div>
+
+            <div className="form-group" style={{ minWidth: 130 }}>
+              <label className="form-label">To Date</label>
+              <input className="form-input" type="date" value={toDate} onChange={e => setToDate(e.target.value)} />
+            </div>
+
+            <div className="form-group" style={{ minWidth: 160 }}>
+              <label className="form-label">Changed By</label>
+              <input className="form-input" type="text" placeholder="Name or email..." value={userFilter} onChange={e => setUserFilter(e.target.value)} />
+            </div>
+
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button type="submit" className="btn btn-primary flex items-center gap-2" disabled={loading || !pk}>
+                <Search size={18} /> {loading ? 'Loading…' : 'Search'}
+              </button>
+              <button type="button" className="btn btn-ghost flex items-center gap-2" onClick={handleClearFilters} disabled={loading}>
+                Reset
+              </button>
+            </div>
           </form>
         </div>
 

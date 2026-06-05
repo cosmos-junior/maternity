@@ -33,6 +33,7 @@ export default function NotificationBell() {
       style={{ position: 'relative', minWidth: 40 }}
       onClick={() => navigate('/notifications')}
       title="Admin notifications"
+      aria-label="View notifications"
     >
       {unreadCount > 0 ? <BellRing size={20} /> : <Bell size={20} />}
       {unreadCount > 0 && (

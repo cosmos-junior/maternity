@@ -27,7 +27,7 @@ import { useFormValidation, patientSchema, PatientFormFields } from '../hooks/us
 const BLANK_FORM: PatientForm = {
   full_name: '', phone_number: '', next_of_kin_name: '', next_of_kin_phone: '',
   national_id: '', nhif_number: '', date_of_birth: null, lmp: '', clinic_stage: 'ANC1', risk_level: 'LOW',
-  blood_group: 'O+', medical_history: '', surgical_history: '', allergies: '', family_history: '',
+  blood_group: 'O+', lang: 'en', medical_history: '', surgical_history: '', allergies: '', family_history: '',
   address: '', notes: '', is_active: true, registered_by: null,
 };
 
@@ -88,7 +88,12 @@ export default function Patients() {
       lmp:              form.lmp,
       clinic_stage:     form.clinic_stage,
       risk_level:       form.risk_level,
-      blood_group:      form.blood_group ?? '',
+      blood_group:      (form as any).blood_group ?? '',
+      lang:             form.lang,
+      medical_history:  (form as any).medical_history ?? '',
+      surgical_history: (form as any).surgical_history ?? '',
+      allergies:        (form as any).allergies ?? '',
+      family_history:   (form as any).family_history ?? '',
       address:          form.address,
     };
     if (!validateAll(formAsFields)) return;
@@ -109,7 +114,12 @@ export default function Patients() {
       next_of_kin_name: form.next_of_kin_name, next_of_kin_phone: form.next_of_kin_phone,
       date_of_birth: form.date_of_birth ?? '', lmp: form.lmp,
       clinic_stage: form.clinic_stage, risk_level: form.risk_level,
-      blood_group: form.blood_group ?? '', address: form.address,
+      blood_group: (form as any).blood_group ?? '', address: form.address,
+      lang: form.lang,
+      medical_history: (form as any).medical_history ?? '',
+      surgical_history: (form as any).surgical_history ?? '',
+      allergies: (form as any).allergies ?? '',
+      family_history: (form as any).family_history ?? '',
       [field]: val,
     });
   };
@@ -269,7 +279,7 @@ export default function Patients() {
           <div className="modal modal-wide">
             <div className="modal-header">
               <div className="modal-title">Register New Patient</div>
-              <button className="modal-close" onClick={() => setShowModal(false)}><X size={20} /></button>
+              <button className="modal-close" onClick={() => setShowModal(false)} aria-label="Close modal"><X size={20} /></button>
             </div>
             {error && <div className="alert alert-danger">{error}</div>}
             <form onSubmit={handleSave} noValidate>
@@ -318,6 +328,15 @@ export default function Patients() {
                     {['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(bg => (
                       <option key={bg} value={bg}>{bg}</option>
                     ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label">Preferred Language</label>
+                  <select className="form-select" value={form.lang ?? 'en'}
+                    onChange={e => set('lang', e.target.value)}>
+                    <option value="en">English</option>
+                    <option value="sw">Swahili</option>
                   </select>
                 </div>
 

@@ -41,7 +41,8 @@ class SendReminderView(APIView):
             message = build_appointment_reminder(
                 patient.full_name,
                 str(appointment.scheduled_date),
-                time_str
+                time_str,
+                lang=getattr(patient, 'lang', 'en')
             )
         else:
             message = data.get('message', f"Dear {patient.full_name}, please contact Itierio Nursing Home for your upcoming appointment.")
@@ -75,3 +76,45 @@ class SendReminderView(APIView):
             'log': ReminderLogSerializer(log).data,
             'error': result.get('error'),
         }, status=200)
+
+
+class PreviewReminderView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = SendReminderSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=400)
+
+        data = serializer.validated_data
+        try:
+            patient = Patient.objects.get(pk=data['patient_id'])
+        except Patient.DoesNotExist:
+            return Response({'error': 'Patient not found'}, status=404)
+
+        appointment = None
+        if data.get('appointment_id'):
+            try:
+                appointment = Appointment.objects.get(pk=data['appointment_id'])
+            except Appointment.DoesNotExist:
+                pass
+
+        # Build message
+        if data.get('use_template') and appointment:
+            time_str = str(appointment.scheduled_time) if appointment.scheduled_time else None
+            message = build_appointment_reminder(
+                patient.full_name,
+                str(appointment.scheduled_date),
+                time_str,
+                lang=getattr(patient, 'lang', 'en')
+            )
+        else:
+            message = data.get('message', f"Dear {patient.full_name}, please contact Itierio Nursing Home for your upcoming appointment.")
+
+        return Response({
+            'message': message,
+            'length': len(message),
+            'patient_id': patient.id,
+            'patient_name': patient.full_name,
+            'phone_number': patient.phone_number,
+        })

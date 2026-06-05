@@ -836,11 +836,7 @@ ASK 2.11 — Remove Compiled Assets from Source Control
       2. Fetch on Login page mount
       3. Display real total patients, deliveries count
 
-    Option B — Remove stats entirely:
-      1. Delete the .login-stats-row div block
-      2. Replace with a short meaningful tagline about Itierio Nursing Home
-
-    Recommend Option B for simplicity.
+    
   Done when: Login page shows no fabricated statistics
 
   --------------------------------------------------

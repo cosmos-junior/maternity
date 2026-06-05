@@ -155,7 +155,7 @@ export default function Appointments() {
           <div className="modal">
             <div className="modal-header">
               <div className="modal-title">Schedule Appointment</div>
-              <button className="modal-close" onClick={() => setShowModal(false)}>✕</button>
+              <button className="modal-close" onClick={() => setShowModal(false)} aria-label="Close modal">✕</button>
             </div>
             <form onSubmit={handleCreate}>
               <div className="form-group">
@@ -202,7 +202,7 @@ export default function Appointments() {
           <div className="modal" style={{ maxWidth: 360 }}>
             <div className="modal-header">
               <div className="modal-title">Reschedule Appointment</div>
-              <button className="modal-close" onClick={() => setShowReschedule(null)}>✕</button>
+              <button className="modal-close" onClick={() => setShowReschedule(null)} aria-label="Close modal">✕</button>
             </div>
             <div className="form-group">
               <label className="form-label">New Date *</label>

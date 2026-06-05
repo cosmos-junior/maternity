@@ -207,7 +207,7 @@ export default function DeliveryForm({ patients, onClose, onSaved }: DeliveryFor
           <div className="modal-title flex items-center gap-2">
             <Baby size={20} className="text-primary" /> Record Delivery
           </div>
-          <button className="modal-close" onClick={onClose}><X size={20} /></button>
+          <button className="modal-close" onClick={onClose} aria-label="Close modal"><X size={20} /></button>
         </div>
 
         {/* Step indicator */}

@@ -541,7 +541,7 @@ export default function Dashboard() {
                   </div>
 
                   {/* Bottom Charts Row */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
                     <GlassCard>
                       <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 4 }}>Patients by Clinic Stage</div>
                       <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 24 }}>Active maternity tracking</div>
