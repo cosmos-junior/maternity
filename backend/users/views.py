@@ -92,3 +92,23 @@ class ChangeRoleView(APIView):
         user.role = new_role
         user.save(update_fields=['role'])
         return Response(StaffUserSerializer(user).data)
+
+
+class TogglePMTCTAccessView(APIView):
+    """Toggle a staff member's PMTCT access permission — ADMIN only."""
+    permission_classes = [permissions.IsAuthenticated, IsAdminRole]
+
+    def patch(self, request, pk):
+        try:
+            user = StaffUser.objects.get(pk=pk)
+        except StaffUser.DoesNotExist:
+            return Response({'error': 'User not found.'}, status=404)
+
+        has_perm = request.data.get('has_pmtct_permission')
+        if has_perm is None:
+            return Response({'error': 'has_pmtct_permission field is required.'}, status=400)
+
+        user.has_pmtct_permission = bool(has_perm)
+        user.save(update_fields=['has_pmtct_permission'])
+        return Response(StaffUserSerializer(user).data)
+

@@ -23,6 +23,11 @@ import Procedures from './pages/Procedures';
 import ChildProfile from './pages/ChildProfile';
 import Children from './pages/Children';
 import UserProfile from './pages/UserProfile';
+import Referrals from './pages/Referrals';
+import LabourWard from './pages/LabourWard';
+import MortalityReview from './pages/MortalityReview';
+import PMTCT from './pages/PMTCT';
+
 
 function PrivateRoute({ children }: { children: React.ReactElement }) {
   const { isAuthenticated } = useAuth();
@@ -62,6 +67,9 @@ function AppRoutes() {
         <Route path="clinical-notes" element={<ClinicalNotes />} />
         <Route path="documents" element={<Documents />} />
         <Route path="procedures" element={<Procedures />} />
+        <Route path="referrals" element={<Referrals />} />
+        <Route path="labour-ward" element={<LabourWard />} />
+        <Route path="pmtct" element={<PMTCT />} />
         {/* Admin-only routes */}
         <Route path="admin/users" element={
           <RoleRoute roles={['ADMIN']}><AdminUsers /></RoleRoute>
@@ -77,6 +85,9 @@ function AppRoutes() {
         } />
         <Route path="notifications" element={
           <RoleRoute roles={['ADMIN']}><Notifications /></RoleRoute>
+        } />
+        <Route path="mortality-review" element={
+          <RoleRoute roles={['ADMIN', 'DOCTOR']}><MortalityReview /></RoleRoute>
         } />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

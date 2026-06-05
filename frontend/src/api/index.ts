@@ -60,6 +60,7 @@ export const patientsApi = {
   update: (id: number, data: object) => api.patch(`/patients/${id}/`, data),
   delete: (id: number) => api.delete(`/patients/${id}/`),
   stats: (id: number) => api.get(`/patients/${id}/stats/`),
+  timeline: (id: number) => api.get(`/patients/${id}/timeline/`),
 };
 
 // ─── Appointments ─────────────────────────────────────────────────────────────
@@ -113,6 +114,8 @@ export const remindersApi = {
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 export const dashboardApi = {
   summary: () => api.get('/dashboard/summary/'),
+  nurseSummary: () => api.get('/dashboard/summary/nurse/'),
+  doctorSummary: () => api.get('/dashboard/summary/doctor/'),
   dueSoon: (days?: number) => api.get('/dashboard/due-soon/', { params: { days } }),
   overdueDelivery: () => api.get('/dashboard/overdue-delivery/'),
   recentActivity: () => api.get('/dashboard/recent-activity/'),
@@ -145,6 +148,7 @@ export const staffApi = {
   deactivate:     (id: number) => api.post(`/users/staff/${id}/deactivate/`),
   reactivate:     (id: number) => api.post(`/users/staff/${id}/reactivate/`),
   changeRole:     (id: number, role: string) => api.patch(`/users/staff/${id}/role/`, { role }),
+  togglePMTCTPermission: (id: number, has_pmtct_permission: boolean) => api.patch(`/users/staff/${id}/pmtct-permission/`, { has_pmtct_permission }),
   updateProfile:  (data: object) => api.patch('/users/me/', data),
   getProfile:     () => api.get('/users/me/'),
 };
@@ -218,3 +222,34 @@ export const proceduresApi = {
   getEmergency: (id: number, patientId?: number) => api.get(`/procedures/emergencies/${id}/`, { params: { patient: patientId } }),
   getAccessLogs: () => api.get('/procedures/access-logs/'),
 };
+
+// ─── Referrals (Phase 5) ──────────────────────────────────────────────────────
+export const referralsApi = {
+  list: (params?: Record<string, string>) => api.get('/referrals/', { params }),
+  get: (id: number) => api.get(`/referrals/${id}/`),
+  create: (data: object) => api.post('/referrals/', data),
+  update: (id: number, data: object) => api.patch(`/referrals/${id}/`, data),
+  delete: (id: number) => api.delete(`/referrals/${id}/`),
+  facilities: (search: string) => api.get('/referrals/facilities/', { params: { search } }),
+};
+
+// ─── Mortality Reviews (Phase 5) ──────────────────────────────────────────────
+export const mortalityApi = {
+  list: (params?: Record<string, string>) => api.get('/mortality/', { params }),
+  get: (id: number) => api.get(`/mortality/${id}/`),
+  create: (data: object) => api.post('/mortality/', data),
+  update: (id: number, data: object) => api.patch(`/mortality/${id}/`, data),
+  delete: (id: number) => api.delete(`/mortality/${id}/`),
+};
+
+// ─── PMTCT Registry (Phase 5) ──────────────────────────────────────────────────
+export const pmtctApi = {
+  list: (params?: Record<string, string>) => api.get('/pmtct/', { params }),
+  get: (id: number) => api.get(`/pmtct/${id}/`),
+  create: (data: object) => api.post('/pmtct/', data),
+  update: (id: number, data: object) => api.patch(`/pmtct/${id}/`, data),
+  delete: (id: number) => api.delete(`/pmtct/${id}/`),
+};
+
+
+

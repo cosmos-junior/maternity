@@ -847,6 +847,8 @@ ASK 2.11 — Remove Compiled Assets from Source Control
   [ ] Dashboard charts responsive on mobile and tablet
   [ ] Audit log has date and action type filters
   [ ] SMS reminders show preview before sending
+
+  
   [ ] Swahili SMS templates added for all reminder types
   [ ] Login page static stats replaced or removed
 

@@ -6,7 +6,7 @@ from .models import StaffUser
 class StaffUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = StaffUser
-        fields = ['id', 'email', 'full_name', 'role', 'phone_number', 'bio', 'profile_completed', 'date_joined']
+        fields = ['id', 'email', 'full_name', 'role', 'phone_number', 'bio', 'profile_completed', 'date_joined', 'has_pmtct_permission']
         read_only_fields = ['id', 'email', 'role', 'date_joined']
 
 

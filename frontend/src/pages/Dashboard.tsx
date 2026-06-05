@@ -91,8 +91,20 @@ export default function Dashboard() {
   const { user } = useAuth();
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [trends, setTrends] = useState<TrendData | null>(null);
+  const [roleData, setRoleData] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'general' | 'nurse' | 'doctor'>('general');
   const [loading, setLoading] = useState(true);
   const reportRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (user?.role === 'NURSE') {
+      setActiveTab('nurse');
+    } else if (user?.role === 'DOCTOR') {
+      setActiveTab('doctor');
+    } else {
+      setActiveTab('general');
+    }
+  }, [user]);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -103,12 +115,20 @@ export default function Dashboard() {
       ]);
       setSummary(sumRes.data);
       setTrends(trendRes.data);
+
+      if (activeTab === 'nurse') {
+        const nurseRes = await dashboardApi.nurseSummary();
+        setRoleData(nurseRes.data);
+      } else if (activeTab === 'doctor') {
+        const docRes = await dashboardApi.doctorSummary();
+        setRoleData(docRes.data);
+      }
     } catch (err) {
       console.error(err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeTab]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -122,6 +142,16 @@ export default function Dashboard() {
           setSummary(sumRes.data);
           setTrends(trendRes.data);
         }
+
+        if (activeTab === 'nurse') {
+          const nurseRes = await dashboardApi.nurseSummary();
+          if (!controller.signal.aborted) setRoleData(nurseRes.data);
+        } else if (activeTab === 'doctor') {
+          const docRes = await dashboardApi.doctorSummary();
+          if (!controller.signal.aborted) setRoleData(docRes.data);
+        } else {
+          if (!controller.signal.aborted) setRoleData(null);
+        }
       } catch (err) {
         if (!controller.signal.aborted) console.error(err);
       } finally {
@@ -129,7 +159,8 @@ export default function Dashboard() {
       }
     })();
     return () => controller.abort();
-  }, []);
+  }, [activeTab]);
+
 
 
   const pieData = summary?.appointment_breakdown ? Object.entries(summary.appointment_breakdown).map(([k, v]) => ({
@@ -292,6 +323,32 @@ export default function Dashboard() {
                   >
                     This is what's happening in maternity today.
                   </p>
+
+                  {user?.role === 'ADMIN' && (
+                    <div className="flex gap-2 mt-4 mb-2">
+                      <button 
+                        className={`btn ${activeTab === 'general' ? 'btn-primary' : 'btn-ghost'}`} 
+                        style={{ borderRadius: '20px', padding: '6px 16px', fontSize: '0.8rem' }}
+                        onClick={() => setActiveTab('general')}
+                      >
+                        General Summary
+                      </button>
+                      <button 
+                        className={`btn ${activeTab === 'nurse' ? 'btn-primary' : 'btn-ghost'}`} 
+                        style={{ borderRadius: '20px', padding: '6px 16px', fontSize: '0.8rem' }}
+                        onClick={() => setActiveTab('nurse')}
+                      >
+                        Nurse Registry
+                      </button>
+                      <button 
+                        className={`btn ${activeTab === 'doctor' ? 'btn-primary' : 'btn-ghost'}`} 
+                        style={{ borderRadius: '20px', padding: '6px 16px', fontSize: '0.8rem' }}
+                        onClick={() => setActiveTab('doctor')}
+                      >
+                        Doctor Summary
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap gap-2">
@@ -339,41 +396,137 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {summary && (
+              {((activeTab === 'general' && summary) || ((activeTab === 'nurse' || activeTab === 'doctor') && roleData)) && (
                 <>
-                  <div className="big-metric-grid">
-                    <ModernMetricCard
-                      className="blue"
-                      title="Total Active Patients"
-                      value={summary?.kpis?.total_patients ?? 0}
-                      trend=""
-                      icon={<Users size={24} />}
-                    />
+                  {activeTab === 'general' && summary && (
+                    <div className="big-metric-grid">
+                      <ModernMetricCard
+                        className="blue"
+                        title="Total Active Patients"
+                        value={summary?.kpis?.total_patients ?? 0}
+                        trend=""
+                        icon={<Users size={24} />}
+                      />
 
-                    <ModernMetricCard
-                      className="green"
-                      title="Due This Week"
-                      value={summary?.kpis?.due_this_week ?? 0}
-                      trend=""
-                      icon={<Baby size={24} />}
-                    />
+                      <ModernMetricCard
+                        className="green"
+                        title="Due This Week"
+                        value={summary?.kpis?.due_this_week ?? 0}
+                        trend=""
+                        icon={<Baby size={24} />}
+                      />
 
-                    <ModernMetricCard
-                      className="purple"
-                      title="Upcoming Appts"
-                      value={summary?.kpis?.upcoming_this_week ?? 0}
-                      trend=""
-                      icon={<Calendar size={24} />}
-                    />
+                      <ModernMetricCard
+                        className="purple"
+                        title="Upcoming Appts"
+                        value={summary?.kpis?.upcoming_this_week ?? 0}
+                        trend=""
+                        icon={<Calendar size={24} />}
+                      />
 
-                    <ModernMetricCard
-                      className="orange"
-                      title="High-Risk Patients"
-                      value={summary?.kpis?.high_risk_patients ?? 0}
-                      trend=""
-                      icon={<AlertTriangle size={24} />}
-                    />
-                  </div>
+                      <ModernMetricCard
+                        className="orange"
+                        title="High-Risk Patients"
+                        value={summary?.kpis?.high_risk_patients ?? 0}
+                        trend=""
+                        icon={<AlertTriangle size={24} />}
+                      />
+                    </div>
+                  )}
+
+                  {activeTab === 'nurse' && roleData && (
+                    <div className="big-metric-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+                      <ModernMetricCard
+                        className="blue"
+                        title="Total Active Patients"
+                        value={roleData.total_patients ?? 0}
+                        trend=""
+                        icon={<Users size={24} />}
+                      />
+                      <ModernMetricCard
+                        className="purple"
+                        title="Upcoming Appts"
+                        value={roleData.upcoming_appointments ?? 0}
+                        trend="Next 7 Days"
+                        icon={<Calendar size={24} />}
+                      />
+                      <ModernMetricCard
+                        className="green"
+                        title="SMS Reminders Sent"
+                        value={roleData.reminders_sent_today ?? 0}
+                        trend="Today"
+                        icon={<Activity size={24} />}
+                      />
+                      <ModernMetricCard
+                        className="blue"
+                        title="Child Profiles Logged"
+                        value={roleData.total_children ?? 0}
+                        trend=""
+                        icon={<Baby size={24} />}
+                      />
+                      <ModernMetricCard
+                        className="orange"
+                        title="7-Day Reviews Pending"
+                        value={roleData.postnatal_pending_7day ?? 0}
+                        trend="Action required"
+                        icon={<AlertTriangle size={24} />}
+                      />
+                      <ModernMetricCard
+                        className="orange"
+                        title="6-Week Reviews Pending"
+                        value={roleData.postnatal_pending_6week ?? 0}
+                        trend="Action required"
+                        icon={<AlertCircle size={24} />}
+                      />
+                    </div>
+                  )}
+
+                  {activeTab === 'doctor' && roleData && (
+                    <div className="big-metric-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+                      <ModernMetricCard
+                        className="orange"
+                        title="High-Risk Patients"
+                        value={roleData.high_risk_patients ?? 0}
+                        trend="Critical Follow-up"
+                        icon={<AlertTriangle size={24} />}
+                      />
+                      <ModernMetricCard
+                        className="blue"
+                        title="Patients in Active Labor"
+                        value={roleData.active_labour ?? 0}
+                        trend="Labor Ward"
+                        icon={<Activity size={24} />}
+                      />
+                      <ModernMetricCard
+                        className="purple"
+                        title="Critical Alerts Unresolved"
+                        value={roleData.critical_alerts ?? 0}
+                        trend="Requires Action"
+                        icon={<AlertCircle size={24} />}
+                      />
+                      <ModernMetricCard
+                        className="purple"
+                        title="Open Clinical Tickets"
+                        value={roleData.unresolved_tickets ?? 0}
+                        trend="Assigned"
+                        icon={<Users size={24} />}
+                      />
+                      <ModernMetricCard
+                        className="green"
+                        title="Mortality Audits Done"
+                        value={roleData.mortality_reviews ?? 0}
+                        trend="Archived Reviews"
+                        icon={<Users size={24} />}
+                      />
+                      <ModernMetricCard
+                        className="blue"
+                        title="Completed Procedures"
+                        value={roleData.procedures_this_month ?? 0}
+                        trend="This Month"
+                        icon={<Users size={24} />}
+                      />
+                    </div>
+                  )}
 
                   <div
                     className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6"

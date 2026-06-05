@@ -38,6 +38,9 @@ INSTALLED_APPS = [
     'nutrition',
     'procedures',
     'tickets',
+    'referrals',
+    'mortality',
+    'pmtct',
 ]
 
 MIDDLEWARE = [

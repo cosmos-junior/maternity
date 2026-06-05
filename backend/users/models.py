@@ -32,6 +32,7 @@ class StaffUser(AbstractBaseUser, PermissionsMixin):
     phone_number = models.CharField(max_length=15, blank=True)
     bio = models.TextField(blank=True, default='', help_text='Professional bio or about section')
     profile_completed = models.BooleanField(default=False, help_text='Whether the user has completed their initial profile setup')
+    has_pmtct_permission = models.BooleanField(default=False, help_text='Designates if a Nurse has access to sensitive PMTCT registry data')
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)

@@ -19,7 +19,10 @@ import {
   HeartPulse,
   FolderOpen,
   Ticket,
-  Bell
+  Bell,
+  ArrowUpRight,
+  AlertOctagon,
+  ShieldAlert
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
@@ -62,11 +65,14 @@ const NAV_SECTIONS: NavSection[] = [
       { to: '/clinical-notes', icon: <Stethoscope size={18} />, label: 'Clinical Notes' },
       { to: '/documents', icon: <Folder size={18} />, label: 'Documents' },
       { to: '/procedures', icon: <Hospital size={18} />, label: 'Procedures' },
+      { to: '/referrals', icon: <ArrowUpRight size={18} />, label: 'Referrals' },
+      { to: '/labour-ward', icon: <HeartPulse size={18} />, label: 'Labour Ward Board' },
+      { to: '/pmtct', icon: <ShieldAlert size={18} />, label: 'PMTCT Registry', roles: ['ADMIN', 'DOCTOR', 'NURSE'] },
     ]
   },
   {
     label: 'SYSTEM',
-    roles: ['ADMIN', 'NURSE'],
+    roles: ['ADMIN', 'NURSE', 'DOCTOR'],
     items: [
       { to: '/reminders', icon: <MessageSquare size={18} />, label: 'SMS Reminders', roles: ['ADMIN', 'NURSE'] },
       { to: '/alerts', icon: <AlertCircle size={18} />, label: 'Clinical Alerts' },
@@ -75,6 +81,7 @@ const NAV_SECTIONS: NavSection[] = [
       { to: '/notifications', icon: <Bell size={18} />, label: 'Notifications', roles: ['ADMIN'] },
       { to: '/admin/users', icon: <UserCog size={18} />, label: 'User Management', roles: ['ADMIN'] },
       { to: '/admin/audit', icon: <FileText size={18} />, label: 'Audit Trail', roles: ['ADMIN'] },
+      { to: '/mortality-review', icon: <AlertOctagon size={18} />, label: 'Mortality Audit', roles: ['ADMIN', 'DOCTOR'] },
     ]
   }
 ];
@@ -166,6 +173,7 @@ export default function Layout() {
             if (section.roles && !section.roles.includes(userRole)) return null;
             const visibleItems = section.items.filter(item =>
               (!item.roles || item.roles.includes(userRole)) &&
+              (item.to !== '/pmtct' || userRole !== 'NURSE' || !!user?.has_pmtct_permission) &&
               (!navSearch || item.label.toLowerCase().includes(navSearch.toLowerCase()))
             );
             if (visibleItems.length === 0) return null;

@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (
     PatientListCreateView, PatientDetailView, PatientStatsView,
-    PartographListCreateView, PartographEntryDetailView,
+    PartographListCreateView, PartographEntryDetailView, PatientTimelineView,
 )
 from .pdf_views import PartographPDFView
 
@@ -9,6 +9,7 @@ urlpatterns = [
     path('', PatientListCreateView.as_view(), name='patient_list_create'),
     path('<int:pk>/', PatientDetailView.as_view(), name='patient_detail'),
     path('<int:pk>/stats/', PatientStatsView.as_view(), name='patient_stats'),
+    path('<int:pk>/timeline/', PatientTimelineView.as_view(), name='patient_timeline'),
     # Partograph
     path('<int:patient_id>/partograph/', PartographListCreateView.as_view(), name='partograph_list_create'),
     path('<int:patient_id>/partograph/<int:pk>/', PartographEntryDetailView.as_view(), name='partograph_detail'),

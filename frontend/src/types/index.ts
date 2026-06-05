@@ -7,6 +7,7 @@ export interface User {
   phone_number: string;
   bio: string;
   profile_completed: boolean;
+  has_pmtct_permission?: boolean;
   date_joined: string;
 }
 
@@ -225,6 +226,7 @@ export interface StaffUser {
   phone_number: string;
   is_active: boolean;
   date_joined: string;
+  has_pmtct_permission?: boolean;
 }
 
 // ─── Audit Trail ──────────────────────────────────────────────────────────────

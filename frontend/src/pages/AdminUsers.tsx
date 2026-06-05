@@ -151,6 +151,7 @@ export default function AdminUsers() {
                     <th className="px-4 py-3">User / Email</th>
                     <th className="px-4 py-3">Role</th>
                     <th className="px-4 py-3 text-center">Contact</th>
+                    <th className="px-4 py-3 text-center">PMTCT Access</th>
                     <th className="px-4 py-3">Joined</th>
                     <th className="px-4 py-3 text-right">Actions</th>
                   </tr>
@@ -178,6 +179,24 @@ export default function AdminUsers() {
                          <div className="flex items-center justify-center gap-1.5 text-xs text-slate-600">
                            <Phone size={12} className="text-slate-400" /> {u.phone_number || '—'}
                          </div>
+                      </td>
+                      <td className="px-4 py-4 text-center">
+                        {u.role === 'NURSE' ? (
+                          <input
+                            type="checkbox"
+                            checked={!!u.has_pmtct_permission}
+                            onChange={async (e) => {
+                              try {
+                                await staffApi.togglePMTCTPermission(u.id, e.target.checked);
+                                load();
+                              } catch {
+                                alert('Failed to update PMTCT permission.');
+                              }
+                            }}
+                          />
+                        ) : (
+                          <span className="text-slate-400 text-xs">Full Access</span>
+                        )}
                       </td>
                       <td className="px-4 py-4 text-xs text-slate-500">
                         {new Date(u.date_joined).toLocaleDateString('en-KE')}

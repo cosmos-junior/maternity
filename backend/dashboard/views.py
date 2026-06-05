@@ -242,3 +242,86 @@ class PublicStatsView(APIView):
             'clinic_reminders_sent': clinic_reminders_sent,
         })
 
+
+class NurseDashboardSummaryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        today = date.today()
+        week_from_now = today + timedelta(days=7)
+
+        total_patients = Patient.objects.filter(is_active=True).count()
+        upcoming_appointments = Appointment.objects.filter(
+            status='UPCOMING', scheduled_date__gte=today, scheduled_date__lte=week_from_now
+        ).count()
+        postnatal_pending_7day = PostnatalRecord.objects.filter(
+            review_7day_attended=False, review_7day_date__lte=today
+        ).count()
+        postnatal_pending_6week = PostnatalRecord.objects.filter(
+            review_6week_attended=False, review_6week_date__lte=today
+        ).count()
+
+        from reminders.models import ReminderLog
+        reminders_sent_today = ReminderLog.objects.filter(
+            sent_at__date=today, delivery_status='SENT'
+        ).count()
+
+        missed_appointments = Appointment.objects.filter(status='MISSED').count()
+
+        from pediatrics.models import ChildProfile
+        total_children = ChildProfile.objects.count()
+
+        return Response({
+            'total_patients': total_patients,
+            'upcoming_appointments': upcoming_appointments,
+            'postnatal_pending_7day': postnatal_pending_7day,
+            'postnatal_pending_6week': postnatal_pending_6week,
+            'reminders_sent_today': reminders_sent_today,
+            'missed_appointments': missed_appointments,
+            'total_children': total_children,
+        })
+
+
+class DoctorDashboardSummaryView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        today = date.today()
+        month_start = today.replace(day=1)
+
+        high_risk_patients = Patient.objects.filter(is_active=True, risk_level='HIGH').count()
+
+        from patients.models import PartographEntry
+        active_labour_ids = PartographEntry.objects.filter(
+            recorded_at__date=today
+        ).values_list('patient_id', flat=True).distinct()
+        active_labour = Patient.objects.filter(
+            id__in=active_labour_ids, is_active=True
+        ).count()
+
+        from tickets.models import Ticket
+        unresolved_tickets = Ticket.objects.filter(status='OPEN').count()
+
+        from alerts.models import ClinicalAlert
+        critical_alerts = ClinicalAlert.objects.filter(
+            severity='CRITICAL', resolved=False
+        ).count()
+
+        from mortality.models import MaternalDeathReview
+        mortality_reviews = MaternalDeathReview.objects.count()
+
+        from procedures.models import ClinicalProcedure
+        procedures_this_month = ClinicalProcedure.objects.filter(
+            created_at__gte=month_start
+        ).count()
+
+        return Response({
+            'high_risk_patients': high_risk_patients,
+            'active_labour': active_labour,
+            'unresolved_tickets': unresolved_tickets,
+            'critical_alerts': critical_alerts,
+            'mortality_reviews': mortality_reviews,
+            'procedures_this_month': procedures_this_month,
+        })
+
+
