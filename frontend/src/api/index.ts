@@ -124,6 +124,8 @@ export const pediatricsApi = {
     api.get('/pediatrics/vaccinations/', { params }),
   updateVaccination: (id: number, data: object) =>
     api.patch(`/pediatrics/vaccinations/${id}/`, data),
+  updateProfile: (id: number, data: object) =>
+    api.patch(`/pediatrics/profiles/${id}/`, data),
   listClinicVisits: (params?: Record<string, string>) =>
     api.get('/pediatrics/clinic-visits/', { params }),
   createClinicVisit: (data: object) => api.post('/pediatrics/clinic-visits/', data),

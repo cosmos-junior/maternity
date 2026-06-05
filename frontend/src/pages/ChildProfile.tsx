@@ -13,12 +13,14 @@ import {
   FileBox,
   TrendingUp,
   LineChart as LineChartIcon,
-  Stethoscope
+  Stethoscope,
+  X
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { pediatricsApi } from '../api';
 import { ChildProfile, GrowthRecord, VaccinationRecord } from '../types';
 import { formatDate } from '../utils';
+import { useAuth } from '../context/AuthContext';
 
 const CHART_TOOLTIP_STYLE = {
   background: 'var(--bg-card)',
@@ -31,11 +33,46 @@ const CHART_TOOLTIP_STYLE = {
 
 export default function ChildProfilePage() {
   const { id } = useParams<{ id: string }>();
+  const { isAdmin } = useAuth();
   const [profile, setProfile] = useState<ChildProfile | null>(null);
   const [growthRecords, setGrowthRecords] = useState<GrowthRecord[]>([]);
   const [vaccinations, setVaccinations] = useState<VaccinationRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<number | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [editForm, setEditForm] = useState({
+    first_name: '',
+    last_name: '',
+    gender: 'UNKNOWN',
+    date_of_birth: '',
+    birth_weight_kg: '',
+    birth_certificate_number: '',
+  });
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!id || !profile) return;
+    setSaving(true);
+    setError('');
+    try {
+      await pediatricsApi.updateProfile(+id, {
+        first_name: editForm.first_name,
+        last_name: editForm.last_name,
+        gender: editForm.gender,
+        date_of_birth: editForm.date_of_birth,
+        birth_weight_kg: editForm.birth_weight_kg ? parseFloat(editForm.birth_weight_kg) : null,
+        birth_certificate_number: editForm.birth_certificate_number || null,
+      });
+      setShowEditModal(false);
+      await load();
+    } catch (err) {
+      setError('Failed to update child details. Please check the inputs and try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const load = async () => {
     if (!id) return;
@@ -127,7 +164,27 @@ export default function ChildProfilePage() {
       <div className="page-body">
         <div className="dash-grid mb-6">
           <div className="card">
-            <div className="section-title">Baby Details</div>
+            <div className="flex-between mb-4">
+              <div className="section-title" style={{ margin: 0 }}>Baby Details</div>
+              {isAdmin && (
+                <button
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => {
+                    setEditForm({
+                      first_name: profile.first_name || '',
+                      last_name: profile.last_name || '',
+                      gender: profile.gender || 'UNKNOWN',
+                      date_of_birth: profile.date_of_birth || '',
+                      birth_weight_kg: profile.birth_weight_kg ? String(profile.birth_weight_kg) : '',
+                      birth_certificate_number: profile.birth_certificate_number || '',
+                    });
+                    setShowEditModal(true);
+                  }}
+                >
+                  Edit Details
+                </button>
+              )}
+            </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 24px' }}>
               {[
                 ['First Name', profile.first_name || '—'],
@@ -240,6 +297,89 @@ export default function ChildProfilePage() {
           )}
         </div>
       </div>
+
+      {showEditModal && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowEditModal(false)}>
+          <div className="modal">
+            <div className="modal-header">
+              <div className="modal-title">Edit Child Details</div>
+              <button className="modal-close" onClick={() => setShowEditModal(false)} aria-label="Close modal">
+                <X size={18} />
+              </button>
+            </div>
+            {error && <div className="alert alert-danger mb-4">⚠️ {error}</div>}
+            <form onSubmit={handleEditSubmit}>
+              <div className="form-group">
+                <label className="form-label">First Name *</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  required
+                  value={editForm.first_name}
+                  onChange={e => setEditForm(f => ({ ...f, first_name: e.target.value }))}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Last Name *</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  required
+                  value={editForm.last_name}
+                  onChange={e => setEditForm(f => ({ ...f, last_name: e.target.value }))}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Gender *</label>
+                <select
+                  className="form-input"
+                  value={editForm.gender}
+                  onChange={e => setEditForm(f => ({ ...f, gender: e.target.value }))}
+                >
+                  <option value="MALE">Male</option>
+                  <option value="FEMALE">Female</option>
+                  <option value="UNKNOWN">Unknown</option>
+                </select>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Date of Birth *</label>
+                <input
+                  type="date"
+                  className="form-input"
+                  required
+                  value={editForm.date_of_birth}
+                  onChange={e => setEditForm(f => ({ ...f, date_of_birth: e.target.value }))}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Birth Weight (kg)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  className="form-input"
+                  value={editForm.birth_weight_kg}
+                  onChange={e => setEditForm(f => ({ ...f, birth_weight_kg: e.target.value }))}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Birth Certificate Number</label>
+                <input
+                  type="text"
+                  className="form-input"
+                  value={editForm.birth_certificate_number}
+                  onChange={e => setEditForm(f => ({ ...f, birth_certificate_number: e.target.value }))}
+                />
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-ghost" onClick={() => setShowEditModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={saving}>
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -85,6 +85,18 @@ class Patient(models.Model):
     occupation = models.CharField(max_length=150, blank=True)
     spouse_name = models.CharField(max_length=200, blank=True)
     spouse_phone = models.CharField(max_length=15, blank=True)
+    
+    # MCH Handbook facility & clinical details
+    health_facility_name = models.CharField(max_length=255, blank=True)
+    kmhfl_code = models.CharField(max_length=50, blank=True)
+    anc_number = models.CharField(max_length=50, blank=True)
+    pnc_number = models.CharField(max_length=50, blank=True)
+    gravida = models.PositiveIntegerField(null=True, blank=True)
+    parity = models.PositiveIntegerField(null=True, blank=True)
+    height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    estate_house_number = models.CharField(max_length=100, blank=True)
+
     national_id = EncryptedCharField(blank=True, null=True, verbose_name="National ID")
     nhif_number = EncryptedCharField(blank=True, null=True, verbose_name="NHIF Number")
     phone_number = EncryptedCharField()
@@ -101,6 +113,17 @@ class Patient(models.Model):
         ('sw', 'Swahili'),
     ]
     lang = models.CharField(max_length=2, choices=LANG_CHOICES, default='en', verbose_name='Preferred Language')
+    
+    # MCH Handbook Medical & Surgical History details
+    has_diabetes = models.BooleanField(default=False)
+    has_hypertension = models.BooleanField(default=False)
+    blood_transfusion_history = models.TextField(blank=True)
+    tb_history = models.TextField(blank=True)
+    has_drug_allergy = models.BooleanField(default=False)
+    drug_allergies_specify = models.TextField(blank=True)
+    family_history_twins = models.BooleanField(default=False)
+    family_history_tb = models.BooleanField(default=False)
+
     medical_history = models.TextField(blank=True)
     surgical_history = models.TextField(blank=True)
     allergies = models.TextField(blank=True)

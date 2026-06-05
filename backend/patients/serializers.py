@@ -65,6 +65,8 @@ class PatientSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'patient_number', 'full_name', 'first_name', 'middle_name', 'last_name', 'preferred_name',
             'gender', 'marital_status', 'education_level', 'occupation', 'spouse_name', 'spouse_phone',
+            'health_facility_name', 'kmhfl_code', 'anc_number', 'pnc_number',
+            'gravida', 'parity', 'height', 'weight', 'estate_house_number',
             'national_id', 'nhif_number',
             'phone_number', 'address', 'residence_county', 'residence_subcounty', 'residence_ward',
             'residence_village', 'birth_registration_number', 'place_of_birth', 'birth_country',
@@ -72,6 +74,8 @@ class PatientSerializer(serializers.ModelSerializer):
             'next_of_kin_name', 'next_of_kin_phone', 'date_of_birth',
             'lmp', 'edd', 'clinic_stage', 'risk_level', 'registration_stage', 'profile_completed',
             'profile_verified', 'blood_group', 'lang',
+            'has_diabetes', 'has_hypertension', 'blood_transfusion_history', 'tb_history',
+            'has_drug_allergy', 'drug_allergies_specify', 'family_history_twins', 'family_history_tb',
             'medical_history', 'surgical_history', 'allergies', 'family_history',
             'medical_history_entries', 'surgical_history_entries', 'allergy_entries', 'family_history_entries',
             'notes', 'is_active', 'registered_by', 'registered_by_name',
