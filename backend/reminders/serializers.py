@@ -23,5 +23,6 @@ class ReminderLogSerializer(serializers.ModelSerializer):
 class SendReminderSerializer(serializers.Serializer):
     appointment_id = serializers.IntegerField(required=False)
     patient_id = serializers.IntegerField()
-    message = serializers.CharField(required=False)
+    message = serializers.CharField(required=False, allow_blank=True)
     use_template = serializers.BooleanField(default=True)
+    lang = serializers.CharField(required=False, default='en')

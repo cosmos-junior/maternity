@@ -117,7 +117,8 @@ try:
                     patient_name=mother.full_name,
                     baby_name=vac.child.first_name,
                     vaccine_name=vac.get_vaccine_name_display(),
-                    expected_date=str(vac.expected_date)
+                    expected_date=str(vac.expected_date),
+                    lang=getattr(mother, 'lang', 'en')
                 )
                 
                 if phone.startswith('0') and len(phone) == 10:
@@ -167,7 +168,8 @@ try:
                 msg = build_missed_visit_alert(
                     patient_name=patient.full_name,
                     visit_type=appt.get_appointment_type_display(),
-                    missed_date=str(appt.scheduled_date)
+                    missed_date=str(appt.scheduled_date),
+                    lang=getattr(patient, 'lang', 'en')
                 )
                 
                 if phone.startswith('0') and len(phone) == 10:

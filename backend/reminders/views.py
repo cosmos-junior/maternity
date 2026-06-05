@@ -36,16 +36,26 @@ class SendReminderView(APIView):
                 pass
 
         # Build message
+        lang = data.get('lang') or getattr(patient, 'lang', 'en')
         if data.get('use_template') and appointment:
             time_str = str(appointment.scheduled_time) if appointment.scheduled_time else None
             message = build_appointment_reminder(
                 patient.full_name,
                 str(appointment.scheduled_date),
                 time_str,
-                lang=getattr(patient, 'lang', 'en')
+                lang=lang
             )
+        elif data.get('use_template'):
+            if lang == 'sw':
+                message = f"Mpendwa {patient.full_name}, tafadhali wasiliana na Itierio Nursing Home kwa ajili ya miadi yako ijayo. Asante."
+            else:
+                message = f"Dear {patient.full_name}, please contact Itierio Nursing Home for your upcoming appointment. Thank you."
         else:
-            message = data.get('message', f"Dear {patient.full_name}, please contact Itierio Nursing Home for your upcoming appointment.")
+            message = data.get('message') or (
+                f"Mpendwa {patient.full_name}, tafadhali wasiliana na Itierio Nursing Home kwa ajili ya miadi yako ijayo. Asante."
+                if lang == 'sw'
+                else f"Dear {patient.full_name}, please contact Itierio Nursing Home for your upcoming appointment. Thank you."
+            )
 
         # Normalise phone to international format (+254XXXXXXXXX)
         phone = patient.phone_number.strip()
@@ -100,16 +110,26 @@ class PreviewReminderView(APIView):
                 pass
 
         # Build message
+        lang = data.get('lang') or getattr(patient, 'lang', 'en')
         if data.get('use_template') and appointment:
             time_str = str(appointment.scheduled_time) if appointment.scheduled_time else None
             message = build_appointment_reminder(
                 patient.full_name,
                 str(appointment.scheduled_date),
                 time_str,
-                lang=getattr(patient, 'lang', 'en')
+                lang=lang
             )
+        elif data.get('use_template'):
+            if lang == 'sw':
+                message = f"Mpendwa {patient.full_name}, tafadhali wasiliana na Itierio Nursing Home kwa ajili ya miadi yako ijayo. Asante."
+            else:
+                message = f"Dear {patient.full_name}, please contact Itierio Nursing Home for your upcoming appointment. Thank you."
         else:
-            message = data.get('message', f"Dear {patient.full_name}, please contact Itierio Nursing Home for your upcoming appointment.")
+            message = data.get('message') or (
+                f"Mpendwa {patient.full_name}, tafadhali wasiliana na Itierio Nursing Home kwa ajili ya miadi yako ijayo. Asante."
+                if lang == 'sw'
+                else f"Dear {patient.full_name}, please contact Itierio Nursing Home for your upcoming appointment. Thank you."
+            )
 
         return Response({
             'message': message,

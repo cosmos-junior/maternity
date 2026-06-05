@@ -304,7 +304,7 @@ class DoctorDashboardSummaryView(APIView):
 
         from alerts.models import ClinicalAlert
         critical_alerts = ClinicalAlert.objects.filter(
-            severity='CRITICAL', resolved=False
+            severity='CRITICAL', acknowledged=False
         ).count()
 
         from mortality.models import MaternalDeathReview

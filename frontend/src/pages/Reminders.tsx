@@ -20,7 +20,7 @@ export default function Reminders() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ patient_id: '', appointment_id: '', use_template: true, message: '' });
+  const [form, setForm] = useState({ patient_id: '', appointment_id: '', use_template: true, message: '', lang: 'en' });
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ success: boolean; msg: string } | null>(null);
 
@@ -43,7 +43,7 @@ export default function Reminders() {
   useEffect(() => { load(); }, []);
 
   const openModal = () => {
-    setForm({ patient_id: '', appointment_id: '', use_template: true, message: '' });
+    setForm({ patient_id: '', appointment_id: '', use_template: true, message: '', lang: 'en' });
     setStep('compose');
     setPreview(null);
     setResult(null);
@@ -56,7 +56,7 @@ export default function Reminders() {
     setSending(true);
     setResult(null);
     try {
-      const payload: any = { patient_id: +form.patient_id, use_template: form.use_template };
+      const payload: any = { patient_id: +form.patient_id, use_template: form.use_template, lang: form.lang };
       if (form.appointment_id) payload.appointment_id = +form.appointment_id;
       if (!form.use_template && form.message) payload.message = form.message;
 
@@ -74,7 +74,7 @@ export default function Reminders() {
   const handleSend = async () => {
     setSending(true); setResult(null);
     try {
-      const payload: any = { patient_id: +form.patient_id, use_template: form.use_template };
+      const payload: any = { patient_id: +form.patient_id, use_template: form.use_template, lang: form.lang };
       if (form.appointment_id) payload.appointment_id = +form.appointment_id;
       if (!form.use_template && form.message) payload.message = form.message;
       const { data } = await remindersApi.send(payload);
@@ -185,7 +185,21 @@ export default function Reminders() {
               <form onSubmit={handlePreview}>
                 <div className="form-group">
                   <label className="form-label">Patient *</label>
-                  <select className="form-select" required value={form.patient_id} onChange={e => setForm(f => ({...f, patient_id: e.target.value, appointment_id: ''}))}>
+                  <select 
+                    className="form-select" 
+                    required 
+                    value={form.patient_id} 
+                    onChange={e => {
+                      const pId = e.target.value;
+                      const selectedPatient = patients.find(p => String(p.id) === pId);
+                      setForm(f => ({
+                        ...f, 
+                        patient_id: pId, 
+                        appointment_id: '',
+                        lang: selectedPatient?.lang || 'en'
+                      }));
+                    }}
+                  >
                     <option value="">— Select Patient —</option>
                     {patients.map(p => <option key={p.id} value={p.id}>{p.patient_number} — {p.full_name} ({p.phone_number})</option>)}
                   </select>
@@ -198,6 +212,19 @@ export default function Reminders() {
                       {patientAppointments.map(a => (
                         <option key={a.id} value={a.id}>{APPT_TYPE_LABELS[a.appointment_type]} on {a.scheduled_date}</option>
                       ))}
+                    </select>
+                  </div>
+                )}
+                {form.patient_id && (
+                  <div className="form-group">
+                    <label className="form-label">Message Language</label>
+                    <select 
+                      className="form-select" 
+                      value={form.lang} 
+                      onChange={e => setForm(f => ({...f, lang: e.target.value}))}
+                    >
+                      <option value="en">English (English)</option>
+                      <option value="sw">Swahili (Kiswahili)</option>
                     </select>
                   </div>
                 )}
