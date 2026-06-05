@@ -2,7 +2,7 @@ from rest_framework import generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from .models import ReminderLog
-from .serializers import ReminderLogSerializer, SendReminderSerializer
+from .serializers import ReminderLogSerializer, SendReminderSerializer, BulkSendReminderSerializer
 from .sms_service import send_sms, build_appointment_reminder
 from patients.models import Patient
 from appointments.models import Appointment
@@ -138,3 +138,50 @@ class PreviewReminderView(APIView):
             'patient_name': patient.full_name,
             'phone_number': patient.phone_number,
         })
+
+
+class BulkSendReminderView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = BulkSendReminderSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=400)
+            
+        data = serializer.validated_data
+        patient_ids = data['patient_ids']
+        use_template = data['use_template']
+        message = data.get('message', '')
+        lang = data.get('lang', 'en')
+        
+        from .tasks import send_bulk_reminders_task, send_bulk_reminders_sync
+
+        if len(patient_ids) > 10:
+            task = send_bulk_reminders_task.delay(
+                patient_ids=patient_ids,
+                use_template=use_template,
+                message=message,
+                lang=lang,
+                user_id=request.user.id
+            )
+            return Response({
+                'success': True,
+                'queued': True,
+                'task_id': task.id,
+                'message': f'Queued bulk reminders for {len(patient_ids)} patients.'
+            })
+        else:
+            results = send_bulk_reminders_sync(
+                patient_ids=patient_ids,
+                use_template=use_template,
+                message=message,
+                lang=lang,
+                user_id=request.user.id
+            )
+            return Response({
+                'success': True,
+                'queued': False,
+                'sent': results['sent'],
+                'failed': results['failed'],
+                'details': results['details']
+            })

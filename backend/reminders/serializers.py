@@ -26,3 +26,10 @@ class SendReminderSerializer(serializers.Serializer):
     message = serializers.CharField(required=False, allow_blank=True)
     use_template = serializers.BooleanField(default=True)
     lang = serializers.CharField(required=False, default='en')
+
+
+class BulkSendReminderSerializer(serializers.Serializer):
+    patient_ids = serializers.ListField(child=serializers.IntegerField(), min_length=1)
+    use_template = serializers.BooleanField(default=True)
+    message = serializers.CharField(required=False, allow_blank=True)
+    lang = serializers.CharField(required=False, default='en')

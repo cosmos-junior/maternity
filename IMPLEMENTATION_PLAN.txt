@@ -1133,8 +1133,8 @@ ASK 2.11 — Remove Compiled Assets from Source Control
 
     2. Add same validation to frontend form in Patients.tsx via useFormValidation
 
-    3. Add NHIF lookup indicator — show ✓ when format is valid
-  Done when: Invalid NHIF numbers are flagged at data entry time
+    3. Add NHIF/SHA/SHIF lookup indicator — show ✓ when format is valid
+  Done when: Invalid NHIF/SHA/SHIF numbers are flagged at data entry time
 
   --------------------------------------------------
   TASK 6.5 — Encrypt Sensitive Patient Fields

@@ -30,6 +30,13 @@ class PatientSerializer(serializers.ModelSerializer):
             return obj.registered_by.full_name
         return None
 
+    def validate_nhif_number(self, value):
+        if value:
+            import re
+            if not re.match(r'^\d{8,12}$', value):
+                raise serializers.ValidationError("NHIF/SHA/SHIF number must be between 8 and 12 digits.")
+        return value
+
 
 class PatientListSerializer(serializers.ModelSerializer):
     """Lighter serializer for list views"""

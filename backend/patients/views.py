@@ -23,10 +23,8 @@ class PatientListCreateView(generics.ListCreateAPIView):
     """
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [
-        filters.SearchFilter,
         filters.OrderingFilter,
     ] + ([DjangoFilterBackend] if _django_filter else [])
-    search_fields = ['full_name', 'patient_number', 'phone_number', 'address']
     ordering_fields = ['full_name', 'edd', 'created_at', 'clinic_stage', 'risk_level']
     ordering = ['-created_at']
     filterset_fields = {
@@ -37,6 +35,22 @@ class PatientListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         qs = Patient.objects.filter(is_active=True).select_related('registered_by')
+        
+        # Search handling (with support for exact hash matching of encrypted fields)
+        search_query = self.request.query_params.get('search', '').strip()
+        if search_query:
+            import hashlib
+            from django.db.models import Q
+            query_hash = hashlib.sha256(search_query.encode('utf-8')).hexdigest()
+            qs = qs.filter(
+                Q(national_id_hash=query_hash) |
+                Q(nhif_number_hash=query_hash) |
+                Q(phone_number_hash=query_hash) |
+                Q(full_name__icontains=search_query) |
+                Q(patient_number__icontains=search_query) |
+                Q(address__icontains=search_query)
+            )
+
         # Manual fallback filters if django-filter not installed
         if not _django_filter:
             stage = self.request.query_params.get('stage')

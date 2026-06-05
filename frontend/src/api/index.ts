@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: '/api/v1',
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -18,12 +18,37 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const original = error.config;
+
+    // Handle offline / network errors for specific forms to queue them
+    if (!navigator.onLine || error.message === 'Network Error' || !error.response) {
+      if (original && original.method === 'post') {
+        const url = original.url || '';
+        if (url.includes('/patients/') || url.includes('/appointments/') || url.includes('/clinical/anc-visits/')) {
+          try {
+            const dataObj = typeof original.data === 'string' ? JSON.parse(original.data) : original.data;
+            const { addToOfflineQueue } = await import('../utils/offlineQueue');
+            addToOfflineQueue(url, dataObj);
+            
+            return Promise.resolve({
+              data: { id: 'offline-queued', ...dataObj, _offline: true },
+              status: 200,
+              statusText: 'OK',
+              headers: {},
+              config: original,
+            });
+          } catch (queueErr) {
+            console.error('Failed to queue offline request:', queueErr);
+          }
+        }
+      }
+    }
+
     if (error.response?.status === 401 && !original._retry) {
       original._retry = true;
       const refresh = localStorage.getItem('refresh_token');
       if (refresh) {
         try {
-          const { data } = await axios.post('/api/auth/refresh/', { refresh });
+          const { data } = await axios.post('/api/v1/auth/refresh/', { refresh });
           localStorage.setItem('access_token', data.access);
           original.headers.Authorization = `Bearer ${data.access}`;
           return api(original);
@@ -109,6 +134,7 @@ export const remindersApi = {
   list: () => api.get('/reminders/'),
   send: (data: object) => api.post('/reminders/send/', data),
   preview: (data: object) => api.post('/reminders/preview/', data),
+  bulk: (data: object) => api.post('/reminders/bulk/', data),
 };
 
 // ─── Dashboard ────────────────────────────────────────────────────────────────

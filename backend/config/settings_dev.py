@@ -10,3 +10,12 @@ CACHES = {
         'LOCATION': 'maternity-dev-cache',
     }
 }
+
+import sys
+if 'test' in sys.argv or any('pytest' in arg for arg in sys.argv) or 'tests' in sys.argv:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': ':memory:',
+        }
+    }

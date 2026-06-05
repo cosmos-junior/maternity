@@ -181,6 +181,8 @@ export function useFormValidation<T extends Record<string, unknown>>(
 export type PatientFormFields = {
   full_name: string;
   phone_number: string;
+  national_id?: string;
+  nhif_number?: string;
   next_of_kin_name: string;
   next_of_kin_phone: string;
   date_of_birth: string;
@@ -197,6 +199,16 @@ export type PatientFormFields = {
 };
 
 export const patientSchema: ValidationSchema<PatientFormFields> = {
+  national_id: [
+    { type: 'maxLength', value: 20, message: 'National ID cannot exceed 20 characters.' }
+  ],
+  nhif_number: [
+    {
+      type: 'pattern',
+      regex: /^\d{8,12}$/,
+      message: 'NHIF/SHA/SHIF number must be between 8 and 12 digits.',
+    }
+  ],
   full_name: [
     { type: 'required', message: 'Full name is required.' },
     { type: 'minLength', value: 3, message: 'Name must be at least 3 characters.' },

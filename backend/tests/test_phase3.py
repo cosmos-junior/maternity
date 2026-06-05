@@ -14,7 +14,7 @@ from datetime import date, timedelta
 from users.models import StaffUser
 from patients.models import Patient, PartographEntry
 from alerts.models import ClinicalAlert
-from alerts.services import evaluate_partograph_entry
+from alerts.services import evaluate_clinical_thresholds
 
 
 class PatientModelTests(TestCase):
@@ -166,7 +166,7 @@ class RBACTests(TestCase):
     def _get_token(self, email, password):
         from rest_framework.test import APIClient
         client = APIClient()
-        response = client.post('/api/auth/login/', {
+        response = client.post('/api/v1/auth/login/', {
             'email': email, 'password': password,
         }, format='json')
         return response.data.get('access')
@@ -177,7 +177,7 @@ class RBACTests(TestCase):
         client = APIClient()
         token = self._get_token('nurse3@test.com', 'nurse1234')
         client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = client.delete(f'/api/patients/{self.patient.pk}/')
+        response = client.delete(f'/api/v1/patients/{self.patient.pk}/')
         self.assertEqual(response.status_code, 403)
 
     def test_admin_can_delete_patient(self):
@@ -186,7 +186,7 @@ class RBACTests(TestCase):
         client = APIClient()
         token = self._get_token('admin@test.com', 'admin1234')
         client.credentials(HTTP_AUTHORIZATION=f'Bearer {token}')
-        response = client.delete(f'/api/patients/{self.patient.pk}/')
+        response = client.delete(f'/api/v1/patients/{self.patient.pk}/')
         self.assertEqual(response.status_code, 200)
         self.patient.refresh_from_db()
         self.assertFalse(self.patient.is_active)
@@ -195,5 +195,5 @@ class RBACTests(TestCase):
         """Unauthenticated requests should return 401."""
         from rest_framework.test import APIClient
         client = APIClient()
-        response = client.get('/api/patients/')
+        response = client.get('/api/v1/patients/')
         self.assertIn(response.status_code, [401, 403])

@@ -24,6 +24,12 @@ export default function Reminders() {
   const [sending, setSending] = useState(false);
   const [result, setResult] = useState<{ success: boolean; msg: string } | null>(null);
 
+  // Bulk SMS states
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [bulkCohort, setBulkCohort] = useState('ALL');
+  const [bulkForm, setBulkForm] = useState({ use_template: true, message: '', lang: 'en' });
+  const [bulkResult, setBulkResult] = useState<{ success: boolean; msg: string; sent?: number; failed?: number } | null>(null);
+
   // Preview flow
   const [step, setStep] = useState<'compose' | 'preview'>('compose');
   const [preview, setPreview] = useState<{ message: string; length: number } | null>(null);
@@ -33,7 +39,7 @@ export default function Reminders() {
     const [lRes, pRes, aRes] = await Promise.all([
       remindersApi.list(),
       patientsApi.list(),
-      appointmentsApi.list({ status: 'UPCOMING' }),
+      appointmentsApi.list(),
     ]);
     setLogs(lRes.data.results ?? lRes.data);
     setPatients(pRes.data.results ?? pRes.data);
@@ -90,7 +96,67 @@ export default function Reminders() {
     } finally { setSending(false); }
   };
 
-  const patientAppointments = appointments.filter(a => a.patient === +form.patient_id);
+  const openBulkModal = () => {
+    setBulkCohort('ALL');
+    setBulkForm({ use_template: true, message: '', lang: 'en' });
+    setBulkResult(null);
+    setShowBulkModal(true);
+  };
+
+  const handleSendBulk = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const ids = filteredBulkPatients.map(p => p.id);
+    if (ids.length === 0) return;
+    setSending(true);
+    setBulkResult(null);
+    try {
+      const payload: any = {
+        patient_ids: ids,
+        use_template: bulkForm.use_template,
+        lang: bulkForm.lang
+      };
+      if (!bulkForm.use_template && bulkForm.message) {
+        payload.message = bulkForm.message;
+      }
+      const { data } = await remindersApi.bulk(payload);
+      if (data.queued) {
+        setBulkResult({
+          success: true,
+          msg: `Bulk reminders queued successfully! (Task ID: ${data.task_id})`
+        });
+      } else {
+        setBulkResult({
+          success: true,
+          msg: `Bulk reminders sent successfully!`,
+          sent: data.sent,
+          failed: data.failed
+        });
+        load();
+      }
+    } catch (err: any) {
+      const detail = err.response?.data?.error || err.response?.data?.detail || err.message;
+      setBulkResult({ success: false, msg: `Error sending bulk reminders: ${detail}` });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const getFilteredPatientsForBulk = () => {
+    if (bulkCohort === 'ALL') {
+      return patients;
+    }
+    if (['ANC1', 'ANC2', 'ANC3', 'ANC4', 'POSTNATAL'].includes(bulkCohort)) {
+      return patients.filter(p => p.clinic_stage === bulkCohort);
+    }
+    if (bulkCohort === 'MISSED') {
+      const missedPatientIds = new Set(appointments.filter(a => a.status === 'MISSED').map(a => a.patient));
+      return patients.filter(p => missedPatientIds.has(p.id));
+    }
+    return [];
+  };
+
+  const filteredBulkPatients = getFilteredPatientsForBulk();
+  const patientAppointments = appointments.filter(a => a.patient === +form.patient_id && a.status === 'UPCOMING');
 
   return (
     <>
@@ -98,7 +164,10 @@ export default function Reminders() {
         <h1 className="flex items-center gap-3">
           <MessageSquare className="text-primary" size={28} /> SMS Reminders
         </h1>
-        <div className="header-actions">
+        <div className="header-actions" style={{ display: 'flex', gap: '8px' }}>
+          <button id="bulk-reminder-btn" className="btn btn-secondary flex items-center gap-2" onClick={openBulkModal}>
+            <Smartphone size={18} /> Bulk Remind
+          </button>
           <button id="send-reminder-btn" className="btn btn-primary flex items-center gap-2" onClick={openModal}>
             <Send size={18} /> Send Reminder
           </button>
@@ -280,6 +349,122 @@ export default function Reminders() {
                 </div>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {showBulkModal && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowBulkModal(false)}>
+          <div className="modal" style={{ maxWidth: '600px' }}>
+            <div className="modal-header">
+              <div className="modal-title">Send Bulk SMS Reminders</div>
+              <button className="modal-close" onClick={() => setShowBulkModal(false)} aria-label="Close modal">✕</button>
+            </div>
+
+            {bulkResult && (
+              <div className={`alert alert-${bulkResult.success ? 'success' : 'danger'}`}>
+                {bulkResult.success ? '✓' : '⚠️'} {bulkResult.msg}
+                {bulkResult.sent !== undefined && (
+                  <div style={{ marginTop: '4px', fontSize: '0.85rem' }}>
+                    Sent: <strong style={{ color: 'var(--success)' }}>{bulkResult.sent}</strong> | Failed: <strong style={{ color: 'var(--danger)' }}>{bulkResult.failed}</strong>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <form onSubmit={handleSendBulk}>
+              <div className="form-group">
+                <label className="form-label">Target Cohort / Filter *</label>
+                <select className="form-select" required value={bulkCohort} onChange={e => setBulkCohort(e.target.value)}>
+                  <option value="ALL">All Active Patients</option>
+                  <option value="ANC1">ANC Stage 1</option>
+                  <option value="ANC2">ANC Stage 2</option>
+                  <option value="ANC3">ANC Stage 3</option>
+                  <option value="ANC4">ANC Stage 4</option>
+                  <option value="POSTNATAL">Postnatal Patients</option>
+                  <option value="MISSED">Patients with Missed Appointments</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Message Language</label>
+                <select className="form-select" value={bulkForm.lang} onChange={e => setBulkForm(f => ({ ...f, lang: e.target.value }))}>
+                  <option value="en">English (English)</option>
+                  <option value="sw">Swahili (Kiswahili)</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: '0.88rem' }}>
+                  <input type="checkbox" checked={bulkForm.use_template} onChange={e => setBulkForm(f => ({ ...f, use_template: e.target.checked }))} />
+                  Use automatic message template
+                </label>
+              </div>
+
+              {!bulkForm.use_template && (
+                <div className="form-group">
+                  <label className="form-label">Custom Message *</label>
+                  <textarea 
+                    className="form-textarea" 
+                    rows={4} 
+                    required={!bulkForm.use_template}
+                    value={bulkForm.message} 
+                    onChange={e => setBulkForm(f => ({ ...f, message: e.target.value }))}
+                    placeholder="Enter the custom message to send to all selected recipients..." 
+                  />
+                  <span className="form-hint">{bulkForm.message.length}/160 characters</span>
+                </div>
+              )}
+
+              <div style={{ marginTop: '16px', marginBottom: '16px' }}>
+                <div style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '6px' }}>
+                  Recipients ({filteredBulkPatients.length})
+                </div>
+                <div style={{ maxHeight: '150px', overflowY: 'auto', border: '1px solid var(--border)', borderRadius: '6px', padding: '8px', background: 'var(--bg-card-header)' }}>
+                  {filteredBulkPatients.length === 0 ? (
+                    <div className="text-muted text-sm" style={{ padding: '8px', textAlign: 'center' }}>No matching patients found.</div>
+                  ) : (
+                    <table style={{ width: '100%', fontSize: '0.8rem' }}>
+                      <thead>
+                        <tr>
+                          <th style={{ textAlign: 'left' }}>Name</th>
+                          <th style={{ textAlign: 'left' }}>Phone</th>
+                          <th style={{ textAlign: 'left' }}>Stage</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredBulkPatients.map(p => (
+                          <tr key={p.id}>
+                            <td>{p.full_name}</td>
+                            <td className="text-muted">{p.phone_number}</td>
+                            <td className="text-muted">{p.clinic_stage}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+
+              {sending && filteredBulkPatients.length > 0 && (
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ fontSize: '0.85rem', marginBottom: '4px', display: 'flex', justifyContent: 'between' }}>
+                    <span>Sending progress...</span>
+                    <span>{filteredBulkPatients.length > 10 ? 'Processing asynchronously...' : 'Processing...'}</span>
+                  </div>
+                  <div style={{ width: '100%', height: '8px', background: 'var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{ width: '100%', height: '100%', background: 'var(--primary)', animation: 'pulse 1.5s infinite' }} />
+                  </div>
+                </div>
+              )}
+
+              <div className="modal-footer">
+                <button type="button" className="btn btn-ghost" onClick={() => setShowBulkModal(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={sending || filteredBulkPatients.length === 0}>
+                  {sending ? 'Sending Reminders...' : `Send to ${filteredBulkPatients.length} Patients`}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

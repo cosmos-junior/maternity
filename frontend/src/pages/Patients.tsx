@@ -111,6 +111,7 @@ export default function Patients() {
     // Live-validate touched fields
     validateOne(field as keyof PatientFormFields, val, {
       full_name: form.full_name, phone_number: form.phone_number,
+      national_id: form.national_id ?? '', nhif_number: form.nhif_number ?? '',
       next_of_kin_name: form.next_of_kin_name, next_of_kin_phone: form.next_of_kin_phone,
       date_of_birth: form.date_of_birth ?? '', lmp: form.lmp,
       clinic_stage: form.clinic_stage, risk_level: form.risk_level,
@@ -311,14 +312,31 @@ export default function Patients() {
 
                 <div className="form-group">
                   <label className="form-label">National ID</label>
-                  <input className="form-input" value={form.national_id ?? ''}
-                    onChange={e => set('national_id', e.target.value)} />
+                  <input 
+                    className={`form-input${getError('national_id') ? ' input-error' : ''}`}
+                    value={form.national_id ?? ''}
+                    onBlur={() => touch('national_id')}
+                    onChange={e => set('national_id', e.target.value)} 
+                  />
+                  {getError('national_id') && <span className="form-error">{getError('national_id')}</span>}
                 </div>
 
                 <div className="form-group">
-                  <label className="form-label">NHIF Number</label>
-                  <input className="form-input" value={form.nhif_number ?? ''}
-                    onChange={e => set('nhif_number', e.target.value)} />
+                  <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>NHIF Number</span>
+                    {/^\d{8,12}$/.test(form.nhif_number ?? '') && (
+                      <span className="text-success" style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', fontWeight: 600 }}>
+                        ✓ Valid Format
+                      </span>
+                    )}
+                  </label>
+                  <input 
+                    className={`form-input${getError('nhif_number') ? ' input-error' : ''}`}
+                    value={form.nhif_number ?? ''}
+                    onBlur={() => touch('nhif_number')}
+                    onChange={e => set('nhif_number', e.target.value)} 
+                  />
+                  {getError('nhif_number') && <span className="form-error">{getError('nhif_number')}</span>}
                 </div>
 
                 <div className="form-group">
