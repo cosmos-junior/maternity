@@ -21,7 +21,7 @@
     "model": "referrals.kmhflfacility",
     "pk": 3,
     "fields": {
-      "code": "14594",
+      "code": "13703",
       "name": "Kisii Teaching and Referral Hospital",
       "county": "Kisii"
     }
@@ -93,8 +93,8 @@
     "model": "referrals.kmhflfacility",
     "pk": 11,
     "fields": {
-      "code": "14321",
-      "name": "Itierio Mission Health Centre",
+      "code": "13629",
+      "name": "Itierio Maternity and Nursing Home",
       "county": "Kisii"
     }
   },

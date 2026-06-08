@@ -19,9 +19,12 @@ import {
   Stethoscope,
   Heart,
   FileText,
-  ArrowUpRight
+  ArrowUpRight,
+  Database,
+  Copy,
+  Download
 } from 'lucide-react';
-import { patientsApi, appointmentsApi, remindersApi, pediatricsApi } from '../api';
+import { patientsApi, appointmentsApi, remindersApi, pediatricsApi, fhirApi } from '../api';
 import { Patient, Appointment, ChildProfile } from '../types';
 import { formatDate, STAGE_LABELS, STAGE_COLORS, RISK_COLORS, STATUS_COLORS, APPT_TYPE_LABELS } from '../utils';
 import HighRiskBadge from '../components/HighRiskBadge';
@@ -38,10 +41,13 @@ export default function PatientDetail() {
   const [sendingReminder, setSendingReminder] = useState<number | null>(null);
   const [actionMsg, setActionMsg] = useState('');
   
-  // Timeline states
-  const [activeTab, setActiveTab] = useState<'info' | 'timeline'>('info');
+  // Timeline / FHIR states
+  const [activeTab, setActiveTab] = useState<'info' | 'timeline' | 'fhir'>('info');
   const [timelineEvents, setTimelineEvents] = useState<any[]>([]);
   const [loadingTimeline, setLoadingTimeline] = useState(false);
+  const [fhirData, setFhirData] = useState<any>(null);
+  const [loadingFhir, setLoadingFhir] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const load = async () => {
     if (!id) return;
@@ -72,6 +78,18 @@ export default function PatientDetail() {
         .finally(() => {
           setLoadingTimeline(false);
         });
+    } else if (activeTab === 'fhir' && id) {
+      setLoadingFhir(true);
+      fhirApi.patient(+id)
+        .then(res => {
+          setFhirData(res.data);
+        })
+        .catch(err => {
+          console.error(err);
+        })
+        .finally(() => {
+          setLoadingFhir(false);
+        });
     }
   }, [activeTab, id]);
 
@@ -87,6 +105,26 @@ export default function PatientDetail() {
     } catch { setActionMsg('Failed to send SMS'); }
     setSendingReminder(null);
     setTimeout(() => setActionMsg(''), 3000);
+  };
+
+  const copyToClipboard = () => {
+    if (!fhirData) return;
+    navigator.clipboard.writeText(JSON.stringify(fhirData, null, 2));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const downloadFhirJson = () => {
+    if (!fhirData) return;
+    const blob = new Blob([JSON.stringify(fhirData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fhir_patient_${patient?.patient_number || id}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const getEventIcon = (type: string) => {
@@ -158,9 +196,15 @@ export default function PatientDetail() {
           >
             Care Timeline
           </button>
+          <button 
+            className={`font-bold pb-2 px-2 transition-all ${activeTab === 'fhir' ? 'border-b-2 border-primary text-primary' : 'text-slate-500 hover:text-slate-800'}`}
+            onClick={() => setActiveTab('fhir')}
+          >
+            FHIR Interoperability
+          </button>
         </div>
 
-        {activeTab === 'info' ? (
+        {activeTab === 'info' && (
           <>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               {/* Patient Info Card */}
@@ -246,12 +290,12 @@ export default function PatientDetail() {
                       </div>
                     ))}
                   </div>
-
+ 
                   {/* EDD Countdown widget */}
                   <EddCountdownWidget edd={patient.edd} weeksPregnant={patient.weeks_pregnant} />
-
+ 
                   {patient.notes && <><div className="divider" /><div className="text-muted" style={{ fontSize: '0.8rem' }}>{patient.notes}</div></>}
-
+ 
                   {stats && (
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-5">
                       {[
@@ -270,7 +314,7 @@ export default function PatientDetail() {
                 </div>
               </HighRiskBadge>
             </div>
-
+ 
             <div className="card" style={{ marginBottom: 24 }}>
               <div className="flex-between mb-4">
                 <div className="section-title flex items-center gap-2" style={{ margin: 0 }}>
@@ -296,7 +340,7 @@ export default function PatientDetail() {
                 </div>
               )}
             </div>
-
+ 
             {/* Appointment Timeline */}
             <div className="card">
               <div className="flex-between mb-4">
@@ -340,12 +384,14 @@ export default function PatientDetail() {
               )}
             </div>
           </>
-        ) : (
+        )}
+
+        {activeTab === 'timeline' && (
           <div className="card">
             <div className="section-title flex items-center gap-2 mb-6">
               <Clock size={18} className="text-primary" /> Comprehensive Care Timeline
             </div>
-
+ 
             {loadingTimeline ? (
               <div className="loading-wrap"><div className="spinner" /></div>
             ) : timelineEvents.length === 0 ? (
@@ -380,7 +426,7 @@ export default function PatientDetail() {
                           {evt.meta.remarks && <div className="col-span-4 mt-1 border-t border-slate-100 dark:border-slate-700/50 pt-1"><span className="text-slate-400 block">Remarks</span><span>{evt.meta.remarks}</span></div>}
                         </div>
                       )}
-
+ 
                       {evt.type === 'CLINICAL_NOTE' && evt.meta && (
                         <div className="mt-2 bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-lg text-xs space-y-1">
                           {evt.meta.diagnosis && <div><strong className="text-slate-400 block">Assessment / Diagnosis:</strong><span>{evt.meta.diagnosis}</span></div>}
@@ -388,7 +434,7 @@ export default function PatientDetail() {
                           {evt.meta.by && <div className="text-right text-[10px] text-slate-400 italic">Logged by: {evt.meta.by}</div>}
                         </div>
                       )}
-
+ 
                       {evt.type === 'REFERRAL' && evt.meta && (
                         <div className="mt-2 bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-lg text-xs space-y-1">
                           <div><strong className="text-slate-400">Destination:</strong> <span>{evt.meta.facility}</span></div>
@@ -396,14 +442,14 @@ export default function PatientDetail() {
                           {evt.meta.outcome && <div><strong className="text-slate-400">Outcome Details:</strong> <span>{evt.meta.outcome}</span></div>}
                         </div>
                       )}
-
+ 
                       {evt.type === 'POSTNATAL' && evt.meta && (
                         <div className="grid grid-cols-2 gap-2 mt-2 bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-lg text-xs">
                           <div><span className="text-slate-400 block">Delivery Mode</span><strong>{evt.meta.mode || '—'}</strong></div>
                           <div><span className="text-slate-400 block">Complications</span><strong>{evt.meta.complications || 'None'}</strong></div>
                         </div>
                       )}
-
+ 
                       {evt.type === 'PMTCT' && evt.meta && (
                         <div className="mt-2 bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-lg text-xs">
                           <div><strong className="text-slate-400">ARV Regimen:</strong> <span>{evt.meta.arv || 'None'}</span></div>
@@ -412,6 +458,93 @@ export default function PatientDetail() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'fhir' && (
+          <div className="card">
+            <div className="flex-between mb-4 flex-wrap gap-4">
+              <div className="section-title flex items-center gap-2" style={{ margin: 0 }}>
+                <Database size={18} className="text-primary" /> HL7 FHIR Interoperability
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="flex items-center gap-1 text-[11px] font-bold text-success bg-success/15 px-2.5 py-1 rounded-full border border-success/30">
+                  <span className="h-1.5 w-1.5 rounded-full bg-success"></span>
+                  Active & Compliant
+                </span>
+              </div>
+            </div>
+            
+            <p className="text-sm text-slate-500 mb-6 max-w-3xl leading-relaxed">
+              Expose this patient's demographic registry and clinical record in the standard <strong>HL7 FHIR R4 JSON format</strong>. 
+              This conforms to international healthcare system requirements and allows secure, automated interoperability with hospital EMR/EHR legacy systems.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+              <div className="kpi-card" style={{ padding: '16px' }}>
+                <div className="kpi-label">Resource Type</div>
+                <div className="kpi-value text-primary" style={{ fontSize: '1.25rem', marginTop: '4px' }}>Patient</div>
+              </div>
+              <div className="kpi-card" style={{ padding: '16px' }}>
+                <div className="kpi-label">FHIR Standard Version</div>
+                <div className="kpi-value" style={{ fontSize: '1.25rem', marginTop: '4px' }}>R4 v4.0.1</div>
+              </div>
+              <div className="kpi-card" style={{ padding: '16px' }}>
+                <div className="kpi-label">Integration Schema</div>
+                <div className="kpi-value text-slate-600 dark:text-slate-400 font-mono" style={{ fontSize: '0.85rem', fontWeight: 600, marginTop: '8px', wordBreak: 'break-all' }}>
+                  urn:maternitrack:extension
+                </div>
+              </div>
+              <div className="kpi-card" style={{ padding: '16px' }}>
+                <div className="kpi-label">Resource Endpoint</div>
+                <div className="kpi-value text-slate-500 font-mono" style={{ fontSize: '0.68rem', marginTop: '8px', wordBreak: 'break-all' }}>
+                  /api/v1/core/fhir/patient/{id}/
+                </div>
+              </div>
+            </div>
+
+            {loadingFhir ? (
+              <div className="loading-wrap py-12"><div className="spinner" /></div>
+            ) : !fhirData ? (
+              <div className="empty-state py-8">
+                <AlertCircle className="text-danger mb-2" />
+                <p>Failed to retrieve FHIR Patient Resource.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center bg-slate-100 dark:bg-slate-800/80 px-4 py-2.5 rounded-lg border border-slate-200 dark:border-slate-700/60 flex-wrap gap-2">
+                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 font-mono">
+                    fhir_patient_{patient.patient_number}.json
+                  </span>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={copyToClipboard}
+                      className="btn btn-ghost btn-sm flex items-center gap-1.5 text-xs py-1"
+                      style={{ fontSize: '0.8rem' }}
+                    >
+                      {copied ? <Check size={14} className="text-success" /> : <Copy size={14} />}
+                      {copied ? 'Copied' : 'Copy JSON'}
+                    </button>
+                    <button 
+                      onClick={downloadFhirJson}
+                      className="btn btn-primary btn-sm flex items-center gap-1.5 text-xs py-1"
+                      style={{ fontSize: '0.8rem' }}
+                    >
+                      <Download size={14} /> Download File
+                    </button>
+                  </div>
+                </div>
+
+                <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl">
+                  <pre 
+                    className="bg-slate-900 text-slate-100 p-5 font-mono text-xs overflow-x-auto max-h-[500px] leading-relaxed"
+                    style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-all', textAlign: 'left' }}
+                  >
+                    {JSON.stringify(fhirData, null, 2)}
+                  </pre>
+                </div>
               </div>
             )}
           </div>

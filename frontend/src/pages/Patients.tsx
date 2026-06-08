@@ -16,7 +16,7 @@ import {
   Salad,
   Activity
 } from 'lucide-react';
-import { patientsApi } from '../api';
+import { patientsApi, referralsApi } from '../api';
 import { Patient, PatientForm, ClinicStage, RiskLevel } from '../types';
 import { formatDate, STAGE_LABELS, STAGE_COLORS } from '../utils';
 import HighRiskBadge from '../components/HighRiskBadge';
@@ -29,9 +29,9 @@ const BLANK_FORM: PatientForm = {
   national_id: '', nhif_number: '', date_of_birth: null, lmp: '', clinic_stage: 'ANC1', risk_level: 'LOW',
   blood_group: 'O+', lang: 'en', medical_history: '', surgical_history: '', allergies: '', family_history: '',
   address: '', notes: '', is_active: true, registered_by: null,
-  residence_county: '', residence_subcounty: '', residence_ward: '', residence_village: '',
+  residence_county: 'Kisii', residence_subcounty: '', residence_ward: '', residence_village: '',
   emergency_contact_relationship: '', emergency_contact_address: '',
-  health_facility_name: '', kmhfl_code: '', anc_number: '', pnc_number: '',
+  health_facility_name: 'Itierio Maternity and Nursing Home', kmhfl_code: '13629', anc_number: '', pnc_number: '',
   gravida: null, parity: null, height: null, weight: null, estate_house_number: '',
   has_diabetes: false, has_hypertension: false, blood_transfusion_history: '', tb_history: '',
   has_drug_allergy: false, drug_allergies_specify: '', family_history_twins: false, family_history_tb: false,
@@ -54,7 +54,48 @@ export default function Patients() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  // Facility autocomplete states
+  const [suggestedFacilities, setSuggestedFacilities] = useState<any[]>([]);
+  const [showFacilitySuggestions, setShowFacilitySuggestions] = useState(false);
+
+
+
   const { getError, validateOne, validateAll, touch, reset } = useFormValidation(patientSchema);
+
+  useEffect(() => {
+    if (!form.health_facility_name || form.health_facility_name.length < 2) {
+      setSuggestedFacilities([]);
+      return;
+    }
+    const delayDebounce = setTimeout(async () => {
+      try {
+        const { data } = await referralsApi.facilities(form.health_facility_name);
+        setSuggestedFacilities(data.results ?? data);
+      } catch {
+        setSuggestedFacilities([]);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounce);
+  }, [form.health_facility_name]);
+
+  const handleFacilityChange = (val: string) => {
+    set('health_facility_name', val);
+    setShowFacilitySuggestions(true);
+  };
+
+  const selectFacility = (fac: any) => {
+    setForm(f => ({
+      ...f,
+      health_facility_name: fac.name,
+      kmhfl_code: fac.code,
+      residence_county: fac.county || f.residence_county,
+    }));
+    setSuggestedFacilities([]);
+    setShowFacilitySuggestions(false);
+  };
+
+
 
   const hasFilters = !!(search || stageFilter || riskFilter || eddFrom || eddTo);
 
@@ -81,7 +122,12 @@ export default function Patients() {
   useEffect(() => { setPage(1); }, [search, stageFilter, riskFilter, eddFrom, eddTo]);
   useEffect(() => { load(); }, [load]);
 
-  const openModal = () => { setForm(BLANK_FORM); setError(''); reset(); setShowModal(true); };
+  const openModal = () => {
+    setForm(BLANK_FORM);
+    setError('');
+    reset();
+    setShowModal(true);
+  };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -325,13 +371,48 @@ export default function Patients() {
                 <div style={{ gridColumn: '1 / -1', borderBottom: '1px solid var(--border)', paddingBottom: 8, marginBottom: 4, fontWeight: 600, color: 'var(--text-main)', fontSize: '1rem', marginTop: 8 }}>
                   Facility Information
                 </div>
-                <div className="form-group">
+                <div className="form-group" style={{ position: 'relative' }}>
                   <label className="form-label">Name of Health Facility</label>
                   <input
                     className="form-input"
                     value={form.health_facility_name ?? ''}
-                    onChange={e => set('health_facility_name', e.target.value)}
+                    onChange={e => handleFacilityChange(e.target.value)}
+                    onFocus={() => setShowFacilitySuggestions(true)}
                   />
+                  {showFacilitySuggestions && suggestedFacilities.length > 0 && (
+                    <div 
+                      onMouseLeave={() => setShowFacilitySuggestions(false)}
+                      style={{
+                        position: 'absolute',
+                        top: '100%',
+                        left: 0,
+                        right: 0,
+                        background: 'var(--bg-card)',
+                        border: '1px solid var(--border)',
+                        borderRadius: '8px',
+                        zIndex: 1000,
+                        maxHeight: '150px',
+                        overflowY: 'auto',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                      }}
+                    >
+                      {suggestedFacilities.map(f => (
+                        <div
+                          key={f.id}
+                          onClick={() => selectFacility(f)}
+                          style={{
+                            padding: '8px 12px',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            borderBottom: '1px solid var(--border)',
+                          }}
+                          className="hover:bg-primary-light"
+                        >
+                          <strong>{f.code}</strong> — {f.name} ({f.county} County)
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="form-group">
                   <label className="form-label">KMHFL Code</label>
@@ -368,33 +449,26 @@ export default function Patients() {
                   />
                   {getError('phone_number') && <span className="form-error">{getError('phone_number')}</span>}
                 </div>
-                <div className="form-group">
-                  <label className="form-label">National ID</label>
-                  <input 
-                    className={`form-input${getError('national_id') ? ' input-error' : ''}`}
-                    value={form.national_id ?? ''}
-                    onBlur={() => touch('national_id')}
-                    onChange={e => set('national_id', e.target.value)} 
-                  />
-                  {getError('national_id') && <span className="form-error">{getError('national_id')}</span>}
-                </div>
-                <div className="form-group">
-                  <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>NHIF / SHA / SHIF / Huduma Number</span>
-                    {/^\d{8,12}$/.test(form.nhif_number ?? '') && (
-                      <span className="text-success" style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', fontWeight: 600 }}>
-                        ✓ Valid Format
-                      </span>
-                    )}
-                  </label>
-                  <input 
-                    className={`form-input${getError('nhif_number') ? ' input-error' : ''}`}
-                    value={form.nhif_number ?? ''}
-                    onBlur={() => touch('nhif_number')}
-                    onChange={e => set('nhif_number', e.target.value)} 
-                  />
-                  {getError('nhif_number') && <span className="form-error">{getError('nhif_number')}</span>}
-                </div>
+                 <div className="form-group">
+                   <label className="form-label">National ID</label>
+                   <input 
+                     className={`form-input${getError('national_id') ? ' input-error' : ''}`}
+                     value={form.national_id ?? ''}
+                     onBlur={() => touch('national_id')}
+                     onChange={e => set('national_id', e.target.value)} 
+                   />
+                   {getError('national_id') && <span className="form-error">{getError('national_id')}</span>}
+                 </div>
+                 <div className="form-group">
+                   <label className="form-label">NHIF / SHA / SHIF / Huduma Number</label>
+                   <input 
+                     className={`form-input${getError('nhif_number') ? ' input-error' : ''}`}
+                     value={form.nhif_number ?? ''}
+                     onBlur={() => touch('nhif_number')}
+                     onChange={e => set('nhif_number', e.target.value)} 
+                   />
+                   {getError('nhif_number') && <span className="form-error">{getError('nhif_number')}</span>}
+                 </div>
                 <div className="form-group">
                   <label className="form-label">Date of Birth</label>
                   <input
