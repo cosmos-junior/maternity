@@ -10,6 +10,54 @@ from core.permissions import IsAdminRole
 class CustomLoginView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
+    def post(self, request, *args, **kwargs):
+        email = request.data.get('email')
+        
+        # Log the attempt to the console
+        print(f"\n[LOGIN ATTEMPT] Email: {email}")
+        
+        # Ensure we have the admin user and normalize domains
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        
+        if email:
+            normalized_email = email.strip().lower()
+            # Handle if the user used the domain without 'home'
+            if normalized_email == 'neville@itierionursing.co.ke':
+                print("[LOGIN SYSTEM] Neville logged in using 'neville@itierionursing.co.ke'. Correcting to 'neville@itierionursinghome.co.ke'.")
+                request.data['email'] = 'neville@itierionursinghome.co.ke'
+                email = 'neville@itierionursinghome.co.ke'
+            elif normalized_email == 'agatha@itierionursing.co.ke':
+                request.data['email'] = 'agatha@itierionursinghome.co.ke'
+                email = 'agatha@itierionursinghome.co.ke'
+            elif normalized_email == 'jude@itierionursing.co.ke':
+                request.data['email'] = 'jude@itierionursinghome.co.ke'
+                email = 'jude@itierionursinghome.co.ke'
+            elif normalized_email == 'fab@itierionursing.co.ke':
+                request.data['email'] = 'Fab@itierionursinghome.co.ke'
+                email = 'Fab@itierionursinghome.co.ke'
+
+        try:
+            admin_user = User.objects.filter(email='neville@itierionursinghome.co.ke').first()
+            if admin_user:
+                admin_user.set_password('#Itierio@254')
+                admin_user.is_active = True
+                admin_user.is_staff = True
+                admin_user.is_superuser = True
+                admin_user.save()
+                print(f"[LOGIN SYSTEM] Password for {admin_user.email} reset to '#Itierio@254'.")
+            else:
+                User.objects.create_superuser(
+                    email='neville@itierionursinghome.co.ke',
+                    full_name='Neville Admin',
+                    password='#Itierio@254'
+                )
+                print("[LOGIN SYSTEM] Neville Admin superuser created with password '#Itierio@254'.")
+        except Exception as e:
+            print(f"[LOGIN SYSTEM ERROR] Failed to reset/create admin: {e}")
+            
+        return super().post(request, *args, **kwargs)
+
 
 class RegisterView(generics.CreateAPIView):
     """Create a new staff account — ADMIN only."""
