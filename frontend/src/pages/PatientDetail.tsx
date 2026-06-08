@@ -173,11 +173,21 @@ export default function PatientDetail() {
                     ['Patient #', patient.patient_number],
                     ['Phone', patient.phone_number],
                     ['National ID', patient.national_id || '—'],
-                    ['NHIF Number', patient.nhif_number || '—'],
+                    ['NHIF / SHA / SHIF / Huduma Number', patient.nhif_number || '—'],
                     ['Date of Birth', formatDate(patient.date_of_birth)],
                     ['Age', patient.age != null ? `${patient.age} years` : '—'],
+                    ['Education Level', patient.education_level || '—'],
+                    ['Marital Status', patient.marital_status || '—'],
+                    ['Facility Name', patient.health_facility_name || '—'],
+                    ['KMHFL Code', patient.kmhfl_code || '—'],
                     ['Next of Kin', patient.next_of_kin_name || '—'],
+                    ['NOK Relationship', patient.emergency_contact_relationship || '—'],
                     ['NOK Phone', patient.next_of_kin_phone || '—'],
+                    ['County', patient.residence_county || '—'],
+                    ['Sub-county', patient.residence_subcounty || '—'],
+                    ['Ward', patient.residence_ward || '—'],
+                    ['Village/Town', patient.residence_village || '—'],
+                    ['Estate/House #', patient.estate_house_number || '—'],
                     ['Address', patient.address || '—'],
                     ['Registered', formatDate(patient.created_at)],
                   ].map(([label, val]) => (
@@ -188,7 +198,7 @@ export default function PatientDetail() {
                   ))}
                 </div>
               </div>
-
+ 
               {/* Maternity Info */}
               <HighRiskBadge riskLevel={patient.risk_level} wrapCard>
                 <div className="card h-full">
@@ -201,6 +211,12 @@ export default function PatientDetail() {
                       ['EDD', formatDate(patient.edd)],
                       ['Weeks Pregnant', patient.weeks_pregnant != null ? `${patient.weeks_pregnant} weeks` : '—'],
                       ['Blood Group', patient.blood_group || '—'],
+                      ['ANC Number', patient.anc_number || '—'],
+                      ['PNC Number', patient.pnc_number || '—'],
+                      ['Gravida', patient.gravida != null ? String(patient.gravida) : '—'],
+                      ['Parity', patient.parity != null ? String(patient.parity) : '—'],
+                      ['Height', patient.height != null ? `${patient.height} cm` : '—'],
+                      ['Weight', patient.weight != null ? `${patient.weight} kg` : '—'],
                     ].map(([label, val]) => (
                       <div key={label}>
                         <div className="text-muted" style={{ fontSize: '0.72rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
@@ -208,10 +224,17 @@ export default function PatientDetail() {
                       </div>
                     ))}
                   </div>
-
+ 
                   <div className="divider" />
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6 mb-5">
                     {[
+                      ['Diabetes', patient.has_diabetes ? 'Yes' : 'No'],
+                      ['Hypertension', patient.has_hypertension ? 'Yes' : 'No'],
+                      ['Drug Allergy', patient.has_drug_allergy ? `Yes - ${patient.drug_allergies_specify || 'Unspecified'}` : 'No'],
+                      ['Blood Transfusion', patient.blood_transfusion_history || '—'],
+                      ['Tuberculosis History', patient.tb_history || '—'],
+                      ['Family History Twins', patient.family_history_twins ? 'Yes' : 'No'],
+                      ['Family History TB', patient.family_history_tb ? 'Yes' : 'No'],
                       ['Medical History', patient.medical_history || '—'],
                       ['Surgical History', patient.surgical_history || '—'],
                       ['Allergies', patient.allergies || '—'],

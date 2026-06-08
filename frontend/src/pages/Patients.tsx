@@ -29,6 +29,13 @@ const BLANK_FORM: PatientForm = {
   national_id: '', nhif_number: '', date_of_birth: null, lmp: '', clinic_stage: 'ANC1', risk_level: 'LOW',
   blood_group: 'O+', lang: 'en', medical_history: '', surgical_history: '', allergies: '', family_history: '',
   address: '', notes: '', is_active: true, registered_by: null,
+  residence_county: '', residence_subcounty: '', residence_ward: '', residence_village: '',
+  emergency_contact_relationship: '', emergency_contact_address: '',
+  health_facility_name: '', kmhfl_code: '', anc_number: '', pnc_number: '',
+  gravida: null, parity: null, height: null, weight: null, estate_house_number: '',
+  has_diabetes: false, has_hypertension: false, blood_transfusion_history: '', tb_history: '',
+  has_drug_allergy: false, drug_allergies_specify: '', family_history_twins: false, family_history_tb: false,
+  gender: 'FEMALE', marital_status: 'SINGLE', education_level: '', occupation: '', spouse_name: '', spouse_phone: '',
 };
 
 export default function Patients() {
@@ -95,18 +102,46 @@ export default function Patients() {
       allergies:        (form as any).allergies ?? '',
       family_history:   (form as any).family_history ?? '',
       address:          form.address,
+      residence_county: form.residence_county,
+      residence_subcounty: form.residence_subcounty,
+      residence_ward: form.residence_ward,
+      residence_village: form.residence_village,
+      emergency_contact_relationship: form.emergency_contact_relationship,
+      health_facility_name: form.health_facility_name,
+      kmhfl_code: form.kmhfl_code,
+      anc_number: form.anc_number,
+      pnc_number: form.pnc_number,
+      gravida: form.gravida ? String(form.gravida) : '',
+      parity: form.parity ? String(form.parity) : '',
+      height: form.height ? String(form.height) : '',
+      weight: form.weight ? String(form.weight) : '',
+      estate_house_number: form.estate_house_number,
+      has_diabetes: form.has_diabetes,
+      has_hypertension: form.has_hypertension,
+      blood_transfusion_history: form.blood_transfusion_history,
+      tb_history: form.tb_history,
+      has_drug_allergy: form.has_drug_allergy,
+      drug_allergies_specify: form.drug_allergies_specify,
+      family_history_twins: form.family_history_twins,
+      family_history_tb: form.family_history_tb,
     };
     if (!validateAll(formAsFields)) return;
     setSaving(true); setError('');
     try {
-      await patientsApi.create(form);
+      await patientsApi.create({
+        ...form,
+        gravida: form.gravida ? Number(form.gravida) : null,
+        parity: form.parity ? Number(form.parity) : null,
+        height: form.height ? Number(form.height) : null,
+        weight: form.weight ? Number(form.weight) : null,
+      });
       setShowModal(false); load();
     } catch (err: any) {
       setError('Registration failed. Please make sure the Phone Number or National ID is not already in use. Ensure all required fields are correctly formatted, check your connection, and try again.');
     } finally { setSaving(false); }
   };
 
-  const set = (field: keyof PatientForm, val: string) => {
+  const set = (field: keyof PatientForm, val: any) => {
     setForm(f => ({ ...f, [field]: val }));
     // Live-validate touched fields
     validateOne(field as keyof PatientFormFields, val, {
@@ -122,7 +157,7 @@ export default function Patients() {
       allergies: (form as any).allergies ?? '',
       family_history: (form as any).family_history ?? '',
       [field]: val,
-    });
+    } as any);
   };
 
   return (
@@ -286,6 +321,31 @@ export default function Patients() {
             <form onSubmit={handleSave} noValidate>
               <div className="form-grid">
 
+                {/* 1. Facility Information */}
+                <div style={{ gridColumn: '1 / -1', borderBottom: '1px solid var(--border)', paddingBottom: 8, marginBottom: 4, fontWeight: 600, color: 'var(--text-main)', fontSize: '1rem', marginTop: 8 }}>
+                  Facility Information
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Name of Health Facility</label>
+                  <input
+                    className="form-input"
+                    value={form.health_facility_name ?? ''}
+                    onChange={e => set('health_facility_name', e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">KMHFL Code</label>
+                  <input
+                    className="form-input"
+                    value={form.kmhfl_code ?? ''}
+                    onChange={e => set('kmhfl_code', e.target.value)}
+                  />
+                </div>
+
+                {/* 2. Patient Demographics */}
+                <div style={{ gridColumn: '1 / -1', borderBottom: '1px solid var(--border)', paddingBottom: 8, marginBottom: 4, fontWeight: 600, color: 'var(--text-main)', fontSize: '1rem', marginTop: 16 }}>
+                  Patient Demographics
+                </div>
                 <div className="form-group">
                   <label className="form-label">Full Name *</label>
                   <input
@@ -297,7 +357,6 @@ export default function Patients() {
                   />
                   {getError('full_name') && <span className="form-error">{getError('full_name')}</span>}
                 </div>
-
                 <div className="form-group">
                   <label className="form-label">Phone Number *</label>
                   <input
@@ -309,7 +368,6 @@ export default function Patients() {
                   />
                   {getError('phone_number') && <span className="form-error">{getError('phone_number')}</span>}
                 </div>
-
                 <div className="form-group">
                   <label className="form-label">National ID</label>
                   <input 
@@ -320,10 +378,9 @@ export default function Patients() {
                   />
                   {getError('national_id') && <span className="form-error">{getError('national_id')}</span>}
                 </div>
-
                 <div className="form-group">
                   <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>NHIF Number</span>
+                    <span>NHIF / SHA / SHIF / Huduma Number</span>
                     {/^\d{8,12}$/.test(form.nhif_number ?? '') && (
                       <span className="text-success" style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', fontWeight: 600 }}>
                         ✓ Valid Format
@@ -338,44 +395,6 @@ export default function Patients() {
                   />
                   {getError('nhif_number') && <span className="form-error">{getError('nhif_number')}</span>}
                 </div>
-
-                <div className="form-group">
-                  <label className="form-label">Blood Group</label>
-                  <select className="form-select" value={form.blood_group ?? 'O+'}
-                    onChange={e => set('blood_group', e.target.value)}>
-                    {['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(bg => (
-                      <option key={bg} value={bg}>{bg}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Preferred Language</label>
-                  <select className="form-select" value={form.lang ?? 'en'}
-                    onChange={e => set('lang', e.target.value)}>
-                    <option value="en">English</option>
-                    <option value="sw">Swahili</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Next of Kin Name</label>
-                  <input className="form-input" value={form.next_of_kin_name}
-                    onChange={e => set('next_of_kin_name', e.target.value)} />
-                </div>
-
-                <div className="form-group">
-                  <label className="form-label">Next of Kin Phone</label>
-                  <input
-                    className={`form-input${getError('next_of_kin_phone') ? ' input-error' : ''}`}
-                    value={form.next_of_kin_phone}
-                    placeholder="0712345678"
-                    onChange={e => set('next_of_kin_phone', e.target.value)}
-                    onBlur={() => touch('next_of_kin_phone')}
-                  />
-                  {getError('next_of_kin_phone') && <span className="form-error">{getError('next_of_kin_phone')}</span>}
-                </div>
-
                 <div className="form-group">
                   <label className="form-label">Date of Birth</label>
                   <input
@@ -387,7 +406,59 @@ export default function Patients() {
                   />
                   {getError('date_of_birth') && <span className="form-error">{getError('date_of_birth')}</span>}
                 </div>
+                <div className="form-group">
+                  <label className="form-label">Preferred Language</label>
+                  <select className="form-select" value={form.lang ?? 'en'}
+                    onChange={e => set('lang', e.target.value)}>
+                    <option value="en">English</option>
+                    <option value="sw">Swahili</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Education Level</label>
+                  <select className="form-select" value={form.education_level ?? ''}
+                    onChange={e => set('education_level', e.target.value)}>
+                    <option value="">Select Education Level</option>
+                    <option value="NONE">None</option>
+                    <option value="PRIMARY">Primary</option>
+                    <option value="SECONDARY">Secondary</option>
+                    <option value="TERTIARY">Tertiary</option>
+                    <option value="UNIVERSITY">University</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Marital Status</label>
+                  <select className="form-select" value={form.marital_status ?? 'SINGLE'}
+                    onChange={e => set('marital_status', e.target.value)}>
+                    <option value="SINGLE">Single</option>
+                    <option value="MARRIED">Married</option>
+                    <option value="COHABITING">Cohabiting</option>
+                    <option value="DIVORCED">Divorced</option>
+                    <option value="WIDOWED">Widowed</option>
+                  </select>
+                </div>
 
+                {/* 3. Maternal Profile */}
+                <div style={{ gridColumn: '1 / -1', borderBottom: '1px solid var(--border)', paddingBottom: 8, marginBottom: 4, fontWeight: 600, color: 'var(--text-main)', fontSize: '1rem', marginTop: 16 }}>
+                  Maternal Profile (Clinical Parameters)
+                </div>
+                <div className="form-group">
+                  <label className="form-label">ANC Number</label>
+                  <input
+                    className="form-input"
+                    value={form.anc_number ?? ''}
+                    onChange={e => set('anc_number', e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">PNC Number</label>
+                  <input
+                    className="form-input"
+                    value={form.pnc_number ?? ''}
+                    onChange={e => set('pnc_number', e.target.value)}
+                  />
+                </div>
                 <div className="form-group">
                   <label className="form-label">Last Menstrual Period (LMP) *</label>
                   <input
@@ -401,7 +472,57 @@ export default function Patients() {
                     ? <span className="form-error">{getError('lmp')}</span>
                     : <span className="form-hint">EDD will be auto-calculated (LMP + 280 days)</span>}
                 </div>
-
+                <div className="form-group">
+                  <label className="form-label">Gravida</label>
+                  <input
+                    type="number"
+                    min="0"
+                    className="form-input"
+                    value={form.gravida ?? ''}
+                    onChange={e => set('gravida', e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Parity</label>
+                  <input
+                    type="number"
+                    min="0"
+                    className="form-input"
+                    value={form.parity ?? ''}
+                    onChange={e => set('parity', e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Height (cm)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    className="form-input"
+                    value={form.height ?? ''}
+                    onChange={e => set('height', e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Weight (kg)</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    className="form-input"
+                    value={form.weight ?? ''}
+                    onChange={e => set('weight', e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Blood Group</label>
+                  <select className="form-select" value={form.blood_group ?? 'O+'}
+                    onChange={e => set('blood_group', e.target.value)}>
+                    {['A+','A-','B+','B-','AB+','AB-','O+','O-'].map(bg => (
+                      <option key={bg} value={bg}>{bg}</option>
+                    ))}
+                  </select>
+                </div>
                 <div className="form-group">
                   <label className="form-label">Clinic Stage *</label>
                   <select className="form-select" value={form.clinic_stage}
@@ -410,7 +531,6 @@ export default function Patients() {
                       <option key={s} value={s}>{STAGE_LABELS[s]}</option>)}
                   </select>
                 </div>
-
                 <div className="form-group">
                   <label className="form-label">Risk Level *</label>
                   <select className="form-select" value={form.risk_level}
@@ -421,34 +541,190 @@ export default function Patients() {
                   </select>
                 </div>
 
-              </div>
-              <div className="form-group">
-                <label className="form-label">Medical History</label>
-                <textarea className="form-textarea" value={form.medical_history ?? ''}
-                  onChange={e => set('medical_history', e.target.value)} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Surgical History</label>
-                <textarea className="form-textarea" value={form.surgical_history ?? ''}
-                  onChange={e => set('surgical_history', e.target.value)} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Allergies</label>
-                <textarea className="form-textarea" value={form.allergies ?? ''}
-                  onChange={e => set('allergies', e.target.value)} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Family History</label>
-                <textarea className="form-textarea" value={form.family_history ?? ''}
-                  onChange={e => set('family_history', e.target.value)} />
-              </div>
+                {/* 4. Residence & Address Details */}
+                <div style={{ gridColumn: '1 / -1', borderBottom: '1px solid var(--border)', paddingBottom: 8, marginBottom: 4, fontWeight: 600, color: 'var(--text-main)', fontSize: '1rem', marginTop: 16 }}>
+                  Residence & Address Details
+                </div>
+                <div className="form-group">
+                  <label className="form-label">County</label>
+                  <input
+                    className="form-input"
+                    value={form.residence_county ?? ''}
+                    onChange={e => set('residence_county', e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Sub-county</label>
+                  <input
+                    className="form-input"
+                    value={form.residence_subcounty ?? ''}
+                    onChange={e => set('residence_subcounty', e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Ward</label>
+                  <input
+                    className="form-input"
+                    value={form.residence_ward ?? ''}
+                    onChange={e => set('residence_ward', e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Town/Trading Centre/Village</label>
+                  <input
+                    className="form-input"
+                    value={form.residence_village ?? ''}
+                    onChange={e => set('residence_village', e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Estate / House Number</label>
+                  <input
+                    className="form-input"
+                    value={form.estate_house_number ?? ''}
+                    onChange={e => set('estate_house_number', e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Physical Address</label>
+                  <input className="form-input" value={form.address}
+                    onChange={e => set('address', e.target.value)} />
+                </div>
 
-              <div className="form-group">
-                <label className="form-label">Address</label>
-                <input className="form-input" value={form.address}
-                  onChange={e => set('address', e.target.value)} />
+                {/* 5. Next of Kin Information */}
+                <div style={{ gridColumn: '1 / -1', borderBottom: '1px solid var(--border)', paddingBottom: 8, marginBottom: 4, fontWeight: 600, color: 'var(--text-main)', fontSize: '1rem', marginTop: 16 }}>
+                  Next of Kin Information
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Next of Kin Name</label>
+                  <input className="form-input" value={form.next_of_kin_name}
+                    onChange={e => set('next_of_kin_name', e.target.value)} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Next of Kin Relationship</label>
+                  <input
+                    className="form-input"
+                    value={form.emergency_contact_relationship ?? ''}
+                    onChange={e => set('emergency_contact_relationship', e.target.value)}
+                  />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Next of Kin Phone</label>
+                  <input
+                    className={`form-input${getError('next_of_kin_phone') ? ' input-error' : ''}`}
+                    value={form.next_of_kin_phone}
+                    placeholder="0712345678"
+                    onChange={e => set('next_of_kin_phone', e.target.value)}
+                    onBlur={() => touch('next_of_kin_phone')}
+                  />
+                  {getError('next_of_kin_phone') && <span className="form-error">{getError('next_of_kin_phone')}</span>}
+                </div>
+
+                {/* 6. Medical & Surgical History */}
+                <div style={{ gridColumn: '1 / -1', borderBottom: '1px solid var(--border)', paddingBottom: 8, marginBottom: 4, fontWeight: 600, color: 'var(--text-main)', fontSize: '1rem', marginTop: 16 }}>
+                  Medical & Surgical History
+                </div>
+                
+                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 24, marginTop: 12 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.88rem', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={form.has_diabetes ?? false}
+                      onChange={e => set('has_diabetes', e.target.checked)}
+                    />
+                    Diabetes?
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.88rem', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={form.has_hypertension ?? false}
+                      onChange={e => set('has_hypertension', e.target.checked)}
+                    />
+                    Hypertension?
+                  </label>
+                </div>
+
+                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.88rem', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={form.has_drug_allergy ?? false}
+                      onChange={e => set('has_drug_allergy', e.target.checked)}
+                    />
+                    Any Drug Allergy?
+                  </label>
+                </div>
+
+                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 24, marginTop: 12 }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.88rem', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={form.family_history_twins ?? false}
+                      onChange={e => set('family_history_twins', e.target.checked)}
+                    />
+                    Family History: Twins
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.88rem', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={form.family_history_tb ?? false}
+                      onChange={e => set('family_history_tb', e.target.checked)}
+                    />
+                    Family History: Tuberculosis
+                  </label>
+                </div>
+
+                <div style={{ gridColumn: '1 / -1' }} className="form-group">
+                  <label className="form-label">Blood Transfusion (notes/history)</label>
+                  <input
+                    className="form-input"
+                    value={form.blood_transfusion_history ?? ''}
+                    onChange={e => set('blood_transfusion_history', e.target.value)}
+                  />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1' }} className="form-group">
+                  <label className="form-label">Tuberculosis History/Contact</label>
+                  <input
+                    className="form-input"
+                    value={form.tb_history ?? ''}
+                    onChange={e => set('tb_history', e.target.value)}
+                  />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1' }} className="form-group">
+                  <label className="form-label">If Drug Allergy, specify allergen & reaction</label>
+                  <input
+                    className="form-input"
+                    value={form.drug_allergies_specify ?? ''}
+                    onChange={e => set('drug_allergies_specify', e.target.value)}
+                  />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1' }} className="form-group">
+                  <label className="form-label">Other Allergies - Specify</label>
+                  <textarea className="form-textarea" value={form.allergies ?? ''}
+                    onChange={e => set('allergies', e.target.value)} />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1' }} className="form-group">
+                  <label className="form-label">Medical History (other notes)</label>
+                  <textarea className="form-textarea" value={form.medical_history ?? ''}
+                    onChange={e => set('medical_history', e.target.value)} />
+                </div>
+                <div style={{ gridColumn: '1 / -1' }} className="form-group">
+                  <label className="form-label">Surgical Operation - Specify</label>
+                  <textarea className="form-textarea" value={form.surgical_history ?? ''}
+                    onChange={e => set('surgical_history', e.target.value)} />
+                </div>
+                <div style={{ gridColumn: '1 / -1' }} className="form-group">
+                  <label className="form-label">Family History (other notes)</label>
+                  <textarea className="form-textarea" value={form.family_history ?? ''}
+                    onChange={e => set('family_history', e.target.value)} />
+                </div>
+
               </div>
-              <div className="form-group">
+              <div className="form-group" style={{ marginTop: 16 }}>
                 <label className="form-label">Clinical Notes</label>
                 <textarea className="form-textarea" value={form.notes}
                   onChange={e => set('notes', e.target.value)} />
