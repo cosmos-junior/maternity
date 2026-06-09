@@ -151,3 +151,100 @@ class Phase6ComplianceAndSecurityTests(APITestCase):
         )
         self.assertEqual(referral.patient.id, patient.id)
         self.assertEqual(referral.destination_facility, '12345 - Referral Hospital')
+
+    def test_fhir_patient_name_search(self):
+        """Querying FHIR patients bundle with name filter should return matching patients."""
+        patient_matching = Patient.objects.create(
+            full_name='Jane Doe Interop',
+            phone_number='0711111111',
+            national_id='11111111',
+            lmp=date.today() - timedelta(weeks=10),
+            registered_by=self.nurse
+        )
+        patient_other = Patient.objects.create(
+            full_name='Alice Smith',
+            phone_number='0722222222',
+            national_id='22222222',
+            lmp=date.today() - timedelta(weeks=10),
+            registered_by=self.nurse
+        )
+
+        self.client.force_authenticate(user=self.admin)
+        
+        response = self.client.get('/api/v1/core/fhir/patients/', {'name': 'Jane'})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        bundle = response.data
+        self.assertEqual(bundle['resourceType'], 'Bundle')
+        self.assertEqual(bundle['total'], 1)
+        self.assertEqual(bundle['entry'][0]['resource']['name'][0]['text'], 'Jane Doe Interop')
+
+    def test_postnatal_fhir_procedure_serialization(self):
+        """PostnatalRecord must serialize correctly into a FHIR Procedure resource with standard SNOMED codes."""
+        from postnatal.models import PostnatalRecord
+        from core.fhir_views import serialize_postnatal_to_fhir_procedure
+        
+        patient = Patient.objects.create(
+            full_name='Maternity Mother',
+            phone_number='0733333333',
+            lmp=date.today() - timedelta(weeks=40),
+            registered_by=self.nurse
+        )
+        postnatal = PostnatalRecord.objects.create(
+            patient=patient,
+            delivery_date=date.today(),
+            delivery_type='CAESAREAN',
+            baby_weight_kg=3.25,
+            baby_gender='MALE',
+            apgar_score_1min=8,
+            apgar_score_5min=9,
+            mother_condition='Good',
+            baby_condition='Healthy',
+            created_by=self.nurse
+        )
+
+        resource = serialize_postnatal_to_fhir_procedure(postnatal)
+        self.assertEqual(resource['resourceType'], 'Procedure')
+        self.assertEqual(resource['status'], 'completed')
+        self.assertEqual(resource['code']['coding'][0]['code'], '116224001')  # SNOMED Caesarean
+        self.assertEqual(resource['code']['coding'][0]['display'], 'Caesarean section')
+        self.assertEqual(resource['subject']['reference'], f'Patient/{patient.id}')
+
+        weight_ext = next(ext for ext in resource['extension'] if 'baby-weight' in ext['url'])
+        gender_ext = next(ext for ext in resource['extension'] if 'baby-gender' in ext['url'])
+        self.assertEqual(weight_ext['valueDecimal'], 3.25)
+        self.assertEqual(gender_ext['valueCode'], 'MALE')
+
+    def test_automatic_postnatal_fhir_push(self):
+        """Saving a PostnatalRecord triggers EHR push task (mock receiver integration)."""
+        from postnatal.models import PostnatalRecord
+        from unittest.mock import patch
+
+        patient = Patient.objects.create(
+            full_name='Push Mother',
+            phone_number='0744444444',
+            lmp=date.today() - timedelta(weeks=40),
+            registered_by=self.nurse
+        )
+
+        with patch('requests.post') as mock_post:
+            from unittest.mock import Mock
+            mock_resp = Mock()
+            mock_resp.status_code = 201
+            mock_post.return_value = mock_resp
+
+            postnatal = PostnatalRecord.objects.create(
+                patient=patient,
+                delivery_date=date.today(),
+                delivery_type='NORMAL',
+                created_by=self.nurse
+            )
+
+            from postnatal.tasks import push_postnatal_record_to_ehr_task
+            push_postnatal_record_to_ehr_task(postnatal.pk)
+
+            self.assertTrue(mock_post.called)
+            args, kwargs = mock_post.call_args
+            self.assertEqual(kwargs['headers']['Content-Type'], 'application/fhir+json')
+            payload = kwargs['json']
+            self.assertEqual(payload['resourceType'], 'Procedure')
+            self.assertEqual(payload['code']['coding'][0]['code'], '386684002')

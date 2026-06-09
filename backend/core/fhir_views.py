@@ -314,7 +314,11 @@ class FHIRBundleExportView(APIView):
     permission_classes = [IsAuthenticated, IsAdminOrDoctor]
 
     def get(self, request):
-        patients = Patient.objects.filter(is_active=True)[:100]  # Limit for safety
+        name = request.query_params.get('name', '')
+        patients = Patient.objects.filter(is_active=True)
+        if name:
+            patients = patients.filter(full_name__icontains=name)
+        patients = patients[:100]  # Limit for safety
 
         entries = []
         for p in patients:
@@ -334,3 +338,167 @@ class FHIRBundleExportView(APIView):
         }
 
         return Response(bundle)
+
+
+# ─── FHIR Procedure (Delivery Record) Interoperability ────────────────────────
+
+from postnatal.models import PostnatalRecord
+
+def serialize_postnatal_to_fhir_procedure(postnatal):
+    """
+    Serializes a PostnatalRecord model instance into an HL7 FHIR R4 Procedure resource.
+    
+    Reference: https://www.hl7.org/fhir/procedure.html
+    """
+    snomed_coding = {
+        'NORMAL': {
+            'system': 'http://snomed.info/sct',
+            'code': '386684002',
+            'display': 'Vaginal delivery'
+        },
+        'CAESAREAN': {
+            'system': 'http://snomed.info/sct',
+            'code': '116224001',
+            'display': 'Caesarean section'
+        },
+        'ASSISTED': {
+            'system': 'http://snomed.info/sct',
+            'code': '236985002',
+            'display': 'Assisted delivery'
+        }
+    }
+    
+    delivery_code = postnatal.delivery_type.upper() if postnatal.delivery_type else 'NORMAL'
+    coding = snomed_coding.get(delivery_code, {
+        'system': 'http://snomed.info/sct',
+        'code': '386684002',
+        'display': 'Delivery procedure'
+    })
+
+    fhir_resource = {
+        'resourceType': 'Procedure',
+        'id': f'postnatal-{postnatal.pk}',
+        'meta': {
+            'versionId': '1',
+            'lastUpdated': postnatal.updated_at.isoformat(),
+            'source': 'MaterniTrack',
+        },
+        'status': 'completed',
+        'code': {
+            'coding': [coding],
+            'text': postnatal.get_delivery_type_display(),
+        },
+        'subject': {
+            'reference': f'Patient/{postnatal.patient.pk}',
+            'display': postnatal.patient.full_name,
+        },
+        'performedDateTime': postnatal.delivery_date.isoformat() if postnatal.delivery_date else None,
+        'outcome': {
+            'text': f"Mother Condition: {postnatal.mother_condition or 'Stable'}. Baby Condition: {postnatal.baby_condition or 'Healthy'}"
+        },
+        'note': []
+    }
+
+    # Custom attributes mapped to extensions
+    extensions = []
+    if postnatal.baby_weight_kg is not None:
+        extensions.append({
+            'url': 'urn:maternitrack:extension:baby-weight',
+            'valueDecimal': float(postnatal.baby_weight_kg)
+        })
+    if postnatal.baby_gender:
+        extensions.append({
+            'url': 'urn:maternitrack:extension:baby-gender',
+            'valueCode': postnatal.baby_gender
+        })
+    if postnatal.apgar_score_1min is not None:
+        extensions.append({
+            'url': 'urn:maternitrack:extension:apgar-1min',
+            'valueInteger': postnatal.apgar_score_1min
+        })
+    if postnatal.apgar_score_5min is not None:
+        extensions.append({
+            'url': 'urn:maternitrack:extension:apgar-5min',
+            'valueInteger': postnatal.apgar_score_5min
+        })
+
+    if extensions:
+        fhir_resource['extension'] = extensions
+
+    if postnatal.notes:
+        fhir_resource['note'].append({
+            'text': postnatal.notes
+        })
+
+    return fhir_resource
+
+
+class FHIRProcedureExportView(APIView):
+    """
+    Returns a FHIR R4-compliant Procedure resource for a delivery event.
+    Reference: https://www.hl7.org/fhir/procedure.html
+    """
+    permission_classes = [IsAuthenticated, IsAdminOrDoctor]
+
+    def get(self, request, pk):
+        try:
+            postnatal = PostnatalRecord.objects.get(pk=pk)
+        except PostnatalRecord.DoesNotExist:
+            return Response({'error': 'Delivery record not found.'}, status=404)
+
+        fhir_resource = serialize_postnatal_to_fhir_procedure(postnatal)
+        return Response(fhir_resource)
+
+
+class FHIRProcedureBundleView(APIView):
+    """
+    GET /api/core/fhir/procedures/
+    Returns a FHIR Bundle containing recent delivery procedures.
+    Admin/Doctor only.
+    """
+    permission_classes = [IsAuthenticated, IsAdminOrDoctor]
+
+    def get(self, request):
+        patient_id = request.query_params.get('patient', '')
+        records = PostnatalRecord.objects.all()
+        if patient_id:
+            records = records.filter(patient_id=patient_id)
+        
+        records = records.select_related('patient')[:100]
+
+        entries = []
+        for r in records:
+            entries.append({
+                'resource': serialize_postnatal_to_fhir_procedure(r),
+                'request': {
+                    'method': 'GET',
+                    'url': f'Procedure/postnatal-{r.pk}',
+                },
+            })
+
+        bundle = {
+            'resourceType': 'Bundle',
+            'type': 'searchset',
+            'total': len(entries),
+            'entry': entries,
+        }
+
+        return Response(bundle)
+
+
+class FHIRMockReceiverView(APIView):
+    """
+    A mock EHR receiver endpoint that accepts POST requests of FHIR resources.
+    """
+    permission_classes = []  # Publicly open for easy mock testing
+
+    def post(self, request):
+        resource = request.data
+        resource_type = resource.get('resourceType', 'Unknown')
+        resource_id = resource.get('id', 'new')
+        print(f"[EHR Mock Receiver] Received FHIR R4 {resource_type} (ID: {resource_id})")
+        return Response({
+            'status': 'created',
+            'message': f'Successfully received {resource_type} resource.',
+            'id': resource_id
+        }, status=201)

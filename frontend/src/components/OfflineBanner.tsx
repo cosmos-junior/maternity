@@ -71,7 +71,7 @@ export default function OfflineBanner() {
         <>
           <span className="offline-banner__icon"><WifiOff size={16} /></span>
           <span>
-            You are offline — viewing cached data. 
+            You are offline (SQLite active) — viewing cached data. 
             {queueCount > 0 ? ` ${queueCount} pending changes will sync when online.` : ' Changes will sync when reconnected.'}
           </span>
         </>

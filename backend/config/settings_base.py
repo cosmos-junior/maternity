@@ -92,12 +92,18 @@ DATABASES = {
         'PASSWORD': config('DB_PASSWORD'),
         'HOST': config('DB_HOST', default='127.0.0.1'),
         'PORT': config('DB_PORT', default='3306'),
+        'CONN_MAX_AGE': 60,  # Enable connection pooling for high concurrency
         'OPTIONS': {
             'charset': 'utf8mb4',
             'init_command': "SET sql_mode='STRICT_TRANS_TABLES'",
         },
     }
 }
+
+# ──────────────────────────────────────────────────────────────────────────────
+# External EHR Interoperability (FHIR R4)
+# ──────────────────────────────────────────────────────────────────────────────
+EXTERNAL_EHR_FHIR_URL = config('EXTERNAL_EHR_FHIR_URL', default='http://127.0.0.1:8000/api/v1/core/fhir/mock-receiver/')
 
 # ──────────────────────────────────────────────────────────────────────────────
 # REST Framework + JWT Auth

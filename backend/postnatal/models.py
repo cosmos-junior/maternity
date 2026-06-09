@@ -87,6 +87,11 @@ class PostnatalRecord(models.Model):
         self.patient.clinic_stage = 'POSTNATAL'
         self.patient.save()
 
+        # Trigger EHR push after transaction commits
+        from django.db import transaction
+        from postnatal.tasks import push_postnatal_record_to_ehr_task
+        transaction.on_commit(lambda: push_postnatal_record_to_ehr_task.delay(self.pk))
+
     @property
     def review_7day_overdue(self):
         from datetime import date
