@@ -7,11 +7,15 @@ import {
   X, 
   Clock,
   ChevronRight,
-  Filter
+  Filter,
+  ClipboardList,
+  Download,
+  FileText
 } from 'lucide-react';
-import { appointmentsApi, patientsApi } from '../api';
+import { appointmentsApi, patientsApi, clinicalApi } from '../api';
 import { Appointment, Patient, AppointmentStatus } from '../types';
 import { formatDate, STATUS_COLORS, APPT_TYPE_LABELS } from '../utils';
+import ANCVisitForm from './ANCVisitForm';
 
 const STATUSES: { val: AppointmentStatus | ''; label: string }[] = [
   { val: '', label: 'All' }, { val: 'UPCOMING', label: 'Upcoming' },
@@ -26,6 +30,9 @@ export default function Appointments() {
   const [statusFilter, setStatusFilter] = useState<AppointmentStatus | ''>('');
   const [showModal, setShowModal] = useState(false);
   const [showReschedule, setShowReschedule] = useState<number | null>(null);
+  const [showAttendForm, setShowAttendForm] = useState<number | null>(null);
+  const [downloadingPDF, setDownloadingPDF] = useState<number | null>(null);
+  const [ancVisits, setAncVisits] = useState<{ [key: number]: number }>({}); // appointment_id -> anc_visit_id
   const [newDate, setNewDate] = useState('');
   const [form, setForm] = useState({ patient: '', appointment_type: 'ANC1', scheduled_date: '', scheduled_time: '', notes: '' });
   const [saving, setSaving] = useState(false);
@@ -42,8 +49,24 @@ export default function Appointments() {
         appointmentsApi.list(params),
         patientsApi.list(),
       ]);
-      setAppointments(aRes.data.results ?? aRes.data);
+      const appts = aRes.data.results ?? aRes.data;
+      setAppointments(appts);
       setPatients(pRes.data.results ?? pRes.data);
+      
+      // Load ANC visits to find which appointments have associated visits
+      try {
+        const ancRes = await clinicalApi.listAncVisits();
+        const visits = ancRes.data.results ?? ancRes.data;
+        const visitMap: { [key: number]: number } = {};
+        visits.forEach((v: any) => {
+          if (v.appointment) {
+            visitMap[v.appointment] = v.id;
+          }
+        });
+        setAncVisits(visitMap);
+      } catch (e) {
+        // Silently fail if can't load ANC visits
+      }
     } catch (err) {
       setError('Unable to load appointments. Please check your connection, refresh the page, or contact system administration if the issue persists.');
     } finally {
@@ -54,13 +77,46 @@ export default function Appointments() {
 
   const flash = (msg: string) => { setActionMsg(msg); setError(''); setTimeout(() => setActionMsg(''), 3000); };
 
-  const markAttended = async (id: number) => {
+  const markAttended = (id: number) => {
+    // For ANC appointments, show the ANC visit form
+    const appointment = appointments.find(a => a.id === id);
+    if (appointment && ['ANC1', 'ANC2', 'ANC3', 'ANC4'].includes(appointment.appointment_type)) {
+      setShowAttendForm(id);
+    } else {
+      // For non-ANC appointments, just mark as attended
+      markAttendedDirect(id);
+    }
+  };
+
+  const markAttendedDirect = async (id: number) => {
     try {
       await appointmentsApi.markAttended(id);
       flash('Marked as attended ✓');
       load();
     } catch (err) {
       setError('Unable to mark appointment as attended. Please try again or verify that the patient record is active.');
+    }
+  };
+  
+  const downloadPDF = async (visitId: number, visitNumber: number) => {
+    try {
+      setDownloadingPDF(visitId);
+      const response = await clinicalApi.getAncVisitPDF(visitId);
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `ANC_Visit_${visitNumber}_ITIERIO.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err: any) {
+      console.error('Download failed:', err);
+      // Fallback: open in new tab
+      window.open(`/api/v1/clinical/anc-visits/${visitId}/pdf/`, '_blank');
+    } finally {
+      setDownloadingPDF(null);
     }
   };
   const markMissed = async (id: number) => {
@@ -175,6 +231,21 @@ export default function Appointments() {
                               <Clock size={14} /> Reschedule
                             </button>
                           </>}
+                          {a.status === 'ATTENDED' && ['ANC1', 'ANC2', 'ANC3', 'ANC4'].includes(a.appointment_type) && ancVisits[a.id] && (
+                            <button 
+                              className="btn btn-ghost btn-sm flex items-center gap-1" 
+                              onClick={() => downloadPDF(ancVisits[a.id], parseInt(a.appointment_type.replace('ANC', '')))}
+                              disabled={downloadingPDF === ancVisits[a.id]}
+                            >
+                              {downloadingPDF === ancVisits[a.id] ? (
+                                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                              ) : (
+                                <>
+                                  <Download size={14} /> PDF Report
+                                </>
+                              )}
+                            </button>
+                          )}
                           {a.status === 'MISSED' && (
                             <button className="btn btn-ghost btn-sm" onClick={() => { setShowReschedule(a.id); setNewDate(''); }}>📆 Reschedule</button>
                           )}
@@ -252,6 +323,34 @@ export default function Appointments() {
               <button className="btn btn-ghost" onClick={() => setShowReschedule(null)}>Cancel</button>
               <button className="btn btn-primary" onClick={handleReschedule}>✓ Reschedule</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ANC Visit Form Modal */}
+      {showAttendForm && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowAttendForm(null)}>
+          <div className="modal" style={{ maxWidth: 900, maxHeight: '90vh', overflow: 'auto' }}>
+            <div className="modal-header">
+              <div className="modal-title flex items-center gap-2">
+                <ClipboardList size={20} />
+                ANC Visit Record
+              </div>
+              <button className="modal-close" onClick={() => { setShowAttendForm(null); load(); }} aria-label="Close modal">✕</button>
+            </div>
+            <div className="alert alert-info mb-4 flex items-center gap-2">
+              <ClipboardList size={16} />
+              <span>Please fill in the clinical findings for this ANC visit. All required fields must be completed.</span>
+            </div>
+            <ANCVisitForm 
+              appointmentId={showAttendForm}
+              onSuccess={() => {
+                setShowAttendForm(null);
+                flash('ANC visit recorded successfully ✓');
+                load();
+              }}
+              onClose={() => { setShowAttendForm(null); load(); }}
+            />
           </div>
         </div>
       )}

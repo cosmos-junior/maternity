@@ -12,136 +12,232 @@
         }
         
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Times New Roman', serif;
             line-height: 1.6;
-            color: #333;
+            color: #000;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+            font-size: 12pt;
         }
         
-        .header {
+        /* Letterhead */
+        .letterhead {
             text-align: center;
-            border-bottom: 3px solid #2c5aa0;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
+            border-bottom: 3px double #1a365d;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
         }
         
-        .header h1 {
-            color: #2c5aa0;
-            font-size: 28px;
+        .hospital-name {
+            font-size: 22pt;
+            font-weight: bold;
+            color: #1a365d;
             margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
-        .header h2 {
-            color: #666;
-            font-size: 18px;
-            font-weight: normal;
+        .hospital-tagline {
+            font-size: 10pt;
+            color: #4a5568;
+            font-style: italic;
+            margin-bottom: 8px;
         }
         
-        .section {
-            margin-bottom: 25px;
-            border: 1px solid #e0e0e0;
+        .hospital-details {
+            font-size: 9pt;
+            color: #718096;
+            line-height: 1.4;
+        }
+        
+        /* Document Header */
+        .document-header {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
             border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .document-title {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #1a365d;
+        }
+        
+        .document-number {
+            font-size: 9pt;
+            color: #718096;
+            text-align: right;
+        }
+        
+        /* Sections */
+        .section {
+            margin-bottom: 20px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
             overflow: hidden;
         }
         
         .section-title {
-            background: linear-gradient(135deg, #2c5aa0, #4a90e2);
-            color: white;
-            padding: 12px 20px;
-            font-size: 16px;
-            font-weight: 600;
+            background: #edf2f7;
+            color: #1a365d;
+            padding: 8px 14px;
+            font-size: 11pt;
+            font-weight: bold;
+            border-bottom: 1px solid #e2e8f0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .section-content {
-            padding: 15px 20px;
-            background: #f9f9f9;
+            padding: 12px 14px;
+            background: #fff;
         }
         
         .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
+            gap: 8px;
         }
         
         .info-item {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
+            padding: 4px 0;
+            border-bottom: 1px dotted #e2e8f0;
         }
         
         .info-label {
-            font-weight: 600;
-            color: #555;
+            font-weight: bold;
+            color: #4a5568;
+            font-size: 10pt;
         }
         
         .info-value {
-            color: #333;
-            font-weight: 500;
+            color: #000;
+            font-weight: 600;
+            font-size: 10pt;
         }
         
+        /* Lab Results */
         .lab-results {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 10px;
         }
         
         .lab-item {
-            background: white;
-            padding: 12px;
-            border-radius: 6px;
-            border-left: 4px solid #4a90e2;
+            background: #f7fafc;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 3px solid #4299e1;
         }
         
         .lab-test-name {
-            font-weight: 600;
-            color: #2c5aa0;
-            margin-bottom: 4px;
+            font-weight: bold;
+            color: #2d3748;
+            font-size: 10pt;
+            margin-bottom: 3px;
         }
         
         .lab-result {
-            font-size: 14px;
-            color: #666;
+            font-size: 10pt;
+            color: #4a5568;
         }
         
         .normal {
-            color: #27ae60;
-            font-weight: 600;
+            color: #276749;
+            font-weight: bold;
         }
         
         .abnormal {
-            color: #e74c3c;
-            font-weight: 600;
+            color: #c53030;
+            font-weight: bold;
         }
         
         .warning {
-            color: #f39c12;
-            font-weight: 600;
+            color: #c05621;
+            font-weight: bold;
         }
         
+        /* Footer */
         .footer {
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 2px solid #e0e0e0;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 2px solid #e2e8f0;
             text-align: center;
-            color: #666;
-            font-size: 12px;
+            font-size: 9pt;
+            color: #718096;
         }
         
         .signature-section {
-            margin-top: 50px;
+            margin-top: 40px;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
         }
         
-        .signature-line {
-            border-top: 2px solid #333;
-            padding-top: 5px;
+        .signature-block {
             text-align: center;
             min-width: 200px;
+        }
+        
+        .signature-line {
+            border-top: 2px solid #000;
+            padding-top: 5px;
+        }
+        
+        .signature-name {
+            font-weight: bold;
+            font-size: 11pt;
+        }
+        
+        .signature-title {
+            font-size: 10pt;
+            color: #4a5568;
+        }
+        
+        .stamp-box {
+            width: 100px;
+            height: 100px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8pt;
+            color: #a0aec0;
+            text-align: center;
+        }
+        
+        /* Disclaimer */
+        .disclaimer {
+            margin-top: 20px;
+            padding: 10px;
+            background: #fffaf0;
+            border: 1px solid #fed7aa;
+            border-radius: 4px;
+            font-size: 8pt;
+            color: #744210;
+            text-align: center;
+        }
+        
+        /* Official watermark */
+        .watermark {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-30deg);
+            font-size: 80pt;
+            color: rgba(26, 54, 93, 0.03);
+            pointer-events: none;
+            z-index: 0;
+            white-space: nowrap;
         }
         
         @media print {
@@ -153,15 +249,39 @@
             .section {
                 break-inside: avoid;
             }
+            
+            .watermark {
+                display: block;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>🏥 Antenatal Care Visit Report</h1>
-        <h2>ANC Visit {{ visit.visit_number }}</h2>
+    <!-- Watermark -->
+    <div class="watermark">ITIERIO MATERNITY</div>
+    
+    <!-- Letterhead -->
+    <div class="letterhead">
+        <div class="hospital-name">ITIERIO MATERNITY AND NURSING HOME</div>
+        <div class="hospital-tagline">Compassionate Care for Mother and Child</div>
+        <div class="hospital-details">
+            P.O. Box [XXX], Nyamira County, Kenya | Tel: +254 XXX XXX XXX | Email: info@itieriomaternity.or.ke<br>
+            Licensed by the Kenya Medical Practitioners and Dentists Council (KMPDC) | NHIF Accredited
+        </div>
     </div>
-
+    
+    <!-- Document Header -->
+    <div class="document-header">
+        <div>
+            <div class="document-title">ANTENATAL CARE VISIT RECORD</div>
+            <div style="font-size: 10pt; color: #4a5568;">ANC Visit {{ visit.visit_number }}</div>
+        </div>
+        <div class="document-number">
+            <div>Ref: ANC/{{ visit.visit_date|date:"Ymd" }}/{{ visit.id }}</div>
+            <div>Date: {{ visit.visit_date|date:"d M Y" }}</div>
+        </div>
+    </div>
+    
     <!-- Patient Information -->
     <div class="section">
         <div class="section-title">📋 Patient Information</div>
@@ -194,7 +314,7 @@
             </div>
         </div>
     </div>
-
+    
     <!-- Vital Signs -->
     <div class="section">
         <div class="section-title">💓 Vital Signs & Measurements</div>
@@ -237,7 +357,7 @@
             </div>
         </div>
     </div>
-
+    
     <!-- Pregnancy Specifics -->
     <div class="section">
         <div class="section-title">🤰 Pregnancy Assessment</div>
@@ -266,14 +386,14 @@
             </div>
             
             {% if visit.ultrasound_results %}
-            <div style="margin-top: 15px;">
+            <div style="margin-top: 10px;">
                 <span class="info-label">Ultrasound Results:</span>
-                <p style="margin-top: 5px; color: #555;">{{ visit.ultrasound_results }}</p>
+                <p style="margin-top: 3px; color: #4a5568; font-size: 10pt;">{{ visit.ultrasound_results }}</p>
             </div>
             {% endif %}
         </div>
     </div>
-
+    
     <!-- Laboratory Results -->
     <div class="section">
         <div class="section-title">🔬 Laboratory Results</div>
@@ -299,7 +419,7 @@
                     <div class="lab-result">
                         {{ visit.blood_sugar_mgdl }} mg/dL
                         {% if visit.blood_sugar_type_display %}
-                        <br><span style="color: #666;">({{ visit.blood_sugar_type_display }})</span>
+                        <br><span style="color: #718096;">({{ visit.blood_sugar_type_display }})</span>
                         {% endif %}
                     </div>
                 </div>
@@ -329,7 +449,7 @@
                 
                 {% if visit.syphilis_status %}
                 <div class="lab-item">
-                    <div class="lab-test-name">Syphilis Screening</div>
+                    <div class="lab-test-name">Syphilis Screening (VDRL/RPR)</div>
                     <div class="lab-result">
                         <span class="{% if visit.syphilis_status == 'NON-REACTIVE' %}normal{% elif visit.syphilis_status == 'REACTIVE' %}abnormal{% else %}warning{% endif %}">
                             {{ visit.syphilis_status_display }}
@@ -340,7 +460,7 @@
                 
                 {% if visit.hepatitis_b_surface_ag and visit.hepatitis_b_surface_ag != 'NOT_TESTED' %}
                 <div class="lab-item">
-                    <div class="lab-test-name">Hepatitis B Surface Ag</div>
+                    <div class="lab-test-name">Hepatitis B Surface Antigen</div>
                     <div class="lab-result">
                         <span class="{% if visit.hepatitis_b_surface_ag == 'NEGATIVE' %}normal{% elif visit.hepatitis_b_surface_ag == 'POSITIVE' %}abnormal{% else %}warning{% endif %}">
                             {{ visit.hepatitis_b_surface_ag_display }}
@@ -351,7 +471,7 @@
                 
                 {% if visit.rubella_igg and visit.rubella_igg != 'NOT_TESTED' %}
                 <div class="lab-item">
-                    <div class="lab-test-name">Rubella IgG</div>
+                    <div class="lab-test-name">Rubella IgG Antibody</div>
                     <div class="lab-result">
                         <span class="{% if visit.rubella_igg == 'IMMUNE' %}normal{% elif visit.rubella_igg == 'NON-IMMUNE' %}warning{% else %}warning{% endif %}">
                             {{ visit.rubella_igg_display }}
@@ -362,73 +482,93 @@
             </div>
         </div>
     </div>
-
+    
     <!-- Clinical Management -->
     <div class="section">
         <div class="section-title">💊 Clinical Management</div>
         <div class="section-content">
             {% if visit.medication_prescribed %}
-            <div style="margin-bottom: 15px;">
+            <div style="margin-bottom: 10px;">
                 <span class="info-label">Medications Prescribed:</span>
-                <p style="margin-top: 5px; color: #555;">{{ visit.medication_prescribed }}</p>
+                <p style="margin-top: 3px; color: #4a5568; font-size: 10pt;">{{ visit.medication_prescribed }}</p>
             </div>
             {% endif %}
             
             {% if visit.supplements_given %}
-            <div style="margin-bottom: 15px;">
+            <div style="margin-bottom: 10px;">
                 <span class="info-label">Supplements Given:</span>
-                <p style="margin-top: 5px; color: #555;">{{ visit.supplements_given }}</p>
+                <p style="margin-top: 3px; color: #4a5568; font-size: 10pt;">{{ visit.supplements_given }}</p>
             </div>
             {% endif %}
             
             {% if visit.health_education_given %}
-            <div style="margin-bottom: 15px;">
-                <span class="info-label">Health Education:</span>
-                <p style="margin-top: 5px; color: #555;">{{ visit.health_education_given }}</p>
+            <div style="margin-bottom: 10px;">
+                <span class="info-label">Health Education Provided:</span>
+                <p style="margin-top: 3px; color: #4a5568; font-size: 10pt;">{{ visit.health_education_given }}</p>
             </div>
             {% endif %}
             
             {% if visit.complications_noted %}
-            <div style="margin-bottom: 15px;">
-                <span class="info-label" style="color: #e74c3c;">Complications Noted:</span>
-                <p style="margin-top: 5px; color: #e74c3c;">{{ visit.complications_noted }}</p>
+            <div style="margin-bottom: 10px;">
+                <span class="info-label" style="color: #c53030;">⚠ Complications Noted:</span>
+                <p style="margin-top: 3px; color: #c53030; font-size: 10pt;">{{ visit.complications_noted }}</p>
             </div>
             {% endif %}
             
             {% if visit.general_notes %}
-            <div style="margin-bottom: 15px;">
-                <span class="info-label">General Notes:</span>
-                <p style="margin-top: 5px; color: #555;">{{ visit.general_notes }}</p>
+            <div style="margin-bottom: 10px;">
+                <span class="info-label">Clinical Notes:</span>
+                <p style="margin-top: 3px; color: #4a5568; font-size: 10pt;">{{ visit.general_notes }}</p>
             </div>
             {% endif %}
             
             {% if visit.next_appointment_date %}
-            <div style="margin-top: 20px; padding: 15px; background: #e8f4fd; border-radius: 6px;">
-                <span class="info-label">Next Appointment:</span>
-                <span class="info-value" style="color: #2c5aa0; font-weight: 600;">{{ visit.next_appointment_date|date:"d M Y" }}</span>
+            <div style="margin-top: 15px; padding: 10px; background: #ebf8ff; border: 1px solid #bee3f8; border-radius: 4px;">
+                <span class="info-label">Next Scheduled Appointment:</span>
+                <span class="info-value" style="color: #2b6cb0; font-weight: bold;">{{ visit.next_appointment_date|date:"d M Y" }}</span>
             </div>
             {% endif %}
         </div>
     </div>
-
-    <!-- Footer -->
+    
+    <!-- Footer / Signature -->
     <div class="signature-section">
-        <div class="signature-line">
+        <div class="signature-block">
+            <div class="stamp-box">
+                OFFICIAL<br>STAMP
+            </div>
+        </div>
+        <div class="signature-block">
             {% if attending_staff %}
-            <strong>{{ attending_staff.full_name }}</strong><br>
-            <small>{{ attending_staff.role }}</small>
+            <div class="signature-line">
+                <div class="signature-name">{{ attending_staff.full_name }}</div>
+                <div class="signature-title">{{ attending_staff.role }}</div>
+                <div style="font-size: 9pt; color: #718096;">Reg. No: {{ attending_staff.registration_number|default:"N/A" }}</div>
+            </div>
             {% else %}
-            <strong>Attending Healthcare Provider</strong>
+            <div class="signature-line">
+                <div class="signature-name">_________________________</div>
+                <div class="signature-title">Attending Healthcare Provider</div>
+            </div>
             {% endif %}
         </div>
-        <div style="text-align: right; color: #666; font-size: 12px;">
-            Report generated on: {{ visit.created_at|date:"d M Y H:i" }}
+    </div>
+    
+    <!-- Document Info -->
+    <div class="footer">
+        <div>
+            <strong>Document Generated:</strong> {{ visit.created_at|date:"d M Y H:i" }} EAT<br>
+            <strong>Report ID:</strong> ANC-{{ visit.id }}-{{ visit.visit_date|date:"Ymd" }} | 
+            <strong>Generated by:</strong> ITIERIO Maternity EMR System v2.0
         </div>
     </div>
-
-    <div class="footer">
-        <p>This report contains confidential medical information. Handle with care.</p>
-        <p>Generated by Maternity Healthcare Management System</p>
+    
+    <!-- Disclaimer -->
+    <div class="disclaimer">
+        <strong>CONFIDENTIALITY NOTICE:</strong> This document contains privileged and confidential medical information intended solely for the use of the patient and healthcare providers involved in the patient's care. 
+        Unauthorized disclosure, copying, or distribution is prohibited by law. If you have received this document in error, please notify ITIERIO Maternity and Nursing Home immediately.
+        <br><br>
+        <em>"Providing Quality Maternal and Child Healthcare Services to Our Community"</em>
     </div>
 </body>
 </html>
