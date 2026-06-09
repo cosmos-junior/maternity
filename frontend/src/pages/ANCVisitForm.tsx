@@ -498,7 +498,11 @@ export default function ANCVisitForm({ appointmentId, patientId, onSuccess, onCl
                 <option value="NORMAL">Normal</option>
                 <option value="MILD">Mild (10.0-10.9 g/dL)</option>
                 <option value="MODERATE">Moderate (7.0-9.9 g/dL)</option>
+<<<<<<< HEAD
                 <option value="SEVERE">Severe (&lt;7.0 g/dL)</option>
+=======
+                <option value="SEVERE">Severe (Below 7.0 g/dL)</option>
+>>>>>>> 80628b86f477ace276dba4ba029f114cdfb12f72
               </select>
             </div>
             <div className="form-group">
