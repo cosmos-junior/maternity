@@ -22,22 +22,29 @@ def create_child_profile_and_vaccinations(sender, instance, created, **kwargs):
         
         dob = instance.delivery_date
         
-        # 2. Pre-populate the Vaccine Schedule (Kenyan/WHO standard roughly)
+        # 2. Pre-populate the Vaccine Schedule (Kenyan EPI standard)
         # Expected dates based on weeks/months from Date of Birth
         schedule = [
+            # At Birth
             ('BCG', dob),
             ('OPV0', dob),
+            # 6 Weeks
             ('OPV1', dob + timedelta(weeks=6)),
             ('PENTA1', dob + timedelta(weeks=6)),
+            ('PCV1', dob + timedelta(weeks=6)),
             ('ROTA1', dob + timedelta(weeks=6)),
+            # 10 Weeks
             ('OPV2', dob + timedelta(weeks=10)),
             ('PENTA2', dob + timedelta(weeks=10)),
+            ('PCV2', dob + timedelta(weeks=10)),
             ('ROTA2', dob + timedelta(weeks=10)),
+            # 14 Weeks
             ('OPV3', dob + timedelta(weeks=14)),
             ('PENTA3', dob + timedelta(weeks=14)),
-            ('VITAMIN_A', dob + timedelta(days=183)),  # ~6 months
-            ('MEASLES1', dob + timedelta(days=274)),   # ~9 months
-            ('MEASLES2', dob + timedelta(days=548)),   # ~18 months
+            ('PCV3', dob + timedelta(weeks=14)),
+            ('IPV', dob + timedelta(weeks=14)),
+            # 9 Months (39 weeks approx)
+            ('MEASLES_RUBELLA', dob + timedelta(days=274)),
         ]
         
         vaccines_to_create = []

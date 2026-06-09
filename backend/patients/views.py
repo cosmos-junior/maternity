@@ -100,13 +100,12 @@ class PatientDetailView(generics.RetrieveUpdateDestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         if getattr(request.user, 'role', None) != 'ADMIN':
             return Response(
-                {'error': 'Only administrators can deactivate patient records.'},
+                {'error': 'Only administrators can delete patient records.'},
                 status=status.HTTP_403_FORBIDDEN,
             )
         patient = self.get_object()
-        patient.is_active = False
-        patient.save()
-        return Response({'message': 'Patient deactivated successfully.'})
+        patient.delete()
+        return Response({'message': 'Patient and all related records deleted successfully.'})
 
 
 class PatientStatsView(APIView):
