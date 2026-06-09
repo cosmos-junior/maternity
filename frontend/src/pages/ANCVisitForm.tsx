@@ -188,7 +188,8 @@ export default function ANCVisitForm({ appointmentId, patientId, onSuccess, onCl
       };
 
       // Remove empty/null fields
-      Object.keys(submitData).forEach(key => {
+      Object.keys(submitData).forEach((k) => {
+        const key = k as keyof typeof submitData;
         if (submitData[key] === null || submitData[key] === '' || submitData[key] === 'null') {
           delete submitData[key];
         }
@@ -497,7 +498,7 @@ export default function ANCVisitForm({ appointmentId, patientId, onSuccess, onCl
                 <option value="NORMAL">Normal</option>
                 <option value="MILD">Mild (10.0-10.9 g/dL)</option>
                 <option value="MODERATE">Moderate (7.0-9.9 g/dL)</option>
-                <option value="SEVERE">Severe (<7.0 g/dL)</option>
+                <option value="SEVERE">Severe (&lt;7.0 g/dL)</option>
               </select>
             </div>
             <div className="form-group">

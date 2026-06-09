@@ -10,7 +10,8 @@ import {
   Activity,
   CalendarCheck,
   CalendarClock,
-  Check
+  Check,
+  FileDown
 } from 'lucide-react';
 import { postnatalApi, patientsApi } from '../api';
 import { PostnatalRecord, Patient } from '../types';
@@ -24,11 +25,6 @@ export default function Postnatal() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [actionMsg, setActionMsg] = useState('');
-  const [form, setForm] = useState({
-    patient: '', delivery_date: '', delivery_type: 'NORMAL',
-    baby_weight_kg: '', baby_gender: 'UNKNOWN', mother_condition: '',
-    baby_condition: '', notes: '', bcg_given: false, opv0_given: false, hep_b_given: false,
-  });
   const [saving, setSaving] = useState(false);
 
   const load = async () => {
@@ -45,6 +41,58 @@ export default function Postnatal() {
   const mark6Week = async (id: number) => { await postnatalApi.mark6Week(id); flash('6-week review marked'); load(); };
 
   const handleSaved = () => { setShowModal(false); flash('Delivery record saved'); load(); };
+
+  const exportRecordCSV = (r: PostnatalRecord) => {
+    let csv = `Postnatal Record\n\n`;
+    csv += `Patient Name,${r.patient_name}\n`;
+    csv += `Patient No.,${r.patient_number}\n`;
+    csv += `Delivery Date,${r.delivery_date}\n`;
+    csv += `Delivery Type,${r.delivery_type}\n`;
+    csv += `Mother Condition,${r.mother_condition}\n`;
+    csv += `Baby Name,${r.baby_first_name} ${r.baby_last_name}\n`;
+    csv += `Baby Gender,${r.baby_gender}\n`;
+    csv += `Baby Weight (kg),${r.baby_weight_kg || 'N/A'}\n`;
+    csv += `Baby Condition,${r.baby_condition}\n`;
+    csv += `\nImmunizations Given at Birth\n`;
+    csv += `BCG,${r.bcg_given ? 'Yes' : 'No'}\n`;
+    csv += `OPV 0,${r.opv0_given ? 'Yes' : 'No'}\n`;
+    csv += `Hep B,${r.hep_b_given ? 'Yes' : 'No'}\n`;
+    csv += `\nFollow-Up Reviews\n`;
+    csv += `7-Day Review,${r.review_7day_date || 'N/A'},${r.review_7day_attended ? 'Attended' : 'Pending'}\n`;
+    csv += `6-Week Review,${r.review_6week_date || 'N/A'},${r.review_6week_attended ? 'Attended' : 'Pending'}\n`;
+    csv += `\nNotes\n"${r.notes}"\n`;
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Delivery_Record_${r.patient_number}_${r.delivery_date}.csv`;
+    a.click();
+  };
+
+  const exportRecordPDF = async (r: PostnatalRecord) => {
+    const el = document.getElementById(`record-${r.id}`);
+    if (!el) return;
+    try {
+      const { default: html2canvas } = await import('html2canvas');
+      const { default: jsPDF } = await import('jspdf');
+      
+      const canvas = await html2canvas(el, { scale: 2 });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      // Title
+      pdf.setFontSize(16);
+      pdf.text(`Delivery Record: ${r.patient_name}`, 10, 15);
+      
+      pdf.addImage(imgData, 'PNG', 10, 25, pdfWidth - 20, pdfHeight * ((pdfWidth - 20) / pdfWidth));
+      pdf.save(`Delivery_Record_${r.patient_number}_${r.delivery_date}.pdf`);
+    } catch (err) {
+      alert('Failed to generate PDF.');
+    }
+  };
 
 
 
@@ -78,7 +126,7 @@ export default function Postnatal() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             {records.map(r => (
-              <div key={r.id} className="card" style={{ borderLeft: `4px solid ${r.review_7day_overdue || r.review_6week_overdue ? 'var(--danger)' : 'var(--success)'}` }}>
+              <div id={`record-${r.id}`} key={r.id} className="card" style={{ borderLeft: `4px solid ${r.review_7day_overdue || r.review_6week_overdue ? 'var(--danger)' : 'var(--success)'}` }}>
                 <div className="flex-between" style={{ flexWrap: 'wrap', gap: 12 }}>
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -93,12 +141,21 @@ export default function Postnatal() {
                        <Stethoscope size={14} /> {r.patient_number} · <Calendar size={14} /> Delivered {formatDate(r.delivery_date)} ({r.delivery_type})
                     </div>
                     {r.baby_weight_kg && <div className="text-muted text-sm flex items-center gap-2">
-                      <Baby size={14} /> Baby: {r.baby_weight_kg}kg · Sex: {r.baby_gender}
+                      <Baby size={14} /> Baby: {r.baby_first_name} {r.baby_last_name} · {r.baby_weight_kg}kg · Sex: {r.baby_gender}
                     </div>}
                   </div>
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
                     {r.review_7day_overdue  && <span className="badge badge-danger flex items-center gap-1"><AlertCircle size={12} /> 7-Day Overdue!</span>}
                     {r.review_6week_overdue && <span className="badge badge-danger flex items-center gap-1"><AlertCircle size={12} /> 6-Week Overdue!</span>}
+                    
+                    <div className="flex gap-2 border-l border-slate-200 pl-4 ml-2">
+                      <button className="btn btn-ghost btn-sm flex items-center gap-1 text-slate-500" onClick={() => exportRecordCSV(r)} title="Export CSV">
+                        <FileDown size={14} /> CSV
+                      </button>
+                      <button className="btn btn-ghost btn-sm flex items-center gap-1 text-slate-500" onClick={() => exportRecordPDF(r)} title="Export PDF">
+                        <FileDown size={14} /> PDF
+                      </button>
+                    </div>
                   </div>
                 </div>
 
