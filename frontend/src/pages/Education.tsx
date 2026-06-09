@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Stethoscope, Baby, HeartPulse, Search, ShieldCheck } from 'lucide-react';
+import { BookOpen, Stethoscope, Baby, HeartPulse, Search, ShieldCheck, Hospital, AlertOctagon, Users, Activity } from 'lucide-react';
 import { educationApi } from '../api';
 import { useAuth } from '../context/AuthContext';
 
@@ -14,9 +14,9 @@ export default function Education() {
 
   const getCategoryIcon = (slug: string) => {
     switch (slug) {
-      case 'emonc': return <Ambulance size={18} />;
-      case 'pph': return <Droplet size={18} />;
-      case 'family-planning': return <Pill size={18} />;
+      case 'emonc': return <Hospital size={18} />;
+      case 'pph': return <AlertOctagon size={18} />;
+      case 'family-planning': return <Users size={18} />;
       case 'adolescent-health': return <Activity size={18} />;
       case 'general-maternity': return <Baby size={18} />;
       default: return <BookOpen size={18} />;

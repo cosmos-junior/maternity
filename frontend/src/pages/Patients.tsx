@@ -14,8 +14,13 @@ import {
   ChevronLeft,
   Eye,
   Salad,
-  Activity
+  Activity,
+  Trash2,
+  Lock,
+  Unlock,
+  Edit2
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { patientsApi, referralsApi } from '../api';
 import { Patient, PatientForm, ClinicStage, RiskLevel } from '../types';
 import { formatDate, STAGE_LABELS, STAGE_COLORS } from '../utils';
@@ -39,6 +44,7 @@ const BLANK_FORM: PatientForm = {
 };
 
 export default function Patients() {
+  const { user } = useAuth();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -51,6 +57,7 @@ export default function Patients() {
   const PAGE_SIZE = 20;
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState<PatientForm>(BLANK_FORM);
+  const [editId, setEditId] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -124,9 +131,37 @@ export default function Patients() {
 
   const openModal = () => {
     setForm(BLANK_FORM);
+    setEditId(null);
     setError('');
     reset();
     setShowModal(true);
+  };
+
+  const handleEdit = (p: Patient) => {
+    setForm(p as any);
+    setEditId(p.id);
+    setError('');
+    reset();
+    setShowModal(true);
+  };
+
+  const handleToggleLock = async (p: Patient) => {
+    try {
+      await patientsApi.update(p.id, { is_active: !p.is_active });
+      load();
+    } catch (err) {
+      alert('Failed to update status.');
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!window.confirm('Are you sure you want to permanently delete this patient?')) return;
+    try {
+      await patientsApi.delete(id);
+      load();
+    } catch (err) {
+      alert('Failed to delete patient.');
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -174,16 +209,21 @@ export default function Patients() {
     if (!validateAll(formAsFields)) return;
     setSaving(true); setError('');
     try {
-      await patientsApi.create({
+      const payload = {
         ...form,
         gravida: form.gravida ? Number(form.gravida) : null,
         parity: form.parity ? Number(form.parity) : null,
         height: form.height ? Number(form.height) : null,
         weight: form.weight ? Number(form.weight) : null,
-      });
+      };
+      if (editId) {
+        await patientsApi.update(editId, payload);
+      } else {
+        await patientsApi.create(payload);
+      }
       setShowModal(false); load();
     } catch (err: any) {
-      setError('Registration failed. Please make sure the Phone Number or National ID is not already in use. Ensure all required fields are correctly formatted, check your connection, and try again.');
+      setError(editId ? 'Failed to update patient.' : 'Registration failed. Please make sure the Phone Number or National ID is not already in use. Ensure all required fields are correctly formatted, check your connection, and try again.');
     } finally { setSaving(false); }
   };
 
@@ -314,15 +354,39 @@ export default function Patients() {
                       <td className="text-muted">{p.phone_number}</td>
                       <td className="text-muted">{formatDate(p.lmp)}</td>
                       <td>
-                        <EddCountdownWidget edd={p.edd} weeksPregnant={p.weeks_pregnant} compact />
+                        {p.clinic_stage === 'DELIVERED' || p.clinic_stage === 'POSTNATAL' ? (
+                          <span className="text-muted">{formatDate(p.edd)}</span>
+                        ) : (
+                          <EddCountdownWidget edd={p.edd} weeksPregnant={p.weeks_pregnant} compact />
+                        )}
                       </td>
                       <td>{p.weeks_pregnant != null ? `${p.weeks_pregnant}w` : '—'}</td>
                       <td><span className={`badge badge-${STAGE_COLORS[p.clinic_stage]}`}>{STAGE_LABELS[p.clinic_stage]}</span></td>
                       <td><HighRiskBadge riskLevel={p.risk_level} inline /></td>
                       <td>
-                        <Link to={`/patients/${p.id}`} className="btn btn-ghost btn-sm flex items-center gap-1">
-                          <Eye size={14} /> View
-                        </Link>
+                        <div style={{ display: 'flex', gap: '4px' }}>
+                          <Link to={`/patients/${p.id}`} className="btn btn-ghost btn-sm flex items-center gap-1" title="View Patient">
+                            <Eye size={14} /> <span className="hidden sm:inline">View</span>
+                          </Link>
+                          {user?.role === 'ADMIN' && (
+                            <>
+                              <button className="btn btn-ghost btn-sm text-muted" title="Edit Patient" onClick={() => handleEdit(p)}>
+                                <Edit2 size={14} />
+                              </button>
+                              <button 
+                                className="btn btn-ghost btn-sm" 
+                                style={{ color: p.is_active ? 'var(--text-muted)' : 'var(--danger)' }}
+                                title={p.is_active ? "Lock Patient" : "Unlock Patient"} 
+                                onClick={() => handleToggleLock(p)}
+                              >
+                                {p.is_active ? <Unlock size={14} /> : <Lock size={14} />}
+                              </button>
+                              <button className="btn btn-ghost btn-sm text-danger" title="Delete Patient" onClick={() => handleDelete(p.id)}>
+                                <Trash2 size={14} />
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -360,7 +424,7 @@ export default function Patients() {
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowModal(false)}>
           <div className="modal modal-wide">
             <div className="modal-header">
-              <div className="modal-title">Register New Patient</div>
+              <div className="modal-title">{editId ? 'Edit Patient' : 'Register New Patient'}</div>
               <button className="modal-close" onClick={() => setShowModal(false)} aria-label="Close modal"><X size={20} /></button>
             </div>
             {error && <div className="alert alert-danger">{error}</div>}
@@ -806,7 +870,7 @@ export default function Patients() {
               <div className="modal-footer">
                 <button type="button" className="btn btn-ghost" onClick={() => setShowModal(false)}>Cancel</button>
                 <button id="save-patient-btn" type="submit" className="btn btn-primary flex items-center gap-2" disabled={saving}>
-                  {saving ? 'Saving…' : <><Check size={18} /> Register Patient</>}
+                  {saving ? 'Saving…' : <><Check size={18} /> {editId ? 'Save Changes' : 'Register Patient'}</>}
                 </button>
               </div>
             </form>
