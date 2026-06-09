@@ -39,7 +39,10 @@ class PatientListCreateView(generics.ListCreateAPIView):
     } if _django_filter else {}
 
     def get_queryset(self):
-        qs = Patient.objects.filter(is_active=True).select_related('registered_by')
+        if getattr(self.request.user, 'role', None) == 'ADMIN':
+            qs = Patient.objects.all().select_related('registered_by')
+        else:
+            qs = Patient.objects.filter(is_active=True).select_related('registered_by')
         
         # Search handling (with support for exact hash matching of encrypted fields)
         search_query = self.request.query_params.get('search', '').strip()

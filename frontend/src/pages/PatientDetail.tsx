@@ -292,7 +292,9 @@ export default function PatientDetail() {
                   </div>
  
                   {/* EDD Countdown widget */}
-                  <EddCountdownWidget edd={patient.edd} weeksPregnant={patient.weeks_pregnant} />
+                  {patient.clinic_stage !== 'DELIVERED' && patient.clinic_stage !== 'POSTNATAL' && (
+                    <EddCountdownWidget edd={patient.edd} weeksPregnant={patient.weeks_pregnant} />
+                  )}
  
                   {patient.notes && <><div className="divider" /><div className="text-muted" style={{ fontSize: '0.8rem' }}>{patient.notes}</div></>}
  

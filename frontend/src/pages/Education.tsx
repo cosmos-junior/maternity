@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { BookOpen, Stethoscope, Baby, HeartPulse, Search, ShieldCheck } from 'lucide-react';
+import { BookOpen, Stethoscope, Baby, HeartPulse, Search, ShieldCheck, Hospital, AlertOctagon, Users, Activity } from 'lucide-react';
 import { educationApi } from '../api';
 import { useAuth } from '../context/AuthContext';
 
@@ -11,6 +11,17 @@ export default function Education() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('');
+
+  const getCategoryIcon = (slug: string) => {
+    switch (slug) {
+      case 'emonc': return <Hospital size={18} />;
+      case 'pph': return <AlertOctagon size={18} />;
+      case 'family-planning': return <Users size={18} />;
+      case 'adolescent-health': return <Activity size={18} />;
+      case 'general-maternity': return <Baby size={18} />;
+      default: return <BookOpen size={18} />;
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -96,7 +107,9 @@ export default function Education() {
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between'
                   }}
                 >
-                  <span>{cat.icon} {cat.name}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {getCategoryIcon(cat.slug)} {cat.name}
+                  </span>
                   {/* <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{cat.resource_count}</span> */}
                 </button>
               </li>
