@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ArrowRightCircle, RefreshCw } from 'lucide-react';
 import { ticketsApi } from '../api';
+import { emitTicketResolved } from '../utils/ticketEvents';
 import { Ticket } from '../types';
 
 const STATUS_LABELS: Record<string, string> = {
@@ -27,6 +28,9 @@ export default function TicketDashboard() {
 
   const updateStatus = async (ticketId: number, nextStatus: string) => {
     await ticketsApi.updateStatus(ticketId, nextStatus);
+    if (nextStatus === 'RESOLVED') {
+      emitTicketResolved();
+    }
     loadTickets();
   };
 

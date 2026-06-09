@@ -67,3 +67,37 @@ def create_ticket_notification(ticket: Ticket) -> None:
                 logger.warning('Ticket SMS alert failed for admin %s (%s): %s', admin.email, normalized, result.get('error'))
     except Exception as exc:
         logger.error('Failed to send ticket SMS notifications: %s', exc)
+
+
+def create_admin_reply_notification(reply) -> None:
+    """Notify the ticket creator that an admin replied to their ticket."""
+    ticket = reply.ticket
+    user = ticket.created_by
+    message = f"Admin replied to your ticket '{ticket.title}': {reply.message}"
+
+    try:
+        Notification.objects.create(
+            user=user,
+            ticket=ticket,
+            message=message,
+        )
+    except Exception as exc:
+        logger.warning('Failed to create reply notification DB record: %s', exc)
+
+    # Attempt SMS if user has phone_number
+    try:
+        from reminders.sms_service import send_sms
+
+        phone = (getattr(user, 'phone_number', '') or '').strip()
+        if phone:
+            try:
+                normalized = _normalize_phone(phone)
+            except Exception:
+                normalized = phone
+
+            sms_message = f"[MATERNITY TICKET REPLY] {ticket.title}: {reply.message[:160]}"
+            result = send_sms(normalized, sms_message)
+            if not result.get('success'):
+                logger.warning('Reply SMS failed for user %s (%s): %s', user.email, normalized, result.get('error'))
+    except Exception as exc:
+        logger.info('Failed to send reply SMS (ignored): %s', exc)

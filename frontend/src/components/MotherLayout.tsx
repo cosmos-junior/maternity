@@ -7,7 +7,8 @@ import {
   Calendar,
   Stethoscope,
   AlertCircle,
-  MessageSquare
+  MessageSquare,
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getPersonalizedGreeting } from '../utils';
@@ -49,11 +50,19 @@ const PAGE_META: Record<string, { title: string; subtitle: string }> = {
 };
 
 export default function MotherLayout() {
+  const { logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const path = location.pathname.replace(/\/$/, '');
   const meta = PAGE_META[path] ?? { title: 'Mother Portal', subtitle: 'Your maternal care space' };
   const showBack = path !== '/mother/dashboard';
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
+  const isDarkMode = document.documentElement.classList.contains('dark');
 
   // Force dark mode with purple/pink theme for mother portal only
   // No way to toggle to light mode in mother portal
@@ -99,7 +108,27 @@ export default function MotherLayout() {
             <ArrowLeft size={20} />
           </button>
         ) : (
-          <div className="mother-mobile-header-placeholder" />
+          <button
+            type="button"
+            onClick={handleLogout}
+            aria-label="Logout"
+            className="mother-mobile-back-button"
+            style={{
+              color: '#fca5a5',
+              borderColor: 'rgba(239, 68, 68, 0.3)',
+              background: isDarkMode ? '#1E293B' : '#FFFFFF'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(239, 68, 68, 0.15)';
+              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = isDarkMode ? '#1E293B' : '#FFFFFF';
+              e.currentTarget.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+            }}
+          >
+            <LogOut size={20} />
+          </button>
         )}
 
         <h1 className="mother-mobile-header-title">

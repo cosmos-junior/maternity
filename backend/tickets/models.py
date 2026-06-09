@@ -66,3 +66,25 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification to {self.user.email}: {self.message[:40]}"
+
+
+class TicketReply(models.Model):
+    ticket = models.ForeignKey(
+        Ticket,
+        on_delete=models.CASCADE,
+        related_name='replies',
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='ticket_replies',
+    )
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'ticket_replies'
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Reply by {self.author} on {self.ticket_id}: {self.message[:40]}"

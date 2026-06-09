@@ -11,7 +11,9 @@ from .serializers import (
     TicketStatusUpdateSerializer,
     NotificationSerializer,
 )
-from .services import create_ticket_notification
+from .services import create_ticket_notification, create_admin_reply_notification
+from .models import Ticket, Notification, TicketReply
+from .serializers import TicketReplyCreateSerializer, TicketReplySerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -60,6 +62,33 @@ class TicketStatusUpdateView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(TicketSerializer(ticket).data)
+
+
+class TicketReplyCreateView(APIView):
+    permission_classes = [permissions.IsAuthenticated, IsAdminRole]
+
+    def post(self, request, pk):
+        ticket = get_object_or_404(Ticket, pk=pk)
+        # enforce one-time reply
+        if ticket.replies.exists():
+            return Response({'detail': 'A reply has already been posted for this ticket.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = TicketReplyCreateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        reply = TicketReply.objects.create(
+            ticket=ticket,
+            author=request.user,
+            message=serializer.validated_data['message'],
+        )
+
+        # notify ticket creator
+        try:
+            create_admin_reply_notification(reply)
+        except Exception:
+            pass
+
+        return Response(TicketSerializer(ticket).data, status=status.HTTP_201_CREATED)
 
 
 class NotificationListView(generics.ListAPIView):

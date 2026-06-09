@@ -3,6 +3,8 @@ from django.utils import timezone
 from .models import Ticket, Notification
 from users.models import StaffUser
 from patients.models import Patient
+from .models import TicketReply
+from rest_framework.fields import SerializerMethodField
 
 
 class TicketCreateSerializer(serializers.ModelSerializer):
@@ -43,8 +45,18 @@ class TicketSerializer(serializers.ModelSerializer):
             'created_by', 'created_by_name', 'created_by_role',
             'patient', 'patient_name', 'patient_number',
             'created_at', 'updated_at',
+            'reply',
         ]
         read_only_fields = ['id', 'status', 'created_by', 'created_by_name', 'created_by_role', 'created_at', 'updated_at']
+
+    reply = SerializerMethodField(read_only=True)
+
+    def get_reply(self, obj):
+        # Return latest admin reply if present
+        reply = obj.replies.last()
+        if not reply:
+            return None
+        return TicketReplySerializer(reply).data
 
 
 class TicketStatusUpdateSerializer(serializers.ModelSerializer):
@@ -67,3 +79,21 @@ class NotificationSerializer(serializers.ModelSerializer):
         model = Notification
         fields = ['id', 'user', 'user_email', 'ticket', 'ticket_title', 'message', 'is_read', 'created_at']
         read_only_fields = ['id', 'user', 'user_email', 'ticket', 'ticket_title', 'created_at']
+
+
+class TicketReplySerializer(serializers.ModelSerializer):
+    author_name = serializers.CharField(source='author.full_name', read_only=True)
+
+    class Meta:
+        model = TicketReply
+        fields = ['id', 'ticket', 'author', 'author_name', 'message', 'created_at']
+        read_only_fields = ['id', 'ticket', 'author', 'author_name', 'created_at']
+
+
+class TicketReplyCreateSerializer(serializers.Serializer):
+    message = serializers.CharField()
+
+    def validate_message(self, value):
+        if not value or not value.strip():
+            raise serializers.ValidationError('Message cannot be empty.')
+        return value.strip()
