@@ -7,6 +7,7 @@ import { staffApi } from '../api';
 export default function UserProfile() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
+  const isMother = user?.role === 'MOTHER';
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -28,10 +29,16 @@ export default function UserProfile() {
     setSuccess('');
     
     try {
-      const updateData = {
-        ...formData,
-        profile_completed: true, // Mark profile as completed
-      };
+      const updateData = isMother
+        ? {
+            full_name: formData.full_name,
+            phone_number: formData.phone_number,
+            profile_completed: true,
+          }
+        : {
+            ...formData,
+            profile_completed: true,
+          };
       
       console.log('Sending update data:', updateData);
       const response = await staffApi.updateProfile(updateData);
@@ -52,7 +59,7 @@ export default function UserProfile() {
       setSuccess('Profile updated successfully!');
       setTimeout(() => {
         setSuccess('');
-        navigate('/');
+        navigate(isMother ? '/mother/dashboard' : '/');
       }, 1500);
     } catch (err: any) {
       console.error('Update error:', err);
@@ -238,29 +245,30 @@ export default function UserProfile() {
                 />
               </div>
 
-              {/* Bio/Professional Information */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <label style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.95rem' }}>
-                  Professional Bio
-                </label>
-                <textarea
-                  name="bio"
-                  value={formData.bio}
-                  onChange={handleChange}
-                  placeholder="Tell us about your professional background, specialties, or interests..."
-                  rows={6}
-                  style={{
-                    padding: '10px 12px',
-                    borderRadius: 8,
-                    border: '1px solid var(--border)',
-                    background: 'var(--bg-input)',
-                    color: 'var(--text-primary)',
-                    fontSize: '1rem',
-                    fontFamily: 'inherit',
-                    resize: 'none',
-                  }}
-                />
-              </div>
+              {!isMother && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <label style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.95rem' }}>
+                    Professional Bio
+                  </label>
+                  <textarea
+                    name="bio"
+                    value={formData.bio}
+                    onChange={handleChange}
+                    placeholder="Tell us about your professional background, specialties, or interests..."
+                    rows={6}
+                    style={{
+                      padding: '10px 12px',
+                      borderRadius: 8,
+                      border: '1px solid var(--border)',
+                      background: 'var(--bg-input)',
+                      color: 'var(--text-primary)',
+                      fontSize: '1rem',
+                      fontFamily: 'inherit',
+                      resize: 'none',
+                    }}
+                  />
+                </div>
+              )}
             </div>
           </div>
 

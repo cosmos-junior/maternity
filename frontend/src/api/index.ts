@@ -23,7 +23,11 @@ api.interceptors.response.use(
     if (!navigator.onLine || error.message === 'Network Error' || !error.response) {
       if (original && original.method === 'post') {
         const url = original.url || '';
-        if (url.includes('/patients/') || url.includes('/appointments/') || url.includes('/clinical/anc-visits/')) {
+        const isMotherPortalRequest = url.includes('/patients/mother/');
+        if (
+          !isMotherPortalRequest &&
+          (url.includes('/patients/') || url.includes('/appointments/') || url.includes('/clinical/anc-visits/'))
+        ) {
           try {
             const dataObj = typeof original.data === 'string' ? JSON.parse(original.data) : original.data;
             const { addToOfflineQueue } = await import('../utils/offlineQueue');
@@ -165,6 +169,7 @@ export const alertsApi = {
   list:         (params?: Record<string, string>) => api.get('/alerts/', { params }),
   count:        () => api.get('/alerts/count/'),
   acknowledge:  (id: number) => api.post(`/alerts/${id}/acknowledge/`),
+  followUp:     (id: number, message: string) => api.post(`/alerts/${id}/follow-up/`, { message }),
 };
 
 // ─── Staff Management (admin) ─────────────────────────────────────────────────
@@ -276,6 +281,23 @@ export const pmtctApi = {
   update: (id: number, data: object) => api.patch(`/pmtct/${id}/`, data),
   delete: (id: number) => api.delete(`/pmtct/${id}/`),
 };
+
+// ─── Mother Portal (Patient Portal) ──────────────────────────────────────────
+export const motherApi = {
+  dashboard: () => api.get('/patients/mother/dashboard/'),
+  appointments: () => api.get('/patients/mother/appointments/'),
+  rescheduleAppointment: (id: number, scheduled_date: string, scheduled_time: string | null, reason: string) =>
+    api.post(`/patients/mother/appointments/${id}/reschedule/`, { scheduled_date, scheduled_time, reason }),
+  pregnancyTracking: () => api.get('/patients/mother/pregnancy-tracking/'),
+  medicalRecords: () => api.get('/patients/mother/medical-records/'),
+  listSymptoms: () => api.get('/patients/mother/symptoms/'),
+  reportSymptoms: (data: object) => api.post('/patients/mother/symptoms/', data),
+  listMessages: () => api.get('/patients/mother/messages/'),
+  sendMessage: (message: string, parent_message?: number | null) =>
+    api.post('/patients/mother/messages/', { message, parent_message }),
+  markCareAlertRead: (id: number) => api.post(`/patients/mother/care-alerts/${id}/read/`),
+};
+
 
 
 

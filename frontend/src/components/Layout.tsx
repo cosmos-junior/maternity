@@ -1,5 +1,5 @@
-import { useState, useMemo, ReactNode, useEffect } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { useState, ReactNode, useEffect } from 'react';
+import { Outlet, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Users,
@@ -46,12 +46,14 @@ interface NavSection {
 const NAV_SECTIONS: NavSection[] = [
   {
     label: 'DASHBOARD',
+    roles: ['ADMIN', 'NURSE', 'DOCTOR'],
     items: [
       { to: '/', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
     ]
   },
   {
     label: 'RECEPTION',
+    roles: ['ADMIN', 'NURSE', 'DOCTOR'],
     items: [
       { to: '/patients', icon: <Users size={18} />, label: 'Patients Management' },
       { to: '/appointments', icon: <Calendar size={18} />, label: 'Appointments' },
@@ -59,6 +61,7 @@ const NAV_SECTIONS: NavSection[] = [
   },
   {
     label: 'OUTPATIENT',
+    roles: ['ADMIN', 'NURSE', 'DOCTOR'],
     items: [
       { to: '/children', icon: <Baby size={18} />, label: 'Child Profiles' },
       { to: '/postnatal', icon: <Activity size={18} />, label: 'Postnatal' },
@@ -82,6 +85,18 @@ const NAV_SECTIONS: NavSection[] = [
       { to: '/admin/users', icon: <UserCog size={18} />, label: 'User Management', roles: ['ADMIN'] },
       { to: '/admin/audit', icon: <FileText size={18} />, label: 'Audit Trail', roles: ['ADMIN'] },
       { to: '/mortality-review', icon: <AlertOctagon size={18} />, label: 'Mortality Audit', roles: ['ADMIN', 'DOCTOR'] },
+    ]
+  },
+  {
+    label: 'PATIENT PORTAL',
+    roles: ['MOTHER'],
+    items: [
+      { to: '/mother/dashboard', icon: <LayoutDashboard size={18} />, label: 'My Dashboard' },
+      { to: '/mother/pregnancy', icon: <Activity size={18} />, label: 'Pregnancy Journey' },
+      { to: '/mother/appointments', icon: <Calendar size={18} />, label: 'Appointments' },
+      { to: '/mother/records', icon: <Stethoscope size={18} />, label: 'Medical Records' },
+      { to: '/mother/symptoms', icon: <AlertCircle size={18} />, label: 'Report Symptoms' },
+      { to: '/mother/messages', icon: <MessageSquare size={18} />, label: 'Messages' },
     ]
   }
 ];
@@ -129,6 +144,8 @@ export default function Layout() {
   }, [user?.profile_completed, user?.id]);
 
   const userRole = user?.role ?? '';
+  const location = useLocation();
+  const isMotherPortal = location.pathname.startsWith('/mother');
 
   // Load unresolved tickets count for admin badge
   useEffect(() => {
@@ -157,7 +174,7 @@ export default function Layout() {
     : 'U';
 
   return (
-    <div className="layout">
+    <div className={`layout${isMotherPortal ? ' mother-portal' : ''}`}>
       {/* ── Mobile Backdrop ── */}
       {isSidebarOpen && (
         <div 
@@ -327,7 +344,7 @@ export default function Layout() {
 
         <div style={{ padding: '0' }}>
           <OfflineBanner />
-          <AlertBanner />
+          {userRole !== 'MOTHER' && <AlertBanner />}
           <Outlet />
         </div>
       </main>

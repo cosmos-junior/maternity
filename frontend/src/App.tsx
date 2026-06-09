@@ -28,10 +28,36 @@ import LabourWard from './pages/LabourWard';
 import MortalityReview from './pages/MortalityReview';
 import PMTCT from './pages/PMTCT';
 
+// Mother Portal Pages
+import MotherDashboard from './pages/MotherDashboard';
+import MotherPregnancy from './pages/MotherPregnancy';
+import MotherAppointments from './pages/MotherAppointments';
+import MotherMedicalRecords from './pages/MotherMedicalRecords';
+import MotherSymptoms from './pages/MotherSymptoms';
+import MotherMessages from './pages/MotherMessages';
+import MotherLayout from './components/MotherLayout';
+
+import { useLocation } from 'react-router-dom';
 
 function PrivateRoute({ children }: { children: React.ReactElement }) {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? children : <Navigate to="/login" replace />;
+  const { isAuthenticated, user } = useAuth();
+  const location = useLocation();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace state={{ from: location }} />;
+  }
+
+  // Smart redirect: Mothers trying to access staff pages
+  if (user?.role === 'MOTHER' && !location.pathname.startsWith('/mother')) {
+    return <Navigate to="/mother/dashboard" replace />;
+  }
+
+  // Smart redirect: Staff trying to access mother portal
+  if (user && user.role !== 'MOTHER' && location.pathname.startsWith('/mother')) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
 }
 
 /**
@@ -46,13 +72,40 @@ function RoleRoute({ roles, children }: { roles: string[]; children: React.React
   return children;
 }
 
+function IndexRoute() {
+  const { user } = useAuth();
+  if (user?.role === 'MOTHER') {
+    return <Navigate to="/mother/dashboard" replace />;
+  }
+  return <Dashboard />;
+}
+
 function AppRoutes() {
   const { isAuthenticated } = useAuth();
   return (
     <Routes>
       <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} />
+      
+      {/* Mother Portal routes (detached from staff Layout) */}
+      <Route path="/mother" element={
+        <PrivateRoute>
+          <RoleRoute roles={['MOTHER']}>
+            <MotherLayout />
+          </RoleRoute>
+        </PrivateRoute>
+      }>
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<MotherDashboard />} />
+        <Route path="pregnancy" element={<MotherPregnancy />} />
+        <Route path="appointments" element={<MotherAppointments />} />
+        <Route path="records" element={<MotherMedicalRecords />} />
+        <Route path="symptoms" element={<MotherSymptoms />} />
+        <Route path="messages" element={<MotherMessages />} />
+      </Route>
+
+      {/* Staff routes */}
       <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
-        <Route index element={<Dashboard />} />
+        <Route index element={<IndexRoute />} />
         <Route path="profile" element={<UserProfile />} />
         <Route path="patients" element={<Patients />} />
         <Route path="patients/:id" element={<PatientDetail />} />

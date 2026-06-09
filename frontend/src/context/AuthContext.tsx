@@ -9,6 +9,7 @@ interface AuthCtx {
   isAdmin: boolean;
   isDoctor: boolean;
   isNurse: boolean;
+  isMother: boolean;
 }
 
 const AuthContext = createContext<AuthCtx>({} as AuthCtx);
@@ -52,6 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAdmin: role === 'ADMIN',
       isDoctor: role === 'DOCTOR',
       isNurse: role === 'NURSE',
+      isMother: role === 'MOTHER',
     };
   }, [user, login, logout]);
 
