@@ -85,8 +85,6 @@ class Patient(models.Model):
     occupation = models.CharField(max_length=150, blank=True)
     spouse_name = models.CharField(max_length=200, blank=True)
     spouse_phone = models.CharField(max_length=15, blank=True)
-<<<<<<< HEAD
-    
     # MCH Handbook facility & clinical details
     health_facility_name = models.CharField(max_length=255, blank=True)
     kmhfl_code = models.CharField(max_length=50, blank=True)
@@ -97,9 +95,6 @@ class Patient(models.Model):
     height = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     estate_house_number = models.CharField(max_length=100, blank=True)
-
-=======
->>>>>>> 932ae82ad31eb49724d7367701193909ce88247c
     national_id = EncryptedCharField(blank=True, null=True, verbose_name="National ID")
     nhif_number = EncryptedCharField(blank=True, null=True, verbose_name="NHIF Number")
     phone_number = EncryptedCharField()

@@ -284,6 +284,13 @@ export const pmtctApi = {
   delete: (id: number) => api.delete(`/pmtct/${id}/`),
 };
 
+// ─── Education Module ─────────────────────────────────────────────────────────
+export const educationApi = {
+  listCategories: () => api.get('/education/categories/'),
+  listResources: (params?: Record<string, string>) => api.get('/education/resources/', { params }),
+  getResource: (slug: string) => api.get(`/education/resources/${slug}/`),
+};
+
 // ─── Mother Portal (Patient Portal) ──────────────────────────────────────────
 export const motherApi = {
   dashboard: () => api.get('/patients/mother/dashboard/'),

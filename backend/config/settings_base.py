@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'referrals',
     'mortality',
     'pmtct',
+    'education',
     'drf_spectacular',
 ]
 

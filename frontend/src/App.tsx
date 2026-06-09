@@ -27,6 +27,8 @@ import Referrals from './pages/Referrals';
 import LabourWard from './pages/LabourWard';
 import MortalityReview from './pages/MortalityReview';
 import PMTCT from './pages/PMTCT';
+import Education from './pages/Education';
+import EducationDetail from './pages/EducationDetail';
 
 // Mother Portal Pages
 import MotherDashboard from './pages/MotherDashboard';
@@ -123,6 +125,8 @@ function AppRoutes() {
         <Route path="referrals" element={<Referrals />} />
         <Route path="labour-ward" element={<LabourWard />} />
         <Route path="pmtct" element={<PMTCT />} />
+        <Route path="education" element={<Education />} />
+        <Route path="education/:slug" element={<EducationDetail />} />
         {/* Admin-only routes */}
         <Route path="admin/users" element={
           <RoleRoute roles={['ADMIN']}><AdminUsers /></RoleRoute>

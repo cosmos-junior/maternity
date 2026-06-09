@@ -22,7 +22,8 @@ import {
   Bell,
   ArrowUpRight,
   AlertOctagon,
-  ShieldAlert
+  ShieldAlert,
+  BookOpen
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { usePermissions } from '../hooks/usePermissions';
@@ -71,6 +72,13 @@ const NAV_SECTIONS: NavSection[] = [
       { to: '/referrals', icon: <ArrowUpRight size={18} />, label: 'Referrals' },
       { to: '/labour-ward', icon: <HeartPulse size={18} />, label: 'Labour Ward Board' },
       { to: '/pmtct', icon: <ShieldAlert size={18} />, label: 'PMTCT Registry', roles: ['ADMIN', 'DOCTOR', 'NURSE'] },
+    ]
+  },
+  {
+    label: 'KNOWLEDGE CENTER',
+    roles: ['ADMIN', 'NURSE', 'DOCTOR'],
+    items: [
+      { to: '/education', icon: <BookOpen size={18} />, label: 'Educational Modules' },
     ]
   },
   {

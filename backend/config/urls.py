@@ -35,6 +35,7 @@ urlpatterns = [
     path('api/v1/referrals/', include('referrals.urls')),
     path('api/v1/mortality/', include('mortality.urls')),
     path('api/v1/pmtct/', include('pmtct.urls')),
+    path('api/v1/education/', include('education.urls')),
 
     # Backward compatibility redirect from /api/ to /api/v1/
     re_path(r'^api/(?!v1/|schema/|docs/)(?P<path>.*)$', RedirectView.as_view(url='/api/v1/%(path)s', permanent=True, query_string=True)),
