@@ -3,6 +3,7 @@ from .views import (
     ClinicalNoteListCreateView, ClinicalNoteDetailView,
     PatientDocumentListCreateView, PatientDocumentDetailView,
     ANCVisitListCreateView, ANCVisitDetailView,
+    ANCVisitPDFView, MotherANCVisitsView, MotherANCVisitDetailView,
 )
 
 urlpatterns = [
@@ -12,4 +13,9 @@ urlpatterns = [
     path('documents/<int:pk>/', PatientDocumentDetailView.as_view(), name='document_detail'),
     path('anc-visits/', ANCVisitListCreateView.as_view(), name='anc_visit_list'),
     path('anc-visits/<int:pk>/', ANCVisitDetailView.as_view(), name='anc_visit_detail'),
+    path('anc-visits/<int:pk>/pdf/', ANCVisitPDFView.as_view(), name='anc_visit_pdf'),
+    
+    # Mother portal endpoints
+    path('mother/anc-visits/', MotherANCVisitsView.as_view(), name='mother_anc_visits'),
+    path('mother/anc-visits/<int:pk>/', MotherANCVisitDetailView.as_view(), name='mother_anc_visit_detail'),
 ]

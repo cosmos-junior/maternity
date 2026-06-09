@@ -4,6 +4,7 @@ from rest_framework.views import APIView
 from datetime import date
 from .models import Appointment
 from .serializers import AppointmentSerializer, AppointmentCreateSerializer
+from clinical.models import ANCVisit
 
 
 class AppointmentListCreateView(generics.ListCreateAPIView):
@@ -48,6 +49,10 @@ class AppointmentDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 class MarkAttendedView(APIView):
+    """
+    Mark an appointment as attended.
+    For ANC appointments, this will also create an ANCVisit record if one doesn't exist.
+    """
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, pk):
@@ -56,7 +61,30 @@ class MarkAttendedView(APIView):
             appointment.status = 'ATTENDED'
             appointment.attended_date = date.today()
             appointment.save()
-            return Response(AppointmentSerializer(appointment).data)
+            
+            # For ANC appointments, create an ANCVisit record if it doesn't exist
+            if appointment.appointment_type in ['ANC1', 'ANC2', 'ANC3', 'ANC4']:
+                # Check if an ANCVisit already exists for this appointment
+                anc_visit = ANCVisit.objects.filter(appointment=appointment).first()
+                if not anc_visit:
+                    # Determine visit number from appointment type
+                    visit_number_map = {'ANC1': 1, 'ANC2': 2, 'ANC3': 3, 'ANC4': 4}
+                    visit_number = visit_number_map.get(appointment.appointment_type, 1)
+                    
+                    # Create a new ANCVisit record linked to this appointment
+                    anc_visit = ANCVisit.objects.create(
+                        patient=appointment.patient,
+                        visit_number=visit_number,
+                        visit_date=date.today(),
+                        appointment=appointment,
+                        attending_staff=request.user,
+                        general_notes=f"ANC visit recorded from appointment: {appointment.appointment_type}"
+                    )
+            
+            return Response({
+                'appointment': AppointmentSerializer(appointment).data,
+                'anc_visit_created': anc_visit.id if 'anc_visit' in locals() and anc_visit else None
+            })
         except Appointment.DoesNotExist:
             return Response({'error': 'Appointment not found'}, status=404)
 
