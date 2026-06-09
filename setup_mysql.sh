@@ -7,7 +7,7 @@ set -e
 
 DB_NAME="maternity_db"
 DB_USER="maternity_user"
-DB_PASS="#Itierio@254"
+DB_PASS="Makori@254"
 
 echo "📦 Creating MySQL database and user..."
 mysql -u root -p <<EOF

@@ -34,6 +34,7 @@ import UserMenu from './UserMenu';
 import ProfileOnboardingModal from './ProfileOnboardingModal';
 import NotificationBell from './NotificationBell';
 import { ticketsApi } from '../api';
+import { onTicketResolved } from '../utils/ticketEvents';
 
 interface NavItem { to: string; icon: ReactNode; label: string; roles?: string[] }
 
@@ -161,7 +162,10 @@ export default function Layout() {
     };
     loadUnresolved();
     const interval = window.setInterval(loadUnresolved, 60000);
-    return () => { mounted = false; window.clearInterval(interval); };
+    const removeListener = onTicketResolved(() => {
+      setUnresolvedCount(count => Math.max(0, count - 1));
+    });
+    return () => { mounted = false; window.clearInterval(interval); removeListener(); };
   }, [userRole]);
 
   const handleLogout = () => {

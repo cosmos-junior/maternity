@@ -1,20 +1,21 @@
 import { useEffect, useState } from 'react';
 import { Bell, BellRing } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { notificationsApi } from '../api';
+import { ticketsApi } from '../api';
+import { onTicketResolved } from '../utils/ticketEvents';
 
 export default function NotificationBell() {
-  const [unreadCount, setUnreadCount] = useState(0);
+  const [ticketCount, setTicketCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   const loadCount = async () => {
     setLoading(true);
     try {
-      const { data } = await notificationsApi.unreadCount();
-      setUnreadCount(data?.unread_count ?? 0);
+      const { data } = await ticketsApi.unresolvedCount();
+      setTicketCount(data?.unresolved_count ?? 0);
     } catch (error) {
-      setUnreadCount(0);
+      setTicketCount(0);
     } finally {
       setLoading(false);
     }
@@ -23,7 +24,13 @@ export default function NotificationBell() {
   useEffect(() => {
     loadCount();
     const interval = window.setInterval(loadCount, 20000);
-    return () => window.clearInterval(interval);
+    const removeListener = onTicketResolved(() => {
+      setTicketCount(count => Math.max(0, count - 1));
+    });
+    return () => {
+      window.clearInterval(interval);
+      removeListener();
+    };
   }, []);
 
   return (
@@ -31,12 +38,12 @@ export default function NotificationBell() {
       type="button"
       className="btn btn-ghost"
       style={{ position: 'relative', minWidth: 40 }}
-      onClick={() => navigate('/notifications')}
-      title="Admin notifications"
-      aria-label="View notifications"
+      onClick={() => navigate('/tickets')}
+      title="View open tickets"
+      aria-label="View open tickets"
     >
-      {unreadCount > 0 ? <BellRing size={20} /> : <Bell size={20} />}
-      {unreadCount > 0 && (
+      {ticketCount > 0 ? <BellRing size={20} /> : <Bell size={20} />}
+      {ticketCount > 0 && (
         <span
           style={{
             position: 'absolute',
@@ -55,7 +62,7 @@ export default function NotificationBell() {
             padding: '0 5px',
           }}
         >
-          {unreadCount}
+          {ticketCount}
         </span>
       )}
     </button>
