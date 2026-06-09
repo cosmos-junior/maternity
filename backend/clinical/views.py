@@ -1,7 +1,13 @@
-from rest_framework import generics, permissions, filters, parsers
+from rest_framework import generics, permissions, filters, parsers, status
 from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from django.db.models import Q
+from django.http import HttpResponse
+from django.template.loader import render_to_string
 from .models import ClinicalNote, PatientDocument, ANCVisit
-from .serializers import ClinicalNoteSerializer, PatientDocumentSerializer, ANCVisitSerializer
+from .serializers import ClinicalNoteSerializer, PatientDocumentSerializer, ANCVisitSerializer, ANCVisitSummarySerializer
+from patients.serializers import PatientSerializer
 
 ALLOWED_MIME_TYPES = {
     'application/pdf',
@@ -107,9 +113,14 @@ class ANCVisitListCreateView(generics.ListCreateAPIView):
     GET  /api/clinical/anc-visits/?patient=<id>
     POST /api/clinical/anc-visits/
     """
-    serializer_class = ANCVisitSerializer
     permission_classes = [permissions.IsAuthenticated]
     ordering = ['-visit_date', '-created_at']
+
+    def get_serializer_class(self):
+        # Use full serializer for staff, summary for mother portal
+        if hasattr(self.request.user, 'patient') and self.request.user.patient:
+            return ANCVisitSummarySerializer
+        return ANCVisitSerializer
 
     def get_queryset(self):
         qs = ANCVisit.objects.select_related('patient', 'attending_staff').all()
@@ -123,6 +134,98 @@ class ANCVisitListCreateView(generics.ListCreateAPIView):
 
 
 class ANCVisitDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = ANCVisit.objects.select_related('patient', 'attending_staff')
-    serializer_class = ANCVisitSerializer
+    """
+    GET /api/clinical/anc-visits/<pk>/
+    PATCH /api/clinical/anc-visits/<pk>/
+    DELETE /api/clinical/anc-visits/<pk>/
+    """
     permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        # Use full serializer for staff, summary for mother portal
+        if hasattr(self.request.user, 'patient') and self.request.user.patient:
+            return ANCVisitSummarySerializer
+        return ANCVisitSerializer
+
+    def get_queryset(self):
+        return ANCVisit.objects.select_related('patient', 'attending_staff').all()
+
+
+class ANCVisitPDFView(APIView):
+    """
+    GET /api/clinical/anc-visits/<pk>/pdf/
+    Generate and return a PDF report of the ANC visit.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+        try:
+            visit = ANCVisit.objects.select_related('patient', 'attending_staff').get(pk=pk)
+        except ANCVisit.DoesNotExist:
+            return Response({'error': 'ANC visit not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Check permissions - only allow access to own patient or staff
+        if not request.user.is_staff and not (hasattr(request.user, 'patient') and request.user.patient == visit.patient):
+            return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
+
+        # Generate HTML content for PDF
+        context = {
+            'visit': visit,
+            'patient': visit.patient,
+            'attending_staff': visit.attending_staff,
+        }
+
+        # Try to render PDF using weasyprint if available, otherwise return HTML
+        try:
+            from weasyprint import HTML
+            html_string = render_to_string('clinical/anc_visit_report.html', context)
+            pdf = HTML(string=html_string).write_pdf()
+            
+            response = HttpResponse(pdf, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="ANC_Visit_{visit.visit_number}_{visit.patient.patient_number}.pdf"'
+            return response
+        except ImportError:
+            # If weasyprint is not installed, return HTML that can be printed
+            html_string = render_to_string('clinical/anc_visit_report.html', context)
+            response = HttpResponse(html_string, content_type='text/html')
+            return response
+
+
+class MotherANCVisitsView(APIView):
+    """
+    GET /api/patients/mother/anc-visits/
+    List all ANC visits for the logged-in mother (patient portal).
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        # Check if user is a mother
+        if not hasattr(request.user, 'patient') or not request.user.patient:
+            return Response({'error': 'This endpoint is for patients only'}, status=status.HTTP_403_FORBIDDEN)
+        
+        patient = request.user.patient
+        visits = ANCVisit.objects.filter(patient=patient).order_by('-visit_number')
+        serializer = ANCVisitSummarySerializer(visits, many=True)
+        return Response(serializer.data)
+
+
+class MotherANCVisitDetailView(APIView):
+    """
+    GET /api/patients/mother/anc-visits/<pk>/
+    Get details of a specific ANC visit for the logged-in mother.
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, pk):
+        # Check if user is a mother
+        if not hasattr(request.user, 'patient') or not request.user.patient:
+            return Response({'error': 'This endpoint is for patients only'}, status=status.HTTP_403_FORBIDDEN)
+        
+        patient = request.user.patient
+        try:
+            visit = ANCVisit.objects.get(pk=pk, patient=patient)
+        except ANCVisit.DoesNotExist:
+            return Response({'error': 'ANC visit not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = ANCVisitSummarySerializer(visit)
+        return Response(serializer.data)

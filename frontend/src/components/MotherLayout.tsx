@@ -15,7 +15,7 @@ import { getPersonalizedGreeting } from '../utils';
 
 const MOTHER_NAV = [
   { to: '/mother/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
-  { to: '/mother/pregnancy', icon: <Activity size={18} />, label: 'Journey' },
+  { to: '/mother/journey', icon: <Activity size={18} />, label: 'Journey' },
   { to: '/mother/appointments', icon: <Calendar size={18} />, label: 'Appointments' },
   { to: '/mother/records', icon: <Stethoscope size={18} />, label: 'Records' },
   { to: '/mother/symptoms', icon: <AlertCircle size={18} />, label: 'Symptoms' },
@@ -26,6 +26,10 @@ const PAGE_META: Record<string, { title: string; subtitle: string }> = {
   '/mother/dashboard': {
     title: 'Mother Dashboard',
     subtitle: 'Your personalized pregnancy overview for today.'
+  },
+  '/mother/journey': {
+    title: 'ANC Journey',
+    subtitle: 'View your antenatal care visits, lab results, and clinical assessments.'
   },
   '/mother/pregnancy': {
     title: 'Pregnancy Journey',

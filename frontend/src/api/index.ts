@@ -203,8 +203,10 @@ export const clinicalApi = {
   // ANC visits
   listAncVisits: (params?: object) => api.get('/clinical/anc-visits/', { params }),
   createAncVisit: (data: object) => api.post('/clinical/anc-visits/', data),
+  getAncVisit: (id: number) => api.get(`/clinical/anc-visits/${id}/`),
   updateAncVisit: (id: number, data: object) => api.patch(`/clinical/anc-visits/${id}/`, data),
   deleteAncVisit: (id: number) => api.delete(`/clinical/anc-visits/${id}/`),
+  getAncVisitPDF: (id: number) => api.get(`/clinical/anc-visits/${id}/pdf/`, { responseType: 'blob' }),
   // Documents
   listDocs:    (params?: object) => api.get('/clinical/documents/', { params }),
   uploadDoc:   (formData: FormData) => api.post('/clinical/documents/', formData, {
@@ -305,6 +307,10 @@ export const motherApi = {
   sendMessage: (message: string, parent_message?: number | null) =>
     api.post('/patients/mother/messages/', { message, parent_message }),
   markCareAlertRead: (id: number) => api.post(`/patients/mother/care-alerts/${id}/read/`),
+  // ANC Visits (Journey Page)
+  listAncVisits: () => api.get('/clinical/mother/anc-visits/'),
+  getAncVisit: (id: number) => api.get(`/clinical/mother/anc-visits/${id}/`),
+  getAncVisitPDF: (id: number) => api.get(`/clinical/anc-visits/${id}/pdf/`, { responseType: 'blob' }),
 };
 
 

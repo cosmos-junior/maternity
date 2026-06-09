@@ -115,6 +115,7 @@ class PatientDocument(models.Model):
 class ANCVisit(models.Model):
     """
     Structured Antenatal Care (ANC) visit data tracking.
+    Contains all clinical data recorded during an ANC consultation.
     """
     patient = models.ForeignKey(
         'patients.Patient', on_delete=models.CASCADE, related_name='anc_visits'
@@ -122,34 +123,105 @@ class ANCVisit(models.Model):
     visit_number = models.PositiveIntegerField(help_text="e.g. 1 for ANC1, 2 for ANC2")
     visit_date = models.DateField(default=date.today)
     
-    # Vitals & Measurements
+    # ── Vitals & Basic Measurements ──────────────────────────────────────────
     weight_kg = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    bp_systolic = models.IntegerField(null=True, blank=True)
-    bp_diastolic = models.IntegerField(null=True, blank=True)
-    hemoglobin_gdl = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
-    urine_test_result = models.CharField(max_length=200, blank=True)
-    muac_cm = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True)
+    bp_systolic = models.IntegerField(null=True, blank=True, help_text="Systolic BP in mmHg")
+    bp_diastolic = models.IntegerField(null=True, blank=True, help_text="Diastolic BP in mmHg")
+    muac_cm = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True, verbose_name="MUAC (cm)")
+    temperature_c = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True, verbose_name="Temperature (°C)")
+    pulse_rate = models.IntegerField(null=True, blank=True, help_text="Pulse rate in bpm")
     
-    # Pregnancy Specifics
-    fundal_height_cm = models.IntegerField(null=True, blank=True)
-    fetal_heart_rate = models.IntegerField(null=True, blank=True)
+    # ── Pregnancy-Specific Measurements ──────────────────────────────────────
+    fundal_height_cm = models.IntegerField(null=True, blank=True, help_text="Fundal height in cm")
+    fetal_heart_rate = models.IntegerField(null=True, blank=True, help_text="Fetal heart rate in bpm")
     PRESENTATION_CHOICES = [
         ('CEPHALIC', 'Cephalic'),
-        ('BREECH', 'BREECH'),
-        ('TRANSVERSE', 'Transverse')
+        ('BREECH', 'Breech'),
+        ('TRANSVERSE', 'Transverse'),
     ]
     fetal_presentation = models.CharField(max_length=15, choices=PRESENTATION_CHOICES, blank=True)
     
-    # Clinical info
-    ultrasound_results = models.TextField(blank=True)
-    lab_tests_summary = models.TextField(blank=True)
+    # ── Laboratory Results ───────────────────────────────────────────────────
+    # Blood Group (already on patient, but record what was confirmed at this visit)
+    BLOOD_GROUP_CHOICES = [
+        ('A+', 'A+'), ('A-', 'A-'),
+        ('B+', 'B+'), ('B-', 'B-'),
+        ('AB+', 'AB+'), ('AB-', 'AB-'),
+        ('O+', 'O+'), ('O-', 'O-'),
+    ]
+    blood_group_confirmed = models.CharField(max_length=5, choices=BLOOD_GROUP_CHOICES, blank=True, verbose_name="Blood Group (confirmed)")
+    
+    # Hemoglobin (anemia check)
+    hemoglobin_gdl = models.DecimalField(max_digits=4, decimal_places=1, null=True, blank=True, verbose_name="Hemoglobin (g/dL)")
+    ANEMIA_SEVERITY = [
+        ('NORMAL', 'Normal'),
+        ('MILD', 'Mild (10.0-10.9 g/dL)'),
+        ('MODERATE', 'Moderate (7.0-9.9 g/dL)'),
+        ('SEVERE', 'Severe (<7.0 g/dL)'),
+    ]
+    anemia_severity = models.CharField(max_length=15, choices=ANEMIA_SEVERITY, blank=True)
+    
+    # Blood Sugar
+    blood_sugar_mgdl = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, verbose_name="Blood Sugar (mg/dL)")
+    blood_sugar_type = models.CharField(max_length=20, choices=[
+        ('FASTING', 'Fasting'),
+        ('RANDOM', 'Random'),
+        ('POSTPRANDIAL', 'Postprandial'),
+        ('OGTT', 'OGTT'),
+    ], blank=True, help_text="Type of blood sugar test")
+    
+    # Urine Tests
+    URINE_PROTEIN_CHOICES = [('NIL', 'Nil'), ('+', '+'), ('++', '++'), ('+++', '+++')]
+    urine_protein = models.CharField(max_length=3, choices=URINE_PROTEIN_CHOICES, default='NIL')
+    urine_glucose = models.CharField(max_length=3, choices=URINE_PROTEIN_CHOICES, default='NIL')
+    urine_ketones = models.CharField(max_length=3, choices=URINE_PROTEIN_CHOICES, default='NIL')
+    
+    # Infection Screenings
+    HIV_STATUS_CHOICES = [
+        ('NEGATIVE', 'Negative'),
+        ('POSITIVE', 'Positive'),
+        ('UNKNOWN', 'Unknown'),
+        ('NOT_TESTED', 'Not Tested'),
+    ]
+    hiv_status = models.CharField(max_length=15, choices=HIV_STATUS_CHOICES, blank=True, verbose_name="HIV Status")
+    
+    SYPHILIS_STATUS_CHOICES = [
+        ('NON-REACTIVE', 'Non-Reactive'),
+        ('REACTIVE', 'Reactive'),
+        ('NOT_TESTED', 'Not Tested'),
+    ]
+    syphilis_status = models.CharField(max_length=15, choices=SYPHILIS_STATUS_CHOICES, blank=True, verbose_name="Syphilis Status")
+    
+    # Other routine screenings
+    hepatitis_b_surface_ag = models.CharField(max_length=20, choices=[
+        ('NEGATIVE', 'Negative'),
+        ('POSITIVE', 'Positive'),
+        ('NOT_TESTED', 'Not Tested'),
+    ], blank=True, verbose_name="Hepatitis B Surface Ag")
+    
+    rubella_igg = models.CharField(max_length=20, choices=[
+        ('IMMUNE', 'Immune'),
+        ('NON-IMMUNE', 'Non-Immune'),
+        ('NOT_TESTED', 'Not Tested'),
+    ], blank=True, verbose_name="Rubella IgG")
+    
+    # ── Additional Clinical Info ─────────────────────────────────────────────
+    ultrasound_results = models.TextField(blank=True, help_text="Ultrasound findings if performed")
     complications_noted = models.TextField(blank=True, help_text="Notes on any high-risk complications")
-    medication_prescribed = models.TextField(blank=True)
+    medication_prescribed = models.TextField(blank=True, help_text="Medications prescribed during this visit")
+    supplements_given = models.TextField(blank=True, help_text="Supplements provided (e.g., iron, folic acid)")
+    health_education_given = models.TextField(blank=True, help_text="Health education topics covered")
+    
     general_notes = models.TextField(blank=True)
     remarks = models.TextField(blank=True)
-
     next_appointment_date = models.DateField(null=True, blank=True)
 
+    # Link to the appointment that triggered this visit (optional)
+    appointment = models.ForeignKey(
+        'appointments.Appointment', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='anc_visit', help_text="Related appointment if this visit was from a scheduled appointment"
+    )
+    
     attending_staff = models.ForeignKey(
         'users.StaffUser', on_delete=models.SET_NULL, null=True, related_name='anc_consultations'
     )
@@ -162,6 +234,29 @@ class ANCVisit(models.Model):
     class Meta:
         db_table = 'anc_visits'
         ordering = ['-visit_date', '-created_at']
+        verbose_name = 'ANC Visit'
+        verbose_name_plural = 'ANC Visits'
 
     def __str__(self):
         return f"ANC Visit {self.visit_number} - {self.patient.full_name} on {self.visit_date}"
+
+    def get_lab_results_summary(self):
+        """Return a formatted summary of all lab results for this visit."""
+        results = []
+        if self.hemoglobin_gdl is not None:
+            results.append(f"Hemoglobin: {self.hemoglobin_gdl} g/dL ({self.get_anemia_severity_display() if self.anemia_severity else 'N/A'})")
+        if self.blood_sugar_mgdl is not None:
+            results.append(f"Blood Sugar: {self.blood_sugar_mgdl} mg/dL ({self.get_blood_sugar_type_display() if self.blood_sugar_type else 'N/A'})")
+        if self.urine_protein and self.urine_protein != 'NIL':
+            results.append(f"Urine Protein: {self.urine_protein}")
+        if self.hiv_status:
+            results.append(f"HIV: {self.get_hiv_status_display()}")
+        if self.syphilis_status:
+            results.append(f"Syphilis: {self.get_syphilis_status_display()}")
+        if self.hepatitis_b_surface_ag and self.hepatitis_b_surface_ag != 'NOT_TESTED':
+            results.append(f"Hepatitis B: {self.get_hepatitis_b_surface_ag_display()}")
+        if self.rubella_igg and self.rubella_igg != 'NOT_TESTED':
+            results.append(f"Rubella: {self.get_rubella_igg_display()}")
+        if self.blood_group_confirmed:
+            results.append(f"Blood Group: {self.get_blood_group_confirmed_display()}")
+        return '; '.join(results) if results else 'No lab results recorded'

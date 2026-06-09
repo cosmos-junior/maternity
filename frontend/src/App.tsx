@@ -33,6 +33,7 @@ import EducationDetail from './pages/EducationDetail';
 // Mother Portal Pages
 import MotherDashboard from './pages/MotherDashboard';
 import MotherPregnancy from './pages/MotherPregnancy';
+import MotherJourney from './pages/MotherJourney';
 import MotherAppointments from './pages/MotherAppointments';
 import MotherMedicalRecords from './pages/MotherMedicalRecords';
 import MotherSymptoms from './pages/MotherSymptoms';
@@ -99,6 +100,7 @@ function AppRoutes() {
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<MotherDashboard />} />
         <Route path="pregnancy" element={<MotherPregnancy />} />
+        <Route path="journey" element={<MotherJourney />} />
         <Route path="appointments" element={<MotherAppointments />} />
         <Route path="records" element={<MotherMedicalRecords />} />
         <Route path="symptoms" element={<MotherSymptoms />} />
