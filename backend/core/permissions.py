@@ -102,3 +102,17 @@ class IsAdminOrNurse(BasePermission):
             request.user.is_authenticated and
             getattr(request.user, 'role', None) in ('ADMIN', 'NURSE')
         )
+
+
+class IsMotherRole(BasePermission):
+    """Allow only users with role == 'MOTHER' and associated patient record."""
+    message = 'Mother access required.'
+
+    def has_permission(self, request, view):
+        return bool(
+            request.user and
+            request.user.is_authenticated and
+            getattr(request.user, 'role', None) == 'MOTHER' and
+            getattr(request.user, 'patient', None) is not None
+        )
+

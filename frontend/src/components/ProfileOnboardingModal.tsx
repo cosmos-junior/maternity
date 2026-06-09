@@ -1,7 +1,5 @@
-import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { CheckCircle, ArrowRight } from 'lucide-react';
+import { CheckCircle, ArrowRight, Hand } from 'lucide-react';
 
 interface ProfileOnboardingModalProps {
   isOpen: boolean;
@@ -11,8 +9,21 @@ interface ProfileOnboardingModalProps {
 
 export default function ProfileOnboardingModal({ isOpen, onClose, onProfileClick }: ProfileOnboardingModalProps) {
   const { user } = useAuth();
+  const isMother = user?.role === 'MOTHER';
 
   if (!isOpen || !user || user.profile_completed) return null;
+
+  const benefits = isMother
+    ? [
+        'Confirm your contact details',
+        'Keep your phone number up to date',
+        'Personalize your mother portal account',
+      ]
+    : [
+        'Add your professional bio',
+        'Update your contact information',
+        'Personalize your account',
+      ];
 
   return (
     <div style={{
@@ -32,7 +43,6 @@ export default function ProfileOnboardingModal({ isOpen, onClose, onProfileClick
         boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
         border: '1px solid var(--border)',
       }}>
-        {/* Header */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
@@ -48,9 +58,8 @@ export default function ProfileOnboardingModal({ isOpen, onClose, onProfileClick
             alignItems: 'center',
             justifyContent: 'center',
             color: 'white',
-            fontSize: '1.5rem',
           }}>
-            👋
+            <Hand size={24} />
           </div>
           <div>
             <h2 style={{
@@ -66,12 +75,11 @@ export default function ProfileOnboardingModal({ isOpen, onClose, onProfileClick
               color: 'var(--text-secondary)',
               margin: '4px 0 0 0',
             }}>
-              Let's get you set up
+              {isMother ? 'Let\'s finish setting up your portal' : 'Let\'s get you set up'}
             </p>
           </div>
         </div>
 
-        {/* Content */}
         <div style={{
           display: 'flex',
           flexDirection: 'column',
@@ -84,20 +92,17 @@ export default function ProfileOnboardingModal({ isOpen, onClose, onProfileClick
             margin: 0,
             lineHeight: 1.6,
           }}>
-            Complete your profile to help your colleagues get to know you better and personalize your experience.
+            {isMother
+              ? 'Complete your profile so your care team can reach you with important updates and instructions.'
+              : 'Complete your profile to help your colleagues get to know you better and personalize your experience.'}
           </p>
 
-          {/* Benefits */}
           <div style={{
             display: 'flex',
             flexDirection: 'column',
             gap: 8,
           }}>
-            {[
-              'Add your professional bio',
-              'Update your contact information',
-              'Personalize your account',
-            ].map((benefit, idx) => (
+            {benefits.map((benefit, idx) => (
               <div key={idx} style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -112,7 +117,6 @@ export default function ProfileOnboardingModal({ isOpen, onClose, onProfileClick
           </div>
         </div>
 
-        {/* Actions */}
         <div style={{
           display: 'flex',
           gap: 12,
@@ -159,7 +163,6 @@ export default function ProfileOnboardingModal({ isOpen, onClose, onProfileClick
           </button>
         </div>
 
-        {/* Subtle note */}
         <p style={{
           fontSize: '0.8rem',
           color: 'var(--text-muted)',

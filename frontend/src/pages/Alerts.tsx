@@ -6,15 +6,18 @@ import {
   RefreshCw, 
   Filter,
   AlertTriangle,
-  BellRing
+  BellRing,
+  MessageSquare
 } from 'lucide-react';
 import { alertsApi } from '../api';
 import { ClinicalAlert } from '../types';
+import AlertFollowUpModal from '../components/AlertFollowUpModal';
 
 export default function Alerts() {
   const [alerts, setAlerts]   = useState<ClinicalAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter]   = useState<'all' | 'unacknowledged'>('unacknowledged');
+  const [followUpAlert, setFollowUpAlert] = useState<ClinicalAlert | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -29,11 +32,6 @@ export default function Alerts() {
   };
 
   useEffect(() => { load(); }, [filter]);
-
-  const handleAck = async (id: number) => {
-    await alertsApi.acknowledge(id);
-    load();
-  };
 
   const sevColor = (s: string) =>
     s === 'CRITICAL' ? 'var(--danger)' : 'var(--warning, #f59e0b)';
@@ -50,10 +48,10 @@ export default function Alerts() {
             <select
               className="form-select"
               value={filter}
-              onChange={e => setFilter(e.target.value as any)}
-              style={{ width: 180 }}
+              onChange={e => setFilter(e.target.value as 'all' | 'unacknowledged')}
+              style={{ width: 200 }}
             >
-              <option value="unacknowledged">Unacknowledged</option>
+              <option value="unacknowledged">Pending Follow-up</option>
               <option value="all">All Alerts</option>
             </select>
             <button className="btn btn-ghost btn-sm" onClick={load}>
@@ -73,7 +71,7 @@ export default function Alerts() {
               <div className="empty-title">All clear</div>
               <div className="empty-desc">
                 {filter === 'unacknowledged'
-                  ? 'All clinical alerts have been acknowledged.'
+                  ? 'All clinical alerts have been followed up.'
                   : 'No clinical alerts have been generated yet.'}
               </div>
             </div>
@@ -117,7 +115,7 @@ export default function Alerts() {
                       </td>
                       <td className="mono">{a.value_triggered}</td>
                       <td className="mono text-muted">{a.threshold}</td>
-                      <td style={{ maxWidth: 260, fontSize: '0.82rem' }}>{a.message}</td>
+                      <td style={{ maxWidth: 260, fontSize: '0.82rem', whiteSpace: 'pre-wrap' }}>{a.message}</td>
                       <td className="text-muted" style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                         {new Date(a.created_at).toLocaleString('en-KE', {
                           dateStyle: 'short', timeStyle: 'short',
@@ -126,7 +124,7 @@ export default function Alerts() {
                       <td>
                         {a.acknowledged ? (
                           <span className="badge badge-success">
-                            ✓ {a.acknowledged_by_name}
+                            Followed up by {a.acknowledged_by_name}
                           </span>
                         ) : (
                           <span className="badge badge-warning">Pending</span>
@@ -135,10 +133,11 @@ export default function Alerts() {
                       <td>
                         {!a.acknowledged && (
                           <button
-                            className="btn btn-sm btn-primary"
-                            onClick={() => handleAck(a.id)}
+                            className="btn btn-sm btn-primary flex items-center gap-1"
+                            onClick={() => setFollowUpAlert(a)}
                           >
-                            Acknowledge
+                            <MessageSquare size={14} />
+                            Follow Up
                           </button>
                         )}
                       </td>
@@ -150,6 +149,12 @@ export default function Alerts() {
           </div>
         )}
       </div>
+
+      <AlertFollowUpModal
+        alert={followUpAlert}
+        onClose={() => setFollowUpAlert(null)}
+        onSuccess={load}
+      />
     </>
   );
 }

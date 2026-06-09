@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
   Calendar,
@@ -15,7 +16,7 @@ import {
 } from 'lucide-react';
 import { dashboardApi, pediatricsApi } from '../api';
 import { DashboardSummary, VaccinationRecord } from '../types';
-import { formatDate, STAGE_LABELS } from '../utils';
+import { formatDate, getPersonalizedGreeting, STAGE_LABELS } from '../utils';
 
 import {
   PieChart, Pie, Cell, Tooltip, ResponsiveContainer,
@@ -23,6 +24,7 @@ import {
   AreaChart, Area, LineChart, Line,
 } from 'recharts';
 import { useAuth } from '../context/AuthContext';
+
 
 const PIE_COLORS = {
   upcoming: '#F59E0B',
@@ -89,6 +91,15 @@ interface TrendData {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const greeting = useMemo(() => getPersonalizedGreeting(user?.full_name), [user?.full_name]);
+
+  useEffect(() => {
+    if (user?.role === 'MOTHER') {
+      navigate('/mother/dashboard', { replace: true });
+    }
+  }, [user, navigate]);
+
   const [summary, setSummary] = useState<DashboardSummary | null>(null);
   const [trends, setTrends] = useState<TrendData | null>(null);
   const [roleData, setRoleData] = useState<any>(null);
@@ -312,7 +323,7 @@ export default function Dashboard() {
                       marginBottom: 6,
                     }}
                   >
-                    Hello, {user?.full_name?.split(' ')?.[0] || 'there'}
+                    {greeting.salutation}
                   </h1>
 
                   <p
@@ -321,7 +332,7 @@ export default function Dashboard() {
                       fontSize: '0.92rem',
                     }}
                   >
-                    This is what's happening in maternity today.
+                    {greeting.wish} Here&apos;s what&apos;s happening in maternity today.
                   </p>
 
                   {user?.role === 'ADMIN' && (

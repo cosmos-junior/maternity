@@ -19,6 +19,7 @@ class ClinicalAlert(models.Model):
         ALERT_LINE_CROSSED    = 'ALERT_LINE_CROSSED',   'Labour — Alert Line Crossed'
         PROLONGED_LABOUR      = 'PROLONGED_LABOUR',     'Prolonged Labour (>12 h)'
         TEMP_HIGH             = 'TEMP_HIGH',            'Maternal Temperature — High (>38°C)'
+        PATIENT_SYMPTOM_REPORT = 'PATIENT_SYMPTOM_REPORT', 'Patient Symptom Report (Mother Portal)'
 
     class Severity(models.TextChoices):
         WARNING  = 'WARNING',  'Warning'
@@ -31,6 +32,10 @@ class ClinicalAlert(models.Model):
     partograph_entry = models.ForeignKey(
         'patients.PartographEntry', on_delete=models.SET_NULL,
         null=True, blank=True, related_name='alerts'
+    )
+    symptom_report = models.ForeignKey(
+        'patients.SymptomReport', on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='clinical_alerts',
     )
     alert_type  = models.CharField(max_length=30, choices=AlertType.choices)
     severity    = models.CharField(max_length=10, choices=Severity.choices, default=Severity.WARNING)

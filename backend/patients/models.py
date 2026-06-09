@@ -85,6 +85,7 @@ class Patient(models.Model):
     occupation = models.CharField(max_length=150, blank=True)
     spouse_name = models.CharField(max_length=200, blank=True)
     spouse_phone = models.CharField(max_length=15, blank=True)
+<<<<<<< HEAD
     
     # MCH Handbook facility & clinical details
     health_facility_name = models.CharField(max_length=255, blank=True)
@@ -97,6 +98,8 @@ class Patient(models.Model):
     weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     estate_house_number = models.CharField(max_length=100, blank=True)
 
+=======
+>>>>>>> 932ae82ad31eb49724d7367701193909ce88247c
     national_id = EncryptedCharField(blank=True, null=True, verbose_name="National ID")
     nhif_number = EncryptedCharField(blank=True, null=True, verbose_name="NHIF Number")
     phone_number = EncryptedCharField()
@@ -426,3 +429,116 @@ class PartographEntry(models.Model):
 
     def __str__(self):
         return f"{self.patient} — {self.hours_in_labour}h"
+
+
+class SymptomReport(models.Model):
+    patient = models.ForeignKey(
+        'patients.Patient', on_delete=models.CASCADE, related_name='symptom_reports'
+    )
+    symptoms = models.TextField(
+        blank=True,
+        help_text="Comma-separated or text list of symptoms (e.g. bleeding, severe_headache, swelling, fever, reduced_fetal_movement)",
+    )
+    description = models.TextField(blank=True)
+    severity = models.CharField(
+        max_length=10, 
+        choices=[('LOW', 'Low'), ('MEDIUM', 'Medium'), ('HIGH', 'High')], 
+        default='LOW'
+    )
+    reported_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=20, 
+        choices=[('PENDING', 'Pending'), ('REVIEWED', 'Reviewed')], 
+        default='PENDING'
+    )
+    reviewed_by = models.ForeignKey(
+        'users.StaffUser', on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_symptoms'
+    )
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        db_table = 'symptom_reports'
+        ordering = ['-reported_at']
+
+    def __str__(self):
+        return f"SymptomReport for {self.patient.patient_number} on {self.reported_at}"
+
+
+class SecureMessage(models.Model):
+    class MessageType(models.TextChoices):
+        GENERAL = 'GENERAL', 'General'
+        CARE_ALERT = 'CARE_ALERT', 'Care Alert'
+
+    sender = models.ForeignKey(
+        'users.StaffUser', on_delete=models.CASCADE, related_name='sent_messages'
+    )
+    recipient = models.ForeignKey(
+        'users.StaffUser', on_delete=models.CASCADE, null=True, blank=True, related_name='received_messages'
+    )
+    patient = models.ForeignKey(
+        'patients.Patient', on_delete=models.CASCADE, related_name='portal_messages'
+    )
+    message_type = models.CharField(
+        max_length=20,
+        choices=MessageType.choices,
+        default=MessageType.GENERAL,
+    )
+    clinical_alert = models.ForeignKey(
+        'alerts.ClinicalAlert',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='follow_up_messages',
+    )
+    message = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+    parent_message = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True, related_name='replies'
+    )
+
+    class Meta:
+        db_table = 'secure_messages'
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Message from {self.sender} on {self.created_at}"
+
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=Patient)
+def create_mother_user_account(sender, instance, created, **kwargs):
+    if created:
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        
+        # Generate email from first name
+        first_name = instance.first_name.strip().lower() if instance.first_name else instance.full_name.split()[0].lower()
+        # Clean the first name to be email-safe (remove special chars, spaces)
+        first_name_clean = ''.join(c for c in first_name if c.isalnum())
+        email = f"{first_name_clean}@gmail.com"
+        
+        # Generate password from national_id and last name
+        national_id = str(instance.national_id).strip() if instance.national_id else ""
+        last_name = instance.last_name.strip().lower() if instance.last_name else (instance.full_name.split()[-1].lower() if instance.full_name else "user")
+        last_name_clean = ''.join(c for c in last_name if c.isalnum())
+        password = f"{national_id}@{last_name_clean}"
+        
+        # Ensure password meets minimum requirements (at least 8 chars)
+        if len(password) < 8:
+            password = f"{password}Mat2026"
+
+        # Prevent duplicate users if email exists
+        if not User.objects.filter(email=email).exists():
+            User.objects.create_user(
+                email=email,
+                full_name=instance.full_name,
+                role='MOTHER',
+                phone_number=instance.phone_number,
+                password=password,
+                patient=instance
+            )
+

@@ -3,12 +3,13 @@ export interface User {
   id: number;
   email: string;
   full_name: string;
-  role: 'ADMIN' | 'NURSE' | 'DOCTOR';
+  role: 'ADMIN' | 'NURSE' | 'DOCTOR' | 'MOTHER';
   phone_number: string;
   bio: string;
   profile_completed: boolean;
   has_pmtct_permission?: boolean;
   date_joined: string;
+  patient_id?: number | null;
 }
 
 export interface AuthTokens {
@@ -16,6 +17,7 @@ export interface AuthTokens {
   refresh: string;
   user: User;
 }
+
 
 // ─── Patient ──────────────────────────────────────────────────────────────────
 export type ClinicStage = 'ANC1' | 'ANC2' | 'ANC3' | 'ANC4' | 'DELIVERED' | 'POSTNATAL';
@@ -217,7 +219,8 @@ export interface PaginatedResponse<T> {
 export type AlertType =
   | 'FHR_LOW' | 'FHR_HIGH' | 'BP_CRITICAL'
   | 'ACTION_LINE_CROSSED' | 'ALERT_LINE_CROSSED'
-  | 'PROLONGED_LABOUR' | 'TEMP_HIGH';
+  | 'PROLONGED_LABOUR' | 'TEMP_HIGH'
+  | 'PATIENT_SYMPTOM_REPORT';
 export type AlertSeverity = 'WARNING' | 'CRITICAL';
 
 export interface ClinicalAlert {
@@ -251,7 +254,7 @@ export interface StaffUser {
   id: number;
   email: string;
   full_name: string;
-  role: 'ADMIN' | 'NURSE' | 'DOCTOR';
+  role: 'ADMIN' | 'NURSE' | 'DOCTOR' | 'MOTHER';
   phone_number: string;
   is_active: boolean;
   date_joined: string;
@@ -312,3 +315,75 @@ export interface ChildClinicVisit {
   doctor_recommendations: string;
   next_visit_date: string;
 }
+
+// ─── Mother Portal Data Structures ──────────────────────────────────────────
+export interface SymptomReport {
+  id: number;
+  patient: number;
+  symptoms: string;
+  description: string;
+  severity: 'LOW' | 'MEDIUM' | 'HIGH';
+  reported_at: string;
+  status: 'PENDING' | 'REVIEWED';
+  reviewed_by: number | null;
+  reviewed_at: string | null;
+  notes: string;
+}
+
+export interface SecureMessage {
+  id: number;
+  sender: number;
+  sender_name?: string;
+  sender_role?: string;
+  recipient: number | null;
+  patient: number;
+  message_type?: 'GENERAL' | 'CARE_ALERT';
+  clinical_alert?: number | null;
+  message: string;
+  created_at: string;
+  is_read: boolean;
+  parent_message: number | null;
+}
+
+export interface UpcomingVaccine {
+  target: string;
+  vaccine_name: string;
+  recommended_week: number | null;
+  status: 'UPCOMING' | 'DUE' | 'OVERDUE' | 'PENDING' | 'GIVEN' | 'MISSED';
+  expected_date: string | null;
+}
+
+export interface MotherDashboardData {
+  pregnancy_status: string;
+  gestational_age_weeks: number;
+  expected_delivery_date: string;
+  trimester: string | null;
+  next_appointment: Appointment | null;
+  upcoming_vaccines: UpcomingVaccine[];
+  unread_messages_count: number;
+  care_alerts: SecureMessage[];
+  risk_level: RiskLevel;
+}
+
+export interface PregnancyMilestone {
+  id: 'REGISTRATION' | 'ANC1' | 'ANC2' | 'ANC3' | 'ANC4' | 'DELIVERY' | 'POSTNATAL';
+  name: string;
+  completed: boolean;
+  date: string | null;
+}
+
+export interface MotherPregnancyTrackingData {
+  weeks_pregnant: number;
+  edd: string;
+  lmp: string;
+  trimester_info: string;
+  milestones: PregnancyMilestone[];
+  anc_visits: any[];
+}
+
+export interface MotherMedicalRecordsData {
+  demographics_and_history: Patient;
+  clinical_notes: any[];
+  uploaded_documents: any[];
+}
+

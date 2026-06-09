@@ -1,5 +1,14 @@
 import { AppointmentStatus, ClinicStage, RiskLevel } from '../types';
 
+export { getPersonalizedGreeting, getFirstName, getTimeOfDayGreeting } from './personalizedGreeting';
+export type { PersonalizedGreeting } from './personalizedGreeting';
+
+export function extractListData<T>(data: T[] | { results?: T[] } | null | undefined): T[] {
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.results)) return data.results;
+  return [];
+}
+
 export function formatDate(d: string | null): string {
   if (!d) return '—';
   return new Date(d).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' });

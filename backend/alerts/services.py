@@ -226,3 +226,104 @@ def evaluate_clinical_thresholds(entry):
                 created.append(a)
 
     return created
+
+
+SYMPTOM_LABELS = {
+    'bleeding': 'Vaginal bleeding / spotting',
+    'headache': 'Severe headache',
+    'vision_changes': 'Vision changes',
+    'abdominal_pain': 'Severe abdominal pain',
+    'swelling': 'Sudden swelling',
+    'fever': 'High fever or chills',
+    'reduced_movement': 'Reduced fetal movement',
+    'custom': 'Custom symptoms (see details)',
+}
+
+
+def _format_reported_symptoms(symptoms_text: str) -> str:
+    if not symptoms_text or symptoms_text.strip() == 'custom':
+        return 'Custom symptoms (see details)'
+    labels = []
+    for token in symptoms_text.split(','):
+        key = token.strip()
+        if not key:
+            continue
+        labels.append(SYMPTOM_LABELS.get(key, key.replace('_', ' ').title()))
+    return ', '.join(labels) if labels else 'Not specified'
+
+
+def create_symptom_report_alert(symptom_report):
+    """
+    Notify clinical staff when a mother submits a symptom report via the portal.
+    Each report creates a new alert so nurses and doctors can review and respond.
+    """
+    from alerts.models import ClinicalAlert
+
+    patient = symptom_report.patient
+    severity_map = {
+        'HIGH': ClinicalAlert.Severity.CRITICAL,
+        'MEDIUM': ClinicalAlert.Severity.WARNING,
+        'LOW': ClinicalAlert.Severity.WARNING,
+    }
+    severity = severity_map.get(symptom_report.severity, ClinicalAlert.Severity.WARNING)
+    symptoms_display = _format_reported_symptoms(symptom_report.symptoms)
+
+    message_lines = [
+        (
+            f'{patient.full_name} ({patient.patient_number}) reported symptoms '
+            f'they are worried about via the mother portal.'
+        ),
+        f'Severity: {symptom_report.get_severity_display()}',
+        f'Symptoms: {symptoms_display}',
+    ]
+    if symptom_report.description:
+        message_lines.append(f'Details: {symptom_report.description}')
+    message_lines.append('Please review the report and decide on appropriate follow-up.')
+
+    alert = ClinicalAlert.objects.create(
+        patient=patient,
+        symptom_report=symptom_report,
+        alert_type=ClinicalAlert.AlertType.PATIENT_SYMPTOM_REPORT,
+        severity=severity,
+        value_triggered=symptom_report.get_severity_display(),
+        threshold='Patient-reported concern',
+        message='\n'.join(message_lines),
+    )
+    logger.warning(
+        'ClinicalAlert created: PATIENT_SYMPTOM_REPORT for patient %s (report %s)',
+        patient.pk,
+        symptom_report.pk,
+    )
+    _send_symptom_report_sms(patient, alert, symptoms_display)
+    return alert
+
+
+def _send_symptom_report_sms(patient, alert, symptoms_display):
+    """Notify doctors, nurses, and admins about a mother-portal symptom report."""
+    try:
+        from reminders.sms_service import send_sms
+        from users.models import StaffUser
+
+        recipients = StaffUser.objects.filter(
+            role__in=['ADMIN', 'DOCTOR', 'NURSE'],
+            is_active=True,
+            phone_number__isnull=False,
+        ).exclude(phone_number='')
+
+        msg = (
+            f"[MATERNITY ALERT] {alert.get_severity_display().upper()} — "
+            f"{patient.full_name} ({patient.patient_number}) reported symptoms: "
+            f"{symptoms_display}. Please review in Clinical Alerts."
+        )
+
+        for staff in recipients:
+            phone = staff.phone_number.strip()
+            if phone.startswith('0') and len(phone) == 10:
+                phone = '+254' + phone[1:]
+            elif phone.startswith('254') and not phone.startswith('+'):
+                phone = '+' + phone
+            elif not phone.startswith('+'):
+                phone = '+254' + phone
+            send_sms(phone, msg)
+    except Exception as exc:
+        logger.error('Symptom report alert SMS failed: %s', exc)

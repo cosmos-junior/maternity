@@ -24,6 +24,7 @@ class StaffUser(AbstractBaseUser, PermissionsMixin):
         ('ADMIN', 'Administrator'),
         ('NURSE', 'Nurse'),
         ('DOCTOR', 'Doctor'),
+        ('MOTHER', 'Mother'),
     ]
 
     email = models.EmailField(unique=True)
@@ -33,6 +34,14 @@ class StaffUser(AbstractBaseUser, PermissionsMixin):
     bio = models.TextField(blank=True, default='', help_text='Professional bio or about section')
     profile_completed = models.BooleanField(default=False, help_text='Whether the user has completed their initial profile setup')
     has_pmtct_permission = models.BooleanField(default=False, help_text='Designates if a Nurse has access to sensitive PMTCT registry data')
+    patient = models.OneToOneField(
+        'patients.Patient',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='user_account',
+        help_text='Associated patient record if this is a Mother account'
+    )
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
