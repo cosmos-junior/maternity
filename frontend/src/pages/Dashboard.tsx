@@ -332,7 +332,7 @@ export default function Dashboard() {
                       fontSize: '0.92rem',
                     }}
                   >
-                    {greeting.wish} Here&apos;s what&apos;s happening in maternity today.
+                    {greeting.wish} Here's what's happening in maternity today.
                   </p>
 
                   {user?.role === 'ADMIN' && (
