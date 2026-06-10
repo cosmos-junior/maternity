@@ -3,7 +3,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
 from .models import StaffUser
-from .serializers import StaffUserSerializer, RegisterSerializer, CustomTokenObtainPairSerializer
+from .serializers import StaffUserSerializer, AdminStaffUserSerializer, RegisterSerializer, CustomTokenObtainPairSerializer
 from core.permissions import IsAdminRole
 
 
@@ -75,16 +75,23 @@ class MeView(generics.RetrieveUpdateAPIView):
 
 
 class StaffListView(generics.ListAPIView):
-    """List all active staff users — ADMIN only."""
+    """List all staff users — ADMIN only."""
     serializer_class = StaffUserSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminRole]
 
     def get_queryset(self):
-        qs = StaffUser.objects.filter(is_active=True).order_by('full_name')
+        qs = StaffUser.objects.all().order_by('full_name')
         role = self.request.query_params.get('role')
         if role:
             qs = qs.filter(role=role)
         return qs
+
+
+class StaffDetailView(generics.RetrieveUpdateAPIView):
+    """Retrieve or update a staff account — ADMIN only."""
+    queryset = StaffUser.objects.all()
+    serializer_class = AdminStaffUserSerializer
+    permission_classes = [permissions.IsAuthenticated, IsAdminRole]
 
 
 class StaffDeactivateView(APIView):
@@ -123,7 +130,7 @@ class ChangeRoleView(APIView):
     """Change a staff member's role — ADMIN only."""
     permission_classes = [permissions.IsAuthenticated, IsAdminRole]
 
-    VALID_ROLES = {'ADMIN', 'NURSE', 'DOCTOR'}
+    VALID_ROLES = {'ADMIN', 'NURSE', 'DOCTOR', 'MOTHER'}
 
     def patch(self, request, pk):
         try:

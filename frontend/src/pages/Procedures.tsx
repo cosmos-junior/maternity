@@ -18,10 +18,12 @@ export default function Procedures() {
   const [procedures, setProcedures] = useState<any[]>([]);
   const [emergencies, setEmergencies] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
   const load = async () => {
     setLoading(true);
+    setError(null);
     try {
       const [pRes, eRes] = await Promise.all([
         proceduresApi.listProcedures(),
@@ -30,7 +32,7 @@ export default function Procedures() {
       setProcedures(pRes.data);
       setEmergencies(eRes.data);
     } catch (err) {
-      console.error(err);
+      setError('Failed to load clinical protocols. Please check your internet connection.');
     } finally {
       setLoading(false);
     }
@@ -47,6 +49,11 @@ export default function Procedures() {
       </header>
 
       <div className="page-body">
+        {error && (
+          <div className="alert alert-danger mb-6">
+            {error} <button onClick={load} className="underline ml-2">Try Again</button>
+          </div>
+        )}
         {/* Tabs */}
         <div className="tabs flex gap-6 mb-6 border-b-2 border-slate-200">
           <button

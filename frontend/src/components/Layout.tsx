@@ -65,13 +65,12 @@ const NAV_SECTIONS: NavSection[] = [
     label: 'OUTPATIENT',
     roles: ['ADMIN', 'NURSE', 'DOCTOR'],
     items: [
-      { to: '/children', icon: <Baby size={18} />, label: 'Child Profiles' },
       { to: '/postnatal', icon: <Activity size={18} />, label: 'Postnatal' },
+      { to: '/children', icon: <Baby size={18} />, label: 'Child Profiles' },
       { to: '/clinical-notes', icon: <Stethoscope size={18} />, label: 'Clinical Notes' },
       { to: '/documents', icon: <Folder size={18} />, label: 'Documents' },
       { to: '/procedures', icon: <Hospital size={18} />, label: 'Procedures' },
       { to: '/referrals', icon: <ArrowUpRight size={18} />, label: 'Referrals' },
-      { to: '/labour-ward', icon: <HeartPulse size={18} />, label: 'Labour Ward Board' },
       { to: '/pmtct', icon: <ShieldAlert size={18} />, label: 'PMTCT Registry', roles: ['ADMIN', 'DOCTOR', 'NURSE'] },
     ]
   },

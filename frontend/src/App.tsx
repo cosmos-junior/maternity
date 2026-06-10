@@ -24,7 +24,6 @@ import ChildProfile from './pages/ChildProfile';
 import Children from './pages/Children';
 import UserProfile from './pages/UserProfile';
 import Referrals from './pages/Referrals';
-import LabourWard from './pages/LabourWard';
 import MortalityReview from './pages/MortalityReview';
 import PMTCT from './pages/PMTCT';
 import Education from './pages/Education';
@@ -115,9 +114,8 @@ function AppRoutes() {
         <Route path="patients/:id" element={<PatientDetail />} />
         <Route path="patients/:id/partograph" element={<Partograph />} />
         <Route path="patients/:id/nutrition" element={<Nutrition />} />
-        <Route path="children" element={<Children />} />
-        <Route path="appointments" element={<Appointments />} />
         <Route path="postnatal" element={<Postnatal />} />
+        <Route path="children" element={<Children />} />
         <Route path="children/:id" element={<ChildProfile />} />
         <Route path="reminders" element={<Reminders />} />
         <Route path="alerts" element={<Alerts />} />
@@ -125,7 +123,6 @@ function AppRoutes() {
         <Route path="documents" element={<Documents />} />
         <Route path="procedures" element={<Procedures />} />
         <Route path="referrals" element={<Referrals />} />
-        <Route path="labour-ward" element={<LabourWard />} />
         <Route path="pmtct" element={<PMTCT />} />
         <Route path="education" element={<Education />} />
         <Route path="education/:slug" element={<EducationDetail />} />

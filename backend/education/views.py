@@ -4,10 +4,20 @@ from .models import EducationCategory, EducationResource
 from .serializers import EducationCategorySerializer, EducationResourceSerializer
 
 class EducationCategoryViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = EducationCategory.objects.all()
     serializer_class = EducationCategorySerializer
     permission_classes = [permissions.IsAuthenticated]
     lookup_field = 'slug'
+
+    def get_queryset(self):
+        user = self.request.user
+        # Get accessible resources first
+        resource_viewset = EducationResourceViewSet()
+        resource_viewset.request = self.request
+        accessible_resources = resource_viewset.get_queryset()
+        
+        # Only show categories that have at least one accessible resource
+        category_ids = accessible_resources.values_list('category_id', flat=True).distinct()
+        return EducationCategory.objects.filter(id__in=category_ids)
 
 class EducationResourceViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = EducationResourceSerializer
@@ -19,8 +29,23 @@ class EducationResourceViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'slug'
 
     def get_queryset(self):
-        # Admins can see unpublished resources, others only published
         user = self.request.user
-        if user.is_staff or user.role == 'ADMIN':
+        qs = EducationResource.objects.filter(is_published=True)
+
+        if user.role == 'ADMIN':
+            # Admins can see everything
             return EducationResource.objects.all()
-        return EducationResource.objects.filter(is_published=True)
+        
+        if user.role == 'MOTHER':
+            # Mothers only see patient-facing content
+            return qs.filter(audience='PATIENT')
+        
+        if user.role == 'DOCTOR':
+            # Doctors see doctor-specific content
+            return qs.filter(audience='DOCTOR')
+            
+        if user.role == 'NURSE':
+            # Nurses see nurse-specific content
+            return qs.filter(audience='NURSE')
+
+        return qs.none()

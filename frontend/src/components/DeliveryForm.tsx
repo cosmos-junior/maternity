@@ -101,24 +101,50 @@ function StepBar({ current }: StepBarProps) {
 
 interface DeliveryFormProps {
   patients: Patient[];
+  initialData?: any;
   onClose: () => void;
   onSaved: () => void;
 }
 
-export default function DeliveryForm({ patients, onClose, onSaved }: DeliveryFormProps) {
+export default function DeliveryForm({ patients, initialData, onClose, onSaved }: DeliveryFormProps) {
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
-  const [form, setForm] = useState<DeliveryFormData>({
-    patient: '',
-    delivery_date: new Date().toISOString().split('T')[0],
-    delivery_type: 'NORMAL',
-    mother_condition: '',
-    notes: '',
-    newborns: [{ ...BLANK_NEWBORN }],
-    review_7day_date: '',
-    review_6week_date: '',
+  const [form, setForm] = useState<DeliveryFormData>(() => {
+    if (initialData) {
+      return {
+        patient: initialData.patient?.toString() || '',
+        delivery_date: initialData.delivery_date || '',
+        delivery_type: initialData.delivery_type || 'NORMAL',
+        mother_condition: initialData.mother_condition || '',
+        notes: initialData.notes || '',
+        newborns: [{
+          baby_first_name: initialData.baby_first_name || '',
+          baby_last_name: initialData.baby_last_name || '',
+          baby_gender: initialData.baby_gender || 'UNKNOWN',
+          baby_weight_kg: initialData.baby_weight_kg ? String(initialData.baby_weight_kg) : '',
+          baby_condition: initialData.baby_condition || '',
+          bcg_given: !!initialData.bcg_given,
+          opv0_given: !!initialData.opv0_given,
+          hep_b_given: !!initialData.hep_b_given,
+          apgar_score: initialData.apgar_score || '',
+          notes: '',
+        }],
+        review_7day_date: initialData.review_7day_date || '',
+        review_6week_date: initialData.review_6week_date || '',
+      };
+    }
+    return {
+      patient: '',
+      delivery_date: new Date().toISOString().split('T')[0],
+      delivery_type: 'NORMAL',
+      mother_condition: '',
+      notes: '',
+      newborns: [{ ...BLANK_NEWBORN }],
+      review_7day_date: '',
+      review_6week_date: '',
+    };
   });
 
   // Helpers
@@ -179,7 +205,7 @@ export default function DeliveryForm({ patients, onClose, onSaved }: DeliveryFor
         ? '\n\n[Additional newborns: ' + JSON.stringify(form.newborns.slice(1)) + ']'
         : '';
 
-      await postnatalApi.create({
+      const payload = {
         patient:            form.patient,
         delivery_date:      form.delivery_date,
         delivery_type:      form.delivery_type,
@@ -195,7 +221,13 @@ export default function DeliveryForm({ patients, onClose, onSaved }: DeliveryFor
         review_7day_date:   form.review_7day_date || null,
         review_6week_date:  form.review_6week_date || null,
         notes: (form.notes + extraNbJson).trim(),
-      });
+      };
+
+      if (initialData?.id) {
+        await postnatalApi.update(initialData.id, payload);
+      } else {
+        await postnatalApi.create(payload);
+      }
       onSaved();
     } catch (err: any) {
       setError(err.response?.data ? JSON.stringify(err.response.data) : 'Failed to save delivery record.');
@@ -211,7 +243,7 @@ export default function DeliveryForm({ patients, onClose, onSaved }: DeliveryFor
         {/* Header */}
         <div className="modal-header">
           <div className="modal-title flex items-center gap-2">
-            <Baby size={20} className="text-primary" /> Record Delivery
+            <Baby size={20} className="text-primary" /> {initialData ? 'Edit Delivery Record' : 'Record Delivery'}
           </div>
           <button className="modal-close" onClick={onClose} aria-label="Close modal"><X size={20} /></button>
         </div>

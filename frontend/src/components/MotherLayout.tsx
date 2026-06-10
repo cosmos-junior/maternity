@@ -8,10 +8,13 @@ import {
   Stethoscope,
   AlertCircle,
   MessageSquare,
-  LogOut
+  LogOut,
+  MoonStar,
+  SunMedium
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getPersonalizedGreeting } from '../utils';
+import ThemeToggle from './ThemeToggle';
 
 const MOTHER_NAV = [
   { to: '/mother/dashboard', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
@@ -68,33 +71,13 @@ export default function MotherLayout() {
 
   const isDarkMode = document.documentElement.classList.contains('dark');
 
-  // Force dark mode with purple/pink theme for mother portal only
-  // No way to toggle to light mode in mother portal
+  // Let the user's theme preference be respected (no longer forcing dark mode)
   useEffect(() => {
-    // Save previous theme state
-    const previousTheme = localStorage.getItem('theme');
-    
-    // Force dark mode
-    document.documentElement.classList.add('dark');
-    localStorage.setItem('theme', 'dark');
-    
     // Add mother-portal-specific class for custom styling
     document.body.classList.add('mother-portal-active');
     
     return () => {
-      // Restore previous theme when leaving mother portal
       document.body.classList.remove('mother-portal-active');
-      if (previousTheme === 'light') {
-        document.documentElement.classList.remove('dark');
-        localStorage.setItem('theme', 'light');
-      } else if (!previousTheme) {
-        // If no previous theme, check system preference
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (!prefersDark) {
-          document.documentElement.classList.remove('dark');
-          localStorage.setItem('theme', 'light');
-        }
-      }
     };
   }, []);
 
@@ -139,7 +122,9 @@ export default function MotherLayout() {
           {meta.title}
         </h1>
 
-        <div className="mother-mobile-header-placeholder" />
+        <div className="mother-mobile-header-placeholder">
+          <ThemeToggle compact />
+        </div>
       </header>
 
       <main className="mother-content">

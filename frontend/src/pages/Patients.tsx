@@ -368,7 +368,7 @@ export default function Patients() {
                           <Link to={`/patients/${p.id}`} className="btn btn-ghost btn-sm flex items-center gap-1" title="View Patient">
                             <Eye size={14} /> <span className="hidden sm:inline">View</span>
                           </Link>
-                          {user?.role === 'ADMIN' && (
+                          {(user?.role === 'ADMIN' || user?.role === 'DOCTOR') && (
                             <>
                               <button className="btn btn-ghost btn-sm text-muted" title="Edit Patient" onClick={() => handleEdit(p)}>
                                 <Edit2 size={14} />

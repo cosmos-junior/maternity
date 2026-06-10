@@ -258,6 +258,7 @@ export interface StaffUser {
   full_name: string;
   role: 'ADMIN' | 'NURSE' | 'DOCTOR' | 'MOTHER';
   phone_number: string;
+  bio?: string;
   is_active: boolean;
   date_joined: string;
   has_pmtct_permission?: boolean;

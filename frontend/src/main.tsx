@@ -7,7 +7,6 @@ if ('serviceWorker' in navigator) {
   if (import.meta.env.PROD) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js')
-        .then(reg => { if (import.meta.env.DEV) console.log('[PWA] SW registered:', reg.scope); })
         .catch(err => console.warn('[PWA] SW registration failed:', err));
     });
   } else {

@@ -40,13 +40,10 @@ export default function UserProfile() {
             profile_completed: true,
           };
       
-      console.log('Sending update data:', updateData);
       const response = await staffApi.updateProfile(updateData);
-      console.log('Update response:', response);
       
       // Update the auth context with the new user data
       if (response.data) {
-        console.log('Updating user context with:', response.data);
         const accessToken = localStorage.getItem('access_token') || '';
         const refreshToken = localStorage.getItem('refresh_token') || '';
         login({
@@ -62,8 +59,8 @@ export default function UserProfile() {
         navigate(isMother ? '/mother/dashboard' : '/');
       }, 1500);
     } catch (err: any) {
-      console.error('Update error:', err);
-      setError(err.response?.data?.detail || err.message || 'Failed to update profile');
+      const detail = err.response?.data?.detail || err.message || 'Failed to update profile';
+      setError(`${detail}. Please check your internet connection and try again. If the problem persists, contact support.`);
     } finally {
       setLoading(false);
     }

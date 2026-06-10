@@ -10,7 +10,8 @@ import {
   ChevronRight,
   Sparkles,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle
 } from 'lucide-react';
 import { nutritionApi, patientsApi } from '../api';
 import { formatDate } from '../utils';
@@ -23,9 +24,11 @@ export default function Nutrition() {
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [success, setSuccess] = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
+    setError(null);
     try {
       const [pRes, profRes, recRes] = await Promise.all([
         patientsApi.get(Number(id)),
@@ -35,8 +38,8 @@ export default function Nutrition() {
       setPatient(pRes.data);
       setProfile(profRes.data);
       setRecommendations(recRes.data);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      setError('Failed to load nutrition data. Please check your connection and refresh the page.');
     } finally {
       setLoading(false);
     }
@@ -48,12 +51,13 @@ export default function Nutrition() {
 
   const handleGenerate = async () => {
     setGenerating(true);
+    setError(null);
     try {
       await nutritionApi.generateRecommendations(Number(id));
       flash('Diet recommendations generated successfully ✓');
       load();
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      setError('Failed to generate recommendations. Please try again or contact support if the issue persists.');
     } finally {
       setGenerating(false);
     }
@@ -96,6 +100,9 @@ export default function Nutrition() {
       </header>
 
       <div className="page-body">
+        {error && <div className="alert alert-danger flex items-center gap-2 mb-4">
+          <AlertTriangle size={16} /> {error}
+        </div>}
         {success && <div className="alert alert-success flex items-center gap-2">
           <CheckCircle size={16} /> {success}
         </div>}

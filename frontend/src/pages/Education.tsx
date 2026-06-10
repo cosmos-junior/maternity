@@ -17,7 +17,6 @@ export default function Education() {
       case 'emonc': return <Hospital size={18} />;
       case 'pph': return <AlertOctagon size={18} />;
       case 'family-planning': return <Users size={18} />;
-      case 'adolescent-health': return <Activity size={18} />;
       case 'general-maternity': return <Baby size={18} />;
       default: return <BookOpen size={18} />;
     }
@@ -32,7 +31,6 @@ export default function Education() {
           educationApi.listResources({
             search,
             category__slug: activeCategory,
-            audience: user?.role === 'ADMIN' ? '' : (user?.role || '')
           })
         ]);
         setCategories(catsRes.data.results || catsRes.data);

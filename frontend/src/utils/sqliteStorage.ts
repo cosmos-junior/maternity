@@ -66,9 +66,13 @@ export class SQLiteDatabase {
     const dumped = await loadDatabase();
     if (dumped && Array.isArray(dumped)) {
       this.rows = new Map(dumped.map((item: SQLiteRow) => [item.id, item]));
-      console.log(`[SQLite] Loaded database with ${this.rows.size} queued offline records.`);
+      if (import.meta.env.DEV) {
+        console.log(`[SQLite] Loaded database with ${this.rows.size} queued offline records.`);
+      }
     } else {
-      console.log('[SQLite] Initialized new empty database.');
+      if (import.meta.env.DEV) {
+        console.log('[SQLite] Initialized new empty database.');
+      }
     }
     this.initialized = true;
   }
@@ -91,7 +95,9 @@ export class SQLiteDatabase {
       await this.init();
     }
 
-    console.log(`[SQLite] SQL query: "${sql}"`, params || '');
+    if (import.meta.env.DEV) {
+      console.log(`[SQLite] SQL query: "${sql}"`, params || '');
+    }
     const cleanSql = sql.trim().replace(/\s+/g, ' ');
 
     if (cleanSql.toUpperCase().startsWith('CREATE TABLE')) {

@@ -1,21 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { staffApi } from '../api';
 import { StaffUser } from '../types';
-import { Users, UserPlus, ShieldCheck, Trash2, Mail, Phone, Shield } from 'lucide-react';
+import { Users, UserPlus, ShieldCheck, Trash2, Mail, Phone, Shield, Edit2, Eye, Lock, Unlock, X } from 'lucide-react';
 
 const ROLE_COLORS: Record<string, string> = {
   ADMIN: 'var(--hosp-red, #ef4444)',
   DOCTOR: 'var(--hosp-teal, #14b8a6)',
   NURSE: 'var(--hosp-green, #22c55e)',
+  MOTHER: 'var(--primary, #2563EB)',
 };
 
-const BLANK_FORM = { email: '', full_name: '', password: '', role: 'NURSE' as const, phone_number: '' };
+const BLANK_FORM: { email: string; full_name: string; password?: string; role: 'ADMIN' | 'NURSE' | 'DOCTOR' | 'MOTHER'; phone_number: string } = { email: '', full_name: '', password: '', role: 'NURSE', phone_number: '' };
 
 export default function AdminUsers() {
   const [users, setUsers]     = useState<StaffUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm]       = useState(BLANK_FORM);
+  const [editId, setEditId]   = useState<number | null>(null);
+  const [viewUser, setViewUser] = useState<StaffUser | null>(null);
   const [saving, setSaving]   = useState(false);
   const [error, setError]     = useState('');
   const [success, setSuccess] = useState('');
@@ -32,33 +35,61 @@ export default function AdminUsers() {
 
   useEffect(() => { load(); }, []);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSaving(true);
     try {
-      await staffApi.register(form);
-      setSuccess('Staff member created');
+      if (editId) {
+        // Exclude password from update if it's empty
+        const payload: any = { ...form };
+        if (!payload.password) delete payload.password;
+        await staffApi.update(editId, payload);
+        setSuccess('Staff member updated');
+      } else {
+        await staffApi.register(form);
+        setSuccess('Staff member created');
+      }
       setTimeout(() => setSuccess(''), 3000);
       setForm(BLANK_FORM);
+      setEditId(null);
       setShowForm(false);
       load();
     } catch (err: any) {
-      setError(err.response?.data ? JSON.stringify(err.response.data) : 'Failed to create user.');
+      setError(err.response?.data ? JSON.stringify(err.response.data) : 'Failed to save user.');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDeactivate = async (id: number) => {
-    if (!confirm('Deactivate this user?')) return;
+  const handleEdit = (u: StaffUser) => {
+    setForm({
+      email: u.email,
+      full_name: u.full_name,
+      password: '', // Optional for updates
+      role: u.role,
+      phone_number: u.phone_number || ''
+    });
+    setEditId(u.id);
+    setShowForm(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleToggleLock = async (u: StaffUser) => {
     try {
-      await staffApi.deactivate(id);
+      if (u.is_active) {
+        if (!confirm(`Deactivate ${u.full_name}?`)) return;
+        await staffApi.deactivate(u.id);
+      } else {
+        if (!confirm(`Reactivate ${u.full_name}?`)) return;
+        await staffApi.reactivate(u.id);
+      }
       load();
     } catch (err: any) {
-      alert(err.response?.data?.error ?? 'Failed.');
+      alert(err.response?.data?.error ?? 'Failed to toggle lock status.');
     }
   };
+
 
   const handleRoleChange = async (id: number, newRole: string) => {
     try {
@@ -89,7 +120,7 @@ export default function AdminUsers() {
                <UserPlus size={20} className="text-teal-500" /> Register New Staff Member
             </div>
             {error && <div className="alert alert-danger">{error}</div>}
-            <form onSubmit={handleCreate}>
+            <form onSubmit={handleSubmit}>
               <div className="form-grid form-grid-2">
                 <div className="form-group">
                   <label className="form-label">Full Name *</label>
@@ -126,6 +157,7 @@ export default function AdminUsers() {
                       <option value="NURSE">NURSE</option>
                       <option value="DOCTOR">DOCTOR</option>
                       <option value="ADMIN">ADMIN</option>
+                      <option value="MOTHER">MOTHER</option>
                     </select>
                   </div>
                 </div>
@@ -173,6 +205,7 @@ export default function AdminUsers() {
                           <option value="NURSE">NURSE</option>
                           <option value="DOCTOR">DOCTOR</option>
                           <option value="ADMIN">ADMIN</option>
+                          <option value="MOTHER">MOTHER</option>
                         </select>
                       </td>
                       <td className="px-4 py-4 text-center">
@@ -203,11 +236,25 @@ export default function AdminUsers() {
                       </td>
                       <td className="px-4 py-4 text-right">
                         <button
-                          className="btn btn-ghost btn-xs text-red-500 hover:bg-red-50"
-                          onClick={() => handleDeactivate(u.id)}
-                          title="Deactivate User"
+                          className="btn btn-ghost btn-xs text-slate-500 hover:bg-slate-100"
+                          onClick={() => setViewUser(u)}
+                          title="View Details"
                         >
-                          <Trash2 size={16} />
+                          <Eye size={16} />
+                        </button>
+                        <button
+                          className="btn btn-ghost btn-xs text-blue-500 hover:bg-blue-50"
+                          onClick={() => handleEdit(u)}
+                          title="Edit User"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          className={`btn btn-ghost btn-xs ${u.is_active ? 'text-slate-500 hover:bg-slate-100' : 'text-red-500 hover:bg-red-50'}`}
+                          onClick={() => handleToggleLock(u)}
+                          title={u.is_active ? "Lock User" : "Unlock User"}
+                        >
+                          {u.is_active ? <Unlock size={16} /> : <Lock size={16} />}
                         </button>
                       </td>
                     </tr>
@@ -218,6 +265,68 @@ export default function AdminUsers() {
           </div>
         )}
       </div>
+
+      {viewUser && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setViewUser(null)}>
+          <div className="modal" style={{ maxWidth: 500 }}>
+            <div className="modal-header">
+              <div className="modal-title flex items-center gap-2">
+                <Users size={20} className="text-primary" /> User Details
+              </div>
+              <button className="modal-close" onClick={() => setViewUser(null)}><X size={20} /></button>
+            </div>
+            <div className="modal-body space-y-4">
+              <div className="flex items-center gap-4 border-b border-slate-100 pb-4">
+                <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xl font-bold">
+                  {viewUser.full_name.charAt(0)}
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg">{viewUser.full_name}</h3>
+                  <div className="text-sm text-slate-500">{viewUser.email}</div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-slate-500 block mb-1">Role</span>
+                  <span className="badge" style={{ backgroundColor: ROLE_COLORS[viewUser.role], color: 'white' }}>
+                    {viewUser.role}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block mb-1">Status</span>
+                  <span className={`badge ${viewUser.is_active ? 'badge-success' : 'badge-danger'}`}>
+                    {viewUser.is_active ? 'Active' : 'Locked'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block mb-1">Phone Number</span>
+                  <span className="font-medium">{viewUser.phone_number || 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="text-slate-500 block mb-1">Joined</span>
+                  <span className="font-medium">{new Date(viewUser.date_joined).toLocaleDateString('en-KE')}</span>
+                </div>
+                {viewUser.role === 'NURSE' && (
+                  <div className="col-span-2">
+                    <span className="text-slate-500 block mb-1">PMTCT Access</span>
+                    <span className="font-medium">{viewUser.has_pmtct_permission ? 'Granted' : 'Revoked'}</span>
+                  </div>
+                )}
+                <div className="col-span-2 mt-2">
+                  <span className="text-slate-500 block mb-1">Bio</span>
+                  <div className="p-3 bg-slate-50 rounded-lg text-slate-700 min-h-[60px]">
+                    {viewUser.bio || 'No bio provided.'}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-ghost" onClick={() => setViewUser(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

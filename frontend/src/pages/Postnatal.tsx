@@ -16,14 +16,18 @@ import {
 import { postnatalApi, patientsApi } from '../api';
 import { PostnatalRecord, Patient } from '../types';
 import { formatDate } from '../utils';
+import { useAuth } from '../context/AuthContext';
 import DeliveryForm from '../components/DeliveryForm';
 import HighRiskBadge from '../components/HighRiskBadge';
 
 export default function Postnatal() {
+  const { isAdmin, isDoctor } = useAuth();
+  const canEdit = isAdmin || isDoctor;
   const [records, setRecords] = useState<PostnatalRecord[]>([]);
   const [patients, setPatients] = useState<Patient[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<PostnatalRecord | null>(null);
   const [actionMsg, setActionMsg] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -104,7 +108,7 @@ export default function Postnatal() {
           <Baby className="text-primary" /> Postnatal Follow-Up
         </h1>
         <div className="header-actions">
-          <button id="add-postnatal-btn" className="btn btn-primary flex items-center gap-2" onClick={() => setShowModal(true)}>
+          <button id="add-postnatal-btn" className="btn btn-primary flex items-center gap-2" onClick={() => { setSelectedRecord(null); setShowModal(true); }}>
             <Plus size={18} /> Add Record
           </button>
         </div>
@@ -149,6 +153,15 @@ export default function Postnatal() {
                     {r.review_6week_overdue && <span className="badge badge-danger flex items-center gap-1"><AlertCircle size={12} /> 6-Week Overdue!</span>}
                     
                     <div className="flex gap-2 border-l border-slate-200 pl-4 ml-2">
+                      {canEdit && (
+                        <button 
+                          className="btn btn-ghost btn-sm flex items-center gap-1 text-primary" 
+                          onClick={() => { setSelectedRecord(r); setShowModal(true); }}
+                          title="Edit Record"
+                        >
+                          Edit
+                        </button>
+                      )}
                       <button className="btn btn-ghost btn-sm flex items-center gap-1 text-slate-500" onClick={() => exportRecordCSV(r)} title="Export CSV">
                         <FileDown size={14} /> CSV
                       </button>
@@ -213,6 +226,7 @@ export default function Postnatal() {
       {showModal && (
         <DeliveryForm
           patients={patients}
+          initialData={selectedRecord}
           onClose={() => setShowModal(false)}
           onSaved={handleSaved}
         />

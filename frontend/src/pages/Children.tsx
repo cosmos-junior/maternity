@@ -21,7 +21,8 @@ import { formatDate } from '../utils';
 import { useAuth } from '../context/AuthContext';
 
 export default function Children() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, isDoctor } = useAuth();
+  const canEdit = isAdmin || isDoctor;
   const [children, setChildren] = useState<ChildProfile[]>([]);
   const [vaccinations, setVaccinations] = useState<VaccinationRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -270,7 +271,7 @@ export default function Children() {
                             <Link to={`/children/${c.id}`} className="btn btn-ghost btn-sm flex items-center gap-1">
                               View <ChevronRight size={14} />
                             </Link>
-                            {isAdmin && (
+                            {canEdit && (
                               <button
                                 className="btn btn-primary btn-sm flex items-center gap-1"
                                 onClick={() => {

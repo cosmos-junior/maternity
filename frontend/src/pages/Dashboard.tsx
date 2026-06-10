@@ -469,13 +469,6 @@ export default function Dashboard() {
                         icon={<Activity size={24} />}
                       />
                       <ModernMetricCard
-                        className="blue"
-                        title="Child Profiles Logged"
-                        value={roleData.total_children ?? 0}
-                        trend=""
-                        icon={<Baby size={24} />}
-                      />
-                      <ModernMetricCard
                         className="orange"
                         title="7-Day Reviews Pending"
                         value={roleData.postnatal_pending_7day ?? 0}
@@ -489,6 +482,13 @@ export default function Dashboard() {
                         trend="Action required"
                         icon={<AlertCircle size={24} />}
                       />
+                      <ModernMetricCard
+                        className="blue"
+                        title="Child Profiles Logged"
+                        value={roleData.total_children ?? 0}
+                        trend=""
+                        icon={<Baby size={24} />}
+                      />
                     </div>
                   )}
 
@@ -500,13 +500,6 @@ export default function Dashboard() {
                         value={roleData.high_risk_patients ?? 0}
                         trend="Critical Follow-up"
                         icon={<AlertTriangle size={24} />}
-                      />
-                      <ModernMetricCard
-                        className="blue"
-                        title="Patients in Active Labor"
-                        value={roleData.active_labour ?? 0}
-                        trend="Labor Ward"
-                        icon={<Activity size={24} />}
                       />
                       <ModernMetricCard
                         className="purple"

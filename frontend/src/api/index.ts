@@ -177,6 +177,8 @@ export const alertsApi = {
 // ─── Staff Management (admin) ─────────────────────────────────────────────────
 export const staffApi = {
   list:           (params?: Record<string, string>) => api.get('/users/staff/', { params }),
+  get:            (id: number) => api.get(`/users/staff/${id}/`),
+  update:         (id: number, data: object) => api.patch(`/users/staff/${id}/`, data),
   register:       (data: object) => api.post('/users/register/', data),
   deactivate:     (id: number) => api.post(`/users/staff/${id}/deactivate/`),
   reactivate:     (id: number) => api.post(`/users/staff/${id}/reactivate/`),

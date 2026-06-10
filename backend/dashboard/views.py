@@ -291,14 +291,6 @@ class DoctorDashboardSummaryView(APIView):
 
         high_risk_patients = Patient.objects.filter(is_active=True, risk_level='HIGH').count()
 
-        from patients.models import PartographEntry
-        active_labour_ids = PartographEntry.objects.filter(
-            recorded_at__date=today
-        ).values_list('patient_id', flat=True).distinct()
-        active_labour = Patient.objects.filter(
-            id__in=active_labour_ids, is_active=True
-        ).count()
-
         from tickets.models import Ticket
         unresolved_tickets = Ticket.objects.filter(status='OPEN').count()
 
@@ -317,7 +309,6 @@ class DoctorDashboardSummaryView(APIView):
 
         return Response({
             'high_risk_patients': high_risk_patients,
-            'active_labour': active_labour,
             'unresolved_tickets': unresolved_tickets,
             'critical_alerts': critical_alerts,
             'mortality_reviews': mortality_reviews,

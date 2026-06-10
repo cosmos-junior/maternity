@@ -18,7 +18,6 @@ def seed_education():
         'emonc': EducationCategory.objects.create(name='EmONC Protocols', slug='emonc', icon='🚑', description='Emergency Obstetric and Newborn Care protocols and signal functions.'),
         'pph': EducationCategory.objects.create(name='PPH Prevention', slug='pph', icon='🩸', description='Protocols for preventing and managing Postpartum Hemorrhage.'),
         'fp': EducationCategory.objects.create(name='Family Planning', slug='family-planning', icon='💊', description='Resources on modern contraceptive methods and reproductive health.'),
-        'adolescent': EducationCategory.objects.create(name='Adolescent Health', slug='adolescent-health', icon='👧', description='Specialized resources for adolescent pregnancy and reproductive health.'),
         'general': EducationCategory.objects.create(name='General Maternity', slug='general-maternity', icon='🤰', description='General pregnancy care, danger signs, and birth preparedness.'),
     }
 
@@ -103,24 +102,6 @@ def seed_education():
                     <li><b>Permanent Methods:</b> Tubal ligation or Vasectomy.</li>
                 </ul>
                 <p>Talk to your nurse during your next ANC or PNC visit to choose the best method for you.</p>
-            """
-        },
-        # --- ADOLESCENTS ---
-        {
-            'title': 'Healthy Choices for Teens',
-            'slug': 'teen-health-choices',
-            'category': categories['adolescent'],
-            'audience': 'ADOLESCENT',
-            'summary': 'Specialized reproductive health advice for adolescents.',
-            'content': """
-                <h3>Your Health, Your Future</h3>
-                <p>Adolescent pregnancy carries higher risks, but with the right care and choices, you can stay healthy.</p>
-                <ul>
-                    <li><b>Delaying Pregnancy:</b> The best way to prevent complications is to wait until your body is fully developed (after age 20).</li>
-                    <li><b>Youth-Friendly Services:</b> Itierio Nursing Home provides private, stigma-free counseling for teens.</li>
-                    <li><b>Contraception:</b> You have the right to access family planning without judgment.</li>
-                    <li><b>Education:</b> Staying in school is your best investment. If you are already pregnant, we will support you to return to school after delivery.</li>
-                </ul>
             """
         },
         # --- ADMINS ---

@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import { MoonStar, SunMedium } from 'lucide-react';
 
-export default function ThemeToggle() {
+export default function ThemeToggle({ compact = false }: { compact?: boolean }) {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+    if (savedTheme === 'dark') {
       document.documentElement.classList.add('dark');
       setIsDark(true);
+    } else {
+      document.documentElement.classList.remove('dark');
+      setIsDark(false);
     }
   }, []);
 
@@ -40,14 +42,14 @@ export default function ThemeToggle() {
         border: '1px solid var(--border)',
         borderRadius: '10px',
         cursor: 'pointer',
-        padding: '6px 10px',
+        padding: compact ? '8px' : '6px 10px',
         fontSize: '1rem',
         transition: 'var(--transition)',
         boxShadow: isDark ? '0 6px 18px rgba(88,24,163,0.18)' : '0 1px 6px rgba(2,6,23,0.04)'
       }}
     >
-      {isDark ? <MoonStar size={16} style={{ marginRight: 8 }} /> : <SunMedium size={16} style={{ marginRight: 8 }} />}
-      <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>{isDark ? 'Dark' : 'Light'}</span>
+      {isDark ? <MoonStar size={16} style={{ marginRight: compact ? 0 : 8 }} /> : <SunMedium size={16} style={{ marginRight: compact ? 0 : 8 }} />}
+      {!compact && <span style={{ fontSize: '0.85rem', fontWeight: 700 }}>{isDark ? 'Dark' : 'Light'}</span>}
     </button>
   );
 }

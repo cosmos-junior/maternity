@@ -115,10 +115,14 @@ class EmergencyDrug(models.Model):
     ROUTE_CHOICES = [
         ('IV', 'Intravenous'),
         ('IM', 'Intramuscular'),
+        ('IV/IM', 'Intravenous/Intramuscular'),
         ('ORAL', 'Oral'),
         ('SUBLINGUAL', 'Sublingual'),
         ('RECTAL', 'Rectal'),
+        ('Sublingual/Rectal', 'Sublingual/Rectal'),
         ('TOPICAL', 'Topical'),
+        ('SC', 'Subcutaneous'),
+        ('IV/Endotracheal', 'Intravenous/Endotracheal'),
     ]
 
     protocol = models.ForeignKey(
@@ -126,7 +130,7 @@ class EmergencyDrug(models.Model):
     )
     drug_name = models.CharField(max_length=100)
     dosage = models.CharField(max_length=200)
-    route = models.CharField(max_length=15, choices=ROUTE_CHOICES)
+    route = models.CharField(max_length=50, choices=ROUTE_CHOICES)
     frequency = models.CharField(max_length=100)
     max_dose = models.CharField(max_length=100, blank=True)
     contraindications = models.TextField(blank=True)
