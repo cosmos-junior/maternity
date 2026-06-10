@@ -63,11 +63,7 @@ export default function MotherLearn() {
   }
 
   return (
-    <div className="relative overflow-hidden" style={{ minHeight: 'calc(100vh - 72px)' }}>
-      <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0,
-        background: 'linear-gradient(135deg, rgba(251, 191, 206, 0.08) 0%, rgba(253, 224, 207, 0.08) 50%, rgba(186, 226, 230, 0.08) 100%)',
-      }} />
+    <div className="relative" style={{ minHeight: 'calc(100vh - 72px)' }}>
       <div className="relative z-10 p-4 md:p-6 max-w-4xl mx-auto pb-32">
         {view === 'home' && (
           <HomeView
@@ -165,26 +161,20 @@ function HomeView({
   return (
     <>
       {/* Hero */}
-      <div className="mb-6 rounded-3xl p-6 md:p-8 shadow-2xl"
-        style={{
-          background: 'linear-gradient(135deg, rgba(192, 132, 252, 0.3) 0%, rgba(236, 72, 153, 0.2) 100%)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(192, 132, 252, 0.3)',
-        }}>
-        <h1 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-lg mb-2 flex items-center gap-2">
-          <BookOpen className="text-purple-300" size={32} />
+      <div className="mb-6 rounded-3xl p-6 md:p-8 border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-primary/10 to-pink-500/10 dark:from-primary/20 dark:to-pink-500/20 shadow-sm relative overflow-hidden">
+        <h1 className="text-3xl md:text-4xl font-extrabold text-slate-800 dark:text-white mb-2 flex items-center gap-2">
+          <BookOpen className="text-primary" size={32} />
           Learn
         </h1>
-        <p className="text-white/90 text-sm md:text-base drop-shadow">
+        <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base">
           {stage === 'pregnant' && weeksPregnant
             ? `Educational guides tailored to week ${weeksPregnant} of your pregnancy`
             : 'Educational guides for you and your new baby'}
         </p>
         {stage === 'pregnant' && weeksPregnant && (
-          <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full"
-            style={{ background: 'rgba(255, 255, 255, 0.15)', border: '1px solid rgba(255, 255, 255, 0.25)' }}>
-            <Sparkles className="text-yellow-300" size={16} />
-            <span className="text-white text-sm font-semibold">
+          <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/50">
+            <Sparkles className="text-yellow-500 dark:text-yellow-400" size={16} />
+            <span className="text-slate-800 dark:text-white text-sm font-semibold">
               {trimester === 'first' && 'First Trimester'}
               {trimester === 'second' && 'Second Trimester'}
               {trimester === 'third' && 'Third Trimester'}
@@ -196,32 +186,24 @@ function HomeView({
 
       {/* Recommended For You */}
       {recommended.length > 0 && (
-        <div className="mb-6 rounded-3xl p-6 shadow-lg"
-          style={{
-            background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.18) 0%, rgba(192, 132, 252, 0.12) 100%)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(236, 72, 153, 0.3)',
-          }}>
-          <h2 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-            <Sparkles className="text-pink-300" size={20} />
+        <div className="card bg-white dark:bg-[#1A1F4A] border border-slate-100 dark:border-slate-850 shadow-sm p-6 mb-6">
+          <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center gap-2">
+            <Sparkles className="text-primary" size={20} />
             Recommended For You
           </h2>
           <div className="space-y-3">
             {recommended.map((r, i) => (
               <button key={i} onClick={r.onClick}
-                className="w-full text-left rounded-2xl p-4 flex items-center gap-3 transition-all active:scale-[0.98]"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.08)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                }}>
+                className="w-full text-left rounded-2xl p-4 flex items-center gap-3 transition-all bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-800/80"
+              >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <CheckCircle2 className="text-pink-300 shrink-0" size={16} />
-                    <div className="text-white font-semibold text-sm">{r.title}</div>
+                    <CheckCircle2 className="text-primary shrink-0" size={16} />
+                    <div className="text-slate-800 dark:text-white font-semibold text-sm">{r.title}</div>
                   </div>
-                  <div className="text-white/60 text-xs ml-6">{r.subtitle}</div>
+                  <div className="text-slate-500 dark:text-slate-400 text-xs ml-6 font-bold">{r.subtitle}</div>
                 </div>
-                <ChevronRight className="text-white/50 shrink-0" size={20} />
+                <ChevronRight className="text-slate-400 dark:text-slate-500 shrink-0" size={20} />
               </button>
             ))}
           </div>
@@ -230,43 +212,34 @@ function HomeView({
 
       {/* Warning signs - always visible */}
       <button onClick={onOpenWarnings}
-        className="w-full mb-6 rounded-3xl p-5 shadow-lg text-left transition-all active:scale-[0.99]"
-        style={{
-          background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(220, 38, 38, 0.2) 100%)',
-          backdropFilter: 'blur(20px)',
-          border: '2px solid rgba(239, 68, 68, 0.5)',
-        }}>
+        className="w-full mb-6 rounded-3xl p-5 shadow-sm text-left transition-all bg-red-500/10 border border-red-500/20 hover:bg-red-500/15"
+      >
         <div className="flex items-center gap-3">
-          <div className="p-3 rounded-2xl shrink-0" style={{ background: 'rgba(239, 68, 68, 0.3)' }}>
-            <AlertTriangle className="text-red-200" size={24} />
+          <div className="p-3 rounded-2xl shrink-0 bg-red-500/20">
+            <AlertTriangle className="text-red-600 dark:text-red-400" size={24} />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-white font-bold text-base mb-0.5">Warning Signs</div>
-            <div className="text-white/80 text-xs">When to seek help immediately</div>
+            <div className="text-red-800 dark:text-red-200 font-bold text-base mb-0.5">Warning Signs</div>
+            <div className="text-red-655 dark:text-red-400 text-xs font-bold">When to seek help immediately</div>
           </div>
-          <ChevronRight className="text-white/70 shrink-0" size={20} />
+          <ChevronRight className="text-red-655 dark:text-red-400 shrink-0" size={20} />
         </div>
       </button>
 
       {/* Categories */}
-      <h2 className="text-lg font-bold text-white mb-4 px-2">Categories</h2>
+      <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-4 px-2">Categories</h2>
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         {CATEGORIES.map(cat => (
           <button key={cat.slug} onClick={() => onOpenCategory(cat.slug)}
-            className="rounded-3xl p-5 shadow-lg text-left transition-all active:scale-95 hover:shadow-xl"
-            style={{
-              background: cat.bgGradient,
-              backdropFilter: 'blur(20px)',
-              border: `1px solid ${cat.border}`,
-              minHeight: '140px',
-            }}>
-            <div className="p-3 rounded-2xl inline-flex mb-3" style={{ background: 'rgba(255, 255, 255, 0.15)' }}>
-              <span style={{ color: cat.accent }}>{cat.icon}</span>
+            className="card bg-white dark:bg-[#1A1F4A] border border-slate-100 dark:border-slate-800/50 shadow-sm p-5 text-left transition-all hover:bg-slate-50 dark:hover:bg-slate-850 hover:shadow-md min-h-[140px]"
+          >
+            <div className="p-3 rounded-2xl inline-flex mb-3 bg-primary/10">
+              <span className="text-primary">{cat.icon}</span>
             </div>
-            <h3 className="text-white font-bold text-sm md:text-base leading-tight mb-1">
+            <h3 className="text-slate-850 dark:text-white font-bold text-sm md:text-base leading-tight mb-1">
               {cat.title}
             </h3>
-            <p className="text-white/70 text-xs leading-snug">{cat.description}</p>
+            <p className="text-slate-500 dark:text-slate-400 text-xs leading-snug">{cat.description}</p>
           </button>
         ))}
       </div>
@@ -291,37 +264,30 @@ function CategoryView({
 
   return (
     <>
-      <BackBar onBack={onBack} title={category.title} accent={category.accent} />
-      <div className="mb-6 rounded-3xl p-6 shadow-2xl"
-        style={{ background: category.bgGradient, backdropFilter: 'blur(20px)', border: `1px solid ${category.border}` }}>
+      <BackBar onBack={onBack} title={category.title} />
+      <div className="mb-6 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-800 bg-gradient-to-br from-primary/10 to-teal-500/10 dark:from-primary/20 dark:to-teal-500/20">
         <div className="flex items-center gap-3">
-          <div className="p-3 rounded-2xl" style={{ background: 'rgba(255, 255, 255, 0.15)' }}>
-            <span style={{ color: category.accent }}>{category.icon}</span>
+          <div className="p-3 rounded-2xl bg-primary/10">
+            <span className="text-primary">{category.icon}</span>
           </div>
           <div className="flex-1">
-            <h1 className="text-2xl font-extrabold text-white">{category.title}</h1>
-            <p className="text-white/80 text-sm">{category.description}</p>
+            <h1 className="text-2xl font-extrabold text-slate-800 dark:text-white">{category.title}</h1>
+            <p className="text-slate-600 dark:text-slate-300 text-sm">{category.description}</p>
           </div>
         </div>
       </div>
 
       {/* Quick Tips */}
       {tips.length > 0 && (
-        <div className="mb-6 rounded-3xl p-6 shadow-lg"
-          style={{
-            background: 'linear-gradient(135deg, rgba(192, 132, 252, 0.15) 0%, rgba(168, 85, 247, 0.08) 100%)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(192, 132, 252, 0.25)',
-          }}>
-          <h2 className="text-base font-bold text-white mb-4">Quick Tips</h2>
+        <div className="card bg-white dark:bg-[#1A1F4A] border border-slate-100 dark:border-slate-800/50 shadow-sm p-6 mb-6">
+          <h2 className="text-base font-bold text-slate-800 dark:text-white mb-4">Quick Tips</h2>
           <div className="space-y-2">
             {tips.map((tip, i) => (
-              <div key={i} className="flex items-start gap-3 rounded-2xl p-3"
-                style={{ background: 'rgba(255, 255, 255, 0.06)', border: '1px solid rgba(255, 255, 255, 0.12)' }}>
-                <div className="p-1.5 rounded-lg shrink-0" style={{ background: 'rgba(192, 132, 252, 0.2)', color: category.accent }}>
+              <div key={i} className="flex items-start gap-3 rounded-2xl p-3 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50">
+                <div className="p-1.5 rounded-lg shrink-0 bg-primary/10 text-primary">
                   {tip.icon}
                 </div>
-                <p className="text-white/90 text-sm leading-relaxed flex-1">{tip.text}</p>
+                <p className="text-slate-700 dark:text-slate-350 text-sm leading-relaxed flex-1">{tip.text}</p>
               </div>
             ))}
           </div>
@@ -331,39 +297,36 @@ function CategoryView({
       {/* Articles */}
       {articles.length > 0 ? (
         <>
-          <h2 className="text-base font-bold text-white mb-3 px-2">Short Articles</h2>
+          <h2 className="text-base font-bold text-slate-800 dark:text-white mb-3 px-2">Short Articles</h2>
           <div className="space-y-3 mb-6">
             {articles.map(article => (
               <button key={article.id} onClick={() => onOpenArticle(article)}
-                className="w-full text-left rounded-2xl p-4 flex items-center gap-3 transition-all active:scale-[0.98]"
-                style={{ background: 'rgba(255, 255, 255, 0.08)', border: '1px solid rgba(255, 255, 255, 0.18)' }}>
+                className="w-full text-left rounded-2xl p-4 flex items-center gap-3 transition-all bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-800/80"
+              >
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-white font-semibold text-sm mb-1">{article.title}</h3>
-                  <p className="text-white/60 text-xs line-clamp-2">{article.body}</p>
+                  <h3 className="text-slate-800 dark:text-white font-semibold text-sm mb-1">{article.title}</h3>
+                  <p className="text-slate-500 dark:text-slate-400 text-xs line-clamp-2">{article.body}</p>
                 </div>
-                <ChevronRight className="text-white/50 shrink-0" size={20} />
+                <ChevronRight className="text-slate-400 dark:text-slate-500 shrink-0" size={20} />
               </button>
             ))}
           </div>
         </>
       ) : (
-        <div className="rounded-2xl p-6 text-center"
-          style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px dashed rgba(255, 255, 255, 0.2)' }}>
-          <p className="text-white/60 text-sm">No articles yet for this category.</p>
+        <div className="text-center py-12 rounded-2xl bg-slate-50 dark:bg-slate-850 border border-dashed border-slate-200 dark:border-slate-700">
+          <p className="text-slate-550 dark:text-slate-400 text-sm">No articles yet for this category.</p>
         </div>
       )}
 
       {/* Inline warnings link for warning-signs category */}
       {showWarningsLink && (
-        <div className="mt-6 rounded-3xl p-6 shadow-lg"
-          style={{ background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.1) 100%)', backdropFilter: 'blur(20px)', border: '1px solid rgba(239, 68, 68, 0.4)' }}>
-          <h2 className="text-base font-bold text-red-200 mb-3">Seek Medical Attention Immediately</h2>
+        <div className="card bg-red-500/10 border border-red-500/20 shadow-sm p-6 mt-6">
+          <h2 className="text-base font-bold text-red-700 dark:text-red-400 mb-3">Seek Medical Attention Immediately</h2>
           <div className="space-y-2">
             {WARNING_SIGNS.map((s, i) => (
-              <div key={i} className="flex items-start gap-3 rounded-xl p-2.5"
-                style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-                <div className="text-red-300 shrink-0 mt-0.5">{s.icon}</div>
-                <p className="text-white/90 text-sm flex-1">{s.text}</p>
+              <div key={i} className="flex items-start gap-3 rounded-xl p-2.5 bg-red-500/5 border border-red-500/10">
+                <div className="text-red-600 dark:text-red-400 shrink-0 mt-0.5">{s.icon}</div>
+                <p className="text-slate-800 dark:text-slate-300 text-sm flex-1">{s.text}</p>
               </div>
             ))}
           </div>
@@ -378,14 +341,9 @@ function ArticleView({ article, onBack }: { article: ContentItem; onBack: () => 
   return (
     <>
       <BackBar onBack={onBack} title={article.title} />
-      <div className="rounded-3xl p-6 md:p-8 shadow-lg"
-        style={{
-          background: 'linear-gradient(135deg, rgba(251, 191, 206, 0.2) 0%, rgba(186, 226, 230, 0.15) 100%)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.25)',
-        }}>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-4">{article.title}</h1>
-        <p className="text-white/85 text-base leading-relaxed whitespace-pre-line">{article.body}</p>
+      <div className="card bg-white dark:bg-[#1A1F4A] border border-slate-100 dark:border-slate-800/50 shadow-sm p-6 md:p-8">
+        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-800 dark:text-white mb-4">{article.title}</h1>
+        <p className="text-slate-705 dark:text-slate-300 text-base leading-relaxed whitespace-pre-line">{article.body}</p>
       </div>
     </>
   );
@@ -396,44 +354,39 @@ function WeekView({ week, guide, onBack }: { week: number; guide: WeekGuide; onB
   return (
     <>
       <BackBar onBack={onBack} title={`Week ${week}`} />
-      <div className="rounded-3xl p-6 md:p-8 shadow-2xl mb-6"
-        style={{
-          background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.25) 0%, rgba(244, 114, 182, 0.15) 100%)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(236, 72, 153, 0.35)',
-        }}>
-        <p className="text-pink-200 text-xs uppercase tracking-widest mb-2">Pregnancy Guide</p>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-white mb-2">{guide.title}</h1>
-        <p className="text-white/80 text-sm">Your baby is about the size of <strong>{guide.babySize}</strong></p>
+      <div className="mb-6 rounded-3xl p-6 md:p-8 shadow-sm border border-slate-250 dark:border-slate-800 bg-gradient-to-br from-primary/10 to-teal-500/10 dark:from-primary/20 dark:to-teal-500/20">
+        <p className="text-slate-500 dark:text-slate-400 text-xs uppercase tracking-widest mb-2 font-bold">Pregnancy Guide</p>
+        <h1 className="text-2xl md:text-3xl font-extrabold text-slate-800 dark:text-white mb-2">{guide.title}</h1>
+        <p className="text-slate-700 dark:text-slate-300 text-sm">Your baby is about the size of <strong>{guide.babySize}</strong></p>
       </div>
 
-      <Section title="Your Baby" accent="#f472b6">
+      <Section title="Your Baby">
         <ul className="space-y-2">
           {guide.babyDev.map((b, i) => (
-            <li key={i} className="flex items-start gap-3 text-white/85 text-sm">
-              <CheckCircle2 className="text-pink-300 shrink-0 mt-0.5" size={16} />
+            <li key={i} className="flex items-start gap-3 text-slate-700 dark:text-slate-300 text-sm">
+              <CheckCircle2 className="text-primary shrink-0 mt-0.5" size={16} />
               <span>{b}</span>
             </li>
           ))}
         </ul>
       </Section>
 
-      <Section title="Your Body" accent="#c4b5fd">
+      <Section title="Your Body">
         <ul className="space-y-2">
           {guide.bodyChanges.map((b, i) => (
-            <li key={i} className="flex items-start gap-3 text-white/85 text-sm">
-              <CheckCircle2 className="text-purple-300 shrink-0 mt-0.5" size={16} />
+            <li key={i} className="flex items-start gap-3 text-slate-700 dark:text-slate-300 text-sm">
+              <CheckCircle2 className="text-primary shrink-0 mt-0.5" size={16} />
               <span>{b}</span>
             </li>
           ))}
         </ul>
       </Section>
 
-      <Section title="Recommended Actions" accent="#5eead4">
+      <Section title="Recommended Actions">
         <ul className="space-y-2">
           {guide.actions.map((b, i) => (
-            <li key={i} className="flex items-start gap-3 text-white/85 text-sm">
-              <CheckCircle2 className="text-teal-300 shrink-0 mt-0.5" size={16} />
+            <li key={i} className="flex items-start gap-3 text-slate-700 dark:text-slate-300 text-sm">
+              <CheckCircle2 className="text-primary shrink-0 mt-0.5" size={16} />
               <span>{b}</span>
             </li>
           ))}
@@ -448,40 +401,32 @@ function WarningsView({ onBack }: { onBack: () => void }) {
   return (
     <>
       <BackBar onBack={onBack} title="Warning Signs" />
-      <div className="rounded-3xl p-6 md:p-8 shadow-2xl"
-        style={{
-          background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.3) 0%, rgba(220, 38, 38, 0.15) 100%)',
-          backdropFilter: 'blur(20px)',
-          border: '2px solid rgba(239, 68, 68, 0.5)',
-        }}>
+      <div className="mb-6 rounded-3xl p-6 md:p-8 shadow-sm bg-red-500/10 border border-red-500/20">
         <div className="flex items-center gap-3 mb-2">
-          <AlertTriangle className="text-red-200" size={32} />
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white">Seek Medical Attention Immediately</h1>
+          <AlertTriangle className="text-red-600 dark:text-red-400" size={32} />
+          <h1 className="text-2xl md:text-3xl font-extrabold text-red-850 dark:text-red-400">Seek Medical Attention Immediately</h1>
         </div>
-        <p className="text-white/85 text-sm">If you experience any of these, go to your clinic or call right away.</p>
+        <p className="text-slate-700 dark:text-slate-300 text-sm">If you experience any of these, go to your clinic or call right away.</p>
       </div>
 
       <div className="mt-6 space-y-3">
         {WARNING_SIGNS.map((s, i) => (
-          <div key={i} className="rounded-2xl p-4 flex items-start gap-3"
-            style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)' }}>
-            <div className="p-2 rounded-xl shrink-0" style={{ background: 'rgba(239, 68, 68, 0.25)' }}>
-              <div className="text-red-200">{s.icon}</div>
+          <div key={i} className="rounded-2xl p-4 flex items-start gap-3 bg-red-500/5 border border-red-500/10">
+            <div className="p-2 rounded-xl shrink-0 bg-red-500/10">
+              <div className="text-red-655 dark:text-red-400">{s.icon}</div>
             </div>
-            <p className="text-white text-sm font-semibold flex-1">{s.text}</p>
+            <p className="text-slate-805 dark:text-slate-300 text-sm font-semibold flex-1">{s.text}</p>
           </div>
         ))}
       </div>
 
-      <div className="mt-6 rounded-3xl p-5 shadow-lg"
-        style={{ background: 'linear-gradient(135deg, rgba(192, 132, 252, 0.2) 0%, rgba(168, 85, 247, 0.1) 100%)', backdropFilter: 'blur(20px)', border: '1px solid rgba(192, 132, 252, 0.3)' }}>
-        <h2 className="text-base font-bold text-white mb-3 flex items-center gap-2">
-          <Phone className="text-purple-300" size={18} />
+      <div className="card bg-white dark:bg-[#1A1F4A] border border-slate-100 dark:border-slate-850 shadow-sm p-5 mt-6">
+        <h2 className="text-base font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2">
+          <Phone className="text-primary" size={18} />
           Call your clinic
         </h2>
-        <p className="text-white/80 text-sm mb-3">If you are not sure whether something is serious, call anyway. It is always better to be checked.</p>
-        <a href="tel:999" className="block w-full text-center rounded-2xl py-3 font-bold text-white transition-all active:scale-95"
-          style={{ background: 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)', boxShadow: '0 4px 14px rgba(236, 72, 153, 0.4)' }}>
+        <p className="text-slate-600 dark:text-slate-400 text-sm mb-3">If you are not sure whether something is serious, call anyway. It is always better to be checked.</p>
+        <a href="tel:999" className="block w-full text-center rounded-2xl py-3 font-bold text-white bg-primary hover:bg-primary/95 transition-all shadow-sm hover:shadow-md">
           Call Now
         </a>
       </div>
@@ -490,24 +435,23 @@ function WarningsView({ onBack }: { onBack: () => void }) {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-function BackBar({ onBack, title, accent }: { onBack: () => void; title: string; accent?: string }) {
+function BackBar({ onBack, title }: { onBack: () => void; title: string }) {
   return (
     <div className="mb-6 flex items-center gap-3">
-      <button onClick={onBack} className="p-2 rounded-full transition-all active:scale-95"
+      <button onClick={onBack} className="p-2 rounded-full transition-all bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
         aria-label="Go back"
-        style={{ background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.2)', color: accent || 'white' }}>
+      >
         <ArrowLeft size={20} />
       </button>
-      <h2 className="text-lg font-bold text-white truncate">{title}</h2>
+      <h2 className="text-lg font-bold text-slate-850 dark:text-white truncate">{title}</h2>
     </div>
   );
 }
 
-function Section({ title, accent, children }: { title: string; accent: string; children: React.ReactNode }) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mb-4 rounded-3xl p-5 shadow-lg"
-      style={{ background: 'rgba(255, 255, 255, 0.06)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.18)' }}>
-      <h3 className="text-sm font-bold uppercase tracking-widest mb-3" style={{ color: accent }}>{title}</h3>
+    <div className="mb-4 card bg-white dark:bg-[#1A1F4A] border border-slate-100 dark:border-slate-800/50 shadow-sm p-5">
+      <h3 className="text-sm font-bold uppercase tracking-widest mb-3 text-primary">{title}</h3>
       {children}
     </div>
   );

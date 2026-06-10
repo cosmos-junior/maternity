@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Heart, 
   Calendar, 
@@ -17,7 +18,7 @@ import {
   CheckCheck
 } from 'lucide-react';
 import { motherApi } from '../api';
-import { MotherDashboardData } from '../types';
+import { MotherDashboardData, SecureMessage, UpcomingVaccine } from '../types';
 import { formatDate } from '../utils';
 import { motherPortalImages } from '../utils/motherImages';
 
@@ -25,6 +26,7 @@ export default function MotherDashboard() {
   const [data, setData] = useState<MotherDashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   const loadDashboardData = async () => {
     try {
@@ -82,82 +84,51 @@ export default function MotherDashboard() {
   };
 
   return (
-    <div className="relative overflow-hidden" style={{ minHeight: 'calc(100vh - 72px)' }}>
-      {/* Warm Gradient Background */}
-      <div style={{
-        position: 'absolute',
-        inset: 0,
-        pointerEvents: 'none',
-        zIndex: 0,
-        background: `
-          linear-gradient(135deg, rgba(251, 191, 206, 0.08) 0%, rgba(253, 224, 207, 0.08) 50%, rgba(186, 226, 230, 0.08) 100%)
-        `
-      }} />
-
+    <div className="relative" style={{ minHeight: 'calc(100vh - 72px)' }}>
       <div className="relative z-10 p-4 md:p-6 max-w-7xl mx-auto">
+        
         {/* Hero Header */}
-        <div className="mb-8 rounded-3xl overflow-hidden shadow-2xl" 
-          style={{
-            background: 'linear-gradient(135deg, rgba(251, 191, 206, 0.35) 0%, rgba(253, 224, 207, 0.25) 100%)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.3)'
-          }}>
-          <div className="relative overflow-hidden p-6 md:p-8">
+        <div className="mb-8 rounded-3xl overflow-hidden shadow-sm relative border border-slate-200 dark:border-slate-800">
+          <div className="relative overflow-hidden bg-gradient-to-br from-primary/10 to-pink-500/10 dark:from-primary/20 dark:to-pink-500/20">
             {/* Background Image */}
             <div className="absolute inset-0 z-0">
               <div style={{
                 backgroundImage: `url(${motherPortalImages.dashboard})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
-                filter: 'brightness(0.6) saturate(1.1)',
-                opacity: 0.4
+                filter: 'brightness(0.65) saturate(1.1)',
+                opacity: 0.15
               }} className="absolute inset-0" />
             </div>
 
             {/* Content */}
-            <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="relative z-10 p-6 md:p-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
-                <h1 className="text-3xl md:text-4xl font-extrabold text-white drop-shadow-lg mb-2 flex items-center gap-2">
-                  Your Pregnancy Journey <Heart className="text-pink-300 fill-pink-300 animate-pulse" size={28} />
+                <h1 className="text-3xl md:text-4xl font-extrabold text-slate-850 dark:text-white mb-2 flex items-center gap-2">
+                  Your Pregnancy Journey <Heart className="text-primary fill-primary animate-pulse" size={28} />
                 </h1>
-                <p className="text-white/90 drop-shadow text-sm md:text-base">
+                <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base">
                   Real-time health monitoring and care insights for you and your baby
                 </p>
               </div>
 
-              <div className="flex flex-col gap-2 w-full md:w-auto">
+              <div className="flex flex-wrap gap-2 w-full md:w-auto">
                 {unread_messages_count > 0 && (
-                  <div className="px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2"
-                    style={{
-                      background: 'rgba(99, 102, 241, 0.3)',
-                      backdropFilter: 'blur(10px)',
-                      border: '1px solid rgba(99, 102, 241, 0.5)',
-                      color: 'white'
-                    }}>
+                  <div className="px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2 bg-primary/10 border border-primary/20 text-primary shadow-sm">
                     <MessageSquare size={16} />
                     {unread_messages_count} Unread
                   </div>
                 )}
-                <div className="px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2"
-                  style={{
-                    background: risk_level === 'HIGH'
-                      ? 'rgba(239, 68, 68, 0.3)'
-                      : risk_level === 'MEDIUM'
-                      ? 'rgba(245, 158, 11, 0.3)'
-                      : 'rgba(34, 197, 94, 0.3)',
-                    backdropFilter: 'blur(10px)',
-                    border: risk_level === 'HIGH'
-                      ? '1px solid rgba(239, 68, 68, 0.5)'
-                      : risk_level === 'MEDIUM'
-                      ? '1px solid rgba(245, 158, 11, 0.5)'
-                      : '1px solid rgba(34, 197, 94, 0.5)',
-                    color: risk_level === 'HIGH'
-                      ? '#fca5a5'
-                      : risk_level === 'MEDIUM'
-                      ? '#fcd34d'
-                      : '#86efac'
-                  }}>
-                  <div className="w-2 h-2 rounded-full bg-current" />
+                <div className={`px-4 py-2 rounded-full font-bold text-sm flex items-center gap-2 border shadow-sm ${
+                  risk_level === 'HIGH'
+                    ? 'bg-red-500/10 border-red-500/20 text-red-650 dark:text-red-400'
+                    : risk_level === 'MEDIUM'
+                    ? 'bg-amber-500/10 border-amber-500/20 text-amber-650 dark:text-amber-400'
+                    : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-650 dark:text-emerald-400'
+                }`}>
+                  <div className={`w-2 h-2 rounded-full animate-pulse ${
+                    risk_level === 'HIGH' ? 'bg-red-500' : risk_level === 'MEDIUM' ? 'bg-amber-500' : 'bg-emerald-500'
+                  }`} />
                   {risk_level} RISK
                 </div>
               </div>
@@ -172,119 +143,92 @@ export default function MotherDashboard() {
           <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-5">
             
             {/* Gestational Age */}
-            <div className="rounded-3xl p-6 shadow-lg"
-              style={{
-                background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(244, 199, 215, 0.15) 100%)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(236, 72, 153, 0.3)',
-                transition: 'all 0.3s ease'
-              }}>
+            <div className="card p-6 flex flex-col justify-between shadow-sm">
               <div className="flex justify-between items-start mb-4">
-                <span className="text-white/70 text-xs uppercase tracking-widest">Gestational Age</span>
-                <div className="p-2.5 rounded-2xl" style={{background: 'rgba(236, 72, 153, 0.2)'}}>
-                  <Baby className="text-pink-300" size={20} />
+                <span className="text-slate-500 dark:text-slate-400 text-xs uppercase tracking-widest font-bold">Gestational Age</span>
+                <div className="p-2 rounded-xl bg-primary/10">
+                  <Baby className="text-primary" size={20} />
                 </div>
               </div>
-              <h2 className="text-5xl font-extrabold text-white mb-2">{gestational_age_weeks}</h2>
-              <p className="text-white/70 text-sm">
-                Weeks • <span className="text-pink-300 font-semibold">{trimester || 'Postnatal'}</span>
-              </p>
+              <div>
+                <h2 className="text-5xl font-extrabold text-slate-800 dark:text-white mb-2">{gestational_age_weeks}</h2>
+                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
+                  Weeks • <span className="text-primary">{trimester || 'Postnatal'}</span>
+                </p>
+              </div>
             </div>
 
             {/* Expected Delivery Date */}
-            <div className="rounded-3xl p-6 shadow-lg"
-              style={{
-                background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(165, 180, 252, 0.15) 100%)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(99, 102, 241, 0.3)',
-                transition: 'all 0.3s ease'
-              }}>
+            <div className="card p-6 flex flex-col justify-between shadow-sm">
               <div className="flex justify-between items-start mb-4">
-                <span className="text-white/70 text-xs uppercase tracking-widest">Expected Delivery</span>
-                <div className="p-2.5 rounded-2xl" style={{background: 'rgba(99, 102, 241, 0.2)'}}>
-                  <CalendarDays className="text-indigo-300" size={20} />
+                <span className="text-slate-500 dark:text-slate-400 text-xs uppercase tracking-widest font-bold">Expected Delivery</span>
+                <div className="p-2 rounded-xl bg-teal-500/10">
+                  <CalendarDays className="text-teal-600 dark:text-teal-400" size={20} />
                 </div>
               </div>
-              <h2 className="text-2xl font-extrabold text-white mb-2">{formatDate(expected_delivery_date)}</h2>
-              <p className="text-white/70 text-sm">{pregnancy_status}</p>
+              <div>
+                <h2 className="text-2xl font-extrabold text-slate-800 dark:text-white mb-2">{formatDate(expected_delivery_date)}</h2>
+                <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">{pregnancy_status}</p>
+              </div>
             </div>
 
             {/* Next Appointment */}
-            <div className="md:col-span-2 rounded-3xl p-6 shadow-lg"
-              style={{
-                background: 'linear-gradient(135deg, rgba(34, 211, 238, 0.2) 0%, rgba(165, 243, 252, 0.15) 100%)',
-                backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(34, 211, 238, 0.3)',
-                transition: 'all 0.3s ease'
-              }}>
+            <div 
+              onClick={() => navigate('/mother/appointments')}
+              className="md:col-span-2 card p-6 shadow-sm cursor-pointer hover:border-purple-300 dark:hover:border-purple-800 transition-all duration-200 group"
+            >
               <div className="flex justify-between items-start mb-4">
-                <span className="text-white/70 text-xs uppercase tracking-widest">Next Appointment</span>
-                <div className="p-2.5 rounded-2xl" style={{background: 'rgba(34, 211, 238, 0.2)'}}>
-                  <Calendar className="text-cyan-300" size={20} />
+                <span className="text-slate-500 dark:text-slate-400 text-xs uppercase tracking-widest font-bold">Next Appointment</span>
+                <div className="p-2 rounded-xl bg-purple-500/10 group-hover:scale-110 transition-transform duration-200">
+                  <Calendar className="text-purple-600 dark:text-purple-400" size={20} />
                 </div>
               </div>
               {next_appointment ? (
                 <div>
-                  <h3 className="text-xl font-bold text-white mb-2">{next_appointment.appointment_type}</h3>
-                  <p className="text-cyan-300 font-semibold text-sm mb-2">
+                  <h3 className="text-xl font-bold text-slate-800 dark:text-white mb-2">{next_appointment.appointment_type}</h3>
+                  <p className="text-primary font-semibold text-sm mb-2">
                     {formatDate(next_appointment.scheduled_date)} at {next_appointment.scheduled_time || 'TBD'}
                   </p>
-                  <p className="text-white/60 text-xs italic">
+                  <p className="text-slate-500 dark:text-slate-400 text-xs italic bg-slate-50 dark:bg-slate-800/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700">
                     {next_appointment.notes || 'No notes from clinician'}
                   </p>
                 </div>
               ) : (
-                <p className="text-white/60 text-sm flex items-center gap-2">
-                  <Info size={16} /> No upcoming appointments scheduled
-                </p>
+                <div className="py-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700 text-center">
+                  <p className="text-slate-500 dark:text-slate-400 text-sm flex items-center justify-center gap-2">
+                    <Info size={16} /> No upcoming appointments scheduled
+                  </p>
+                </div>
               )}
             </div>
           </div>
 
           {/* Emergency Sidebar */}
-          <div className="rounded-3xl p-6 shadow-lg h-fit"
-            style={{
-              background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(248, 113, 113, 0.15) 100%)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(239, 68, 68, 0.3)'
-            }}>
-            <h2 className="text-lg font-bold text-red-300 mb-4 flex items-center gap-2">
-              <ShieldAlert size={20} /> Emergency
+          <div className="card p-6 shadow-sm border-t-4 border-t-red-500">
+            <h2 className="text-lg font-bold text-red-600 dark:text-red-400 mb-4 flex items-center gap-2">
+              <ShieldAlert size={20} /> Emergency Contacts
             </h2>
-            <p className="text-white/70 text-xs mb-6 leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-300 text-xs mb-6 leading-relaxed">
               If you experience severe bleeding, headaches, vision loss, or high fever, call immediately.
             </p>
             <div className="space-y-3">
-              <a href="tel:999" className="flex items-center justify-between p-3.5 rounded-2xl transition-all"
-                style={{
-                  background: 'rgba(239, 68, 68, 0.2)',
-                  border: '1px solid rgba(239, 68, 68, 0.4)',
-                  color: '#fca5a5'
-                }}>
+              <a href="tel:999" className="flex items-center justify-between p-3.5 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-500/10 dark:hover:bg-red-500/20 text-red-700 dark:text-red-400 transition-colors border border-red-100 dark:border-red-500/20">
                 <span className="font-bold text-sm flex items-center gap-2">
                   <Ambulance size={16} /> Ambulance Dispatch
                 </span>
                 <Phone size={16} className="animate-pulse" />
               </a>
-              <a href="tel:+254700000000" className="flex items-center justify-between p-3.5 rounded-2xl transition-all"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.08)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)'
-                }}>
-                <span className="font-semibold text-white text-sm flex items-center gap-2">
+              <a href="tel:+254700000000" className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors border border-slate-100 dark:border-slate-700">
+                <span className="font-semibold text-sm flex items-center gap-2">
                   <Building2 size={16} /> Hospital Hotline
                 </span>
-                <Phone size={16} className="text-white/60" />
+                <Phone size={16} className="text-slate-400" />
               </a>
-              <a href="tel:+254711111111" className="flex items-center justify-between p-3.5 rounded-2xl transition-all"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.08)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)'
-                }}>
-                <span className="font-semibold text-white text-sm flex items-center gap-2">
+              <a href="tel:+254711111111" className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors border border-slate-100 dark:border-slate-700">
+                <span className="font-semibold text-sm flex items-center gap-2">
                   <Baby size={16} /> Maternity Ward
                 </span>
-                <Phone size={16} className="text-white/60" />
+                <Phone size={16} className="text-slate-400" />
               </a>
             </div>
           </div>
@@ -294,95 +238,77 @@ export default function MotherDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
           {/* Alerts */}
-          <div className="rounded-3xl p-6 shadow-lg"
-            style={{
-              background: 'linear-gradient(135deg, rgba(251, 191, 206, 0.2) 0%, rgba(244, 199, 215, 0.15) 100%)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(251, 191, 206, 0.3)'
-            }}>
-            <h2 className="text-lg font-bold text-white mb-5 flex items-center gap-2">
-              <AlertCircle className="text-pink-300" size={20} />
+          <div className="card p-6 shadow-sm border-t-4 border-t-amber-500">
+            <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2">
+              <AlertCircle className="text-amber-500" size={20} />
               Important Alerts
             </h2>
             {care_alerts && care_alerts.length > 0 ? (
               <div className="space-y-3">
-                {care_alerts.map(alert => (
-                  <div key={alert.id} className="p-4 rounded-2xl flex gap-3 items-start"
-                    style={{
-                      background: alert.is_read
-                        ? 'rgba(255, 255, 255, 0.08)'
-                        : 'rgba(239, 68, 68, 0.15)',
-                      border: alert.is_read
-                        ? '1px solid rgba(255, 255, 255, 0.15)'
-                        : '1px solid rgba(239, 68, 68, 0.3)'
-                    }}>
-                    <Stethoscope className={`shrink-0 mt-0.5 ${alert.is_read ? 'text-white/50' : 'text-red-300'}`} size={16} />
+                {care_alerts.map((alert: SecureMessage) => (
+                  <div key={alert.id} className={`p-4 rounded-xl flex gap-3 items-start border ${
+                    alert.is_read 
+                      ? 'bg-slate-50 dark:bg-slate-800/50 border-slate-100 dark:border-slate-700' 
+                      : 'bg-amber-50 dark:bg-amber-500/10 border-amber-200 dark:border-amber-500/30'
+                  }`}>
+                    <Stethoscope className={`shrink-0 mt-0.5 ${alert.is_read ? 'text-slate-400' : 'text-amber-600 dark:text-amber-400'}`} size={16} />
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-bold text-white flex items-center gap-2 flex-wrap">
+                      <div className="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2 flex-wrap">
                         <span>{alert.sender_name || 'Care Team'}</span>
                         {!alert.is_read && (
-                          <span className="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full"
-                            style={{ background: 'rgba(239, 68, 68, 0.25)', color: '#fca5a5' }}>
+                          <span className="text-[10px] uppercase tracking-wide px-2 py-0.5 rounded-full bg-amber-200 dark:bg-amber-500/30 text-amber-800 dark:text-amber-200">
                             New
                           </span>
                         )}
                       </div>
-                      <p className="text-white/80 text-sm mt-2 leading-relaxed">{alert.message}</p>
-                      <p className="text-white/45 text-[11px] mt-2">{formatDate(alert.created_at)}</p>
+                      <p className="text-slate-600 dark:text-slate-300 text-sm mt-2 leading-relaxed">{alert.message}</p>
+                      <p className="text-slate-400 dark:text-slate-500 text-[11px] mt-2">{formatDate(alert.created_at)}</p>
                     </div>
                     {!alert.is_read && (
                       <button
                         type="button"
                         onClick={() => handleMarkCareAlertRead(alert.id)}
-                        className="shrink-0 p-2 rounded-xl"
-                        style={{ background: 'rgba(255, 255, 255, 0.1)', border: '1px solid rgba(255, 255, 255, 0.15)' }}
+                        className="shrink-0 p-2 rounded-lg hover:bg-amber-200 dark:hover:bg-amber-500/30 text-amber-600 dark:text-amber-400 transition-colors"
                         title="Mark as read"
                       >
-                        <CheckCheck size={16} className="text-white/70" />
+                        <CheckCheck size={16} />
                       </button>
                     )}
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-white/60 text-sm flex items-center gap-2 py-4">
-                <Info size={16} /> No messages from your care team at this time
+              <div className="py-8 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700 text-center">
+                <p className="text-slate-500 dark:text-slate-400 text-sm flex items-center justify-center gap-2">
+                  <Info size={16} /> No messages from your care team at this time
+                </p>
               </div>
             )}
           </div>
 
           {/* Vaccines */}
-          <div className="rounded-3xl p-6 shadow-lg"
-            style={{
-              background: 'linear-gradient(135deg, rgba(186, 226, 230, 0.2) 0%, rgba(221, 240, 255, 0.15) 100%)',
-              backdropFilter: 'blur(20px)',
-              border: '1px solid rgba(186, 226, 230, 0.3)'
-            }}>
-            <h2 className="text-lg font-bold text-white mb-5 flex items-center gap-2">
-              <Clock className="text-cyan-300" size={20} />
+          <div className="card p-6 shadow-sm border-t-4 border-t-primary">
+            <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-5 flex items-center gap-2">
+              <Clock className="text-primary" size={20} />
               Recommended Vaccines
             </h2>
             {upcoming_vaccines && upcoming_vaccines.length > 0 ? (
               <div className="space-y-3">
-                {upcoming_vaccines.map((vac, i) => (
-                  <div key={i} className="p-4 rounded-2xl flex justify-between items-center"
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.08)',
-                      border: '1px solid rgba(255, 255, 255, 0.15)'
-                    }}>
+                {upcoming_vaccines.map((vac: UpcomingVaccine, i: number) => (
+                  <div key={i} className="p-4 rounded-xl flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700">
                     <div>
-                      <div className="text-sm font-bold text-white">{vac.vaccine_name}</div>
-                      <div className="text-xs text-white/60 mt-0.5">
-                        Target: <span className="text-pink-300 font-semibold">{vac.target}</span>
+                      <div className="text-sm font-bold text-slate-800 dark:text-white">{vac.vaccine_name}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Target: <span className="text-primary font-semibold">{vac.target}</span>
                         {vac.recommended_week && ` • Week ${vac.recommended_week}`}
                       </div>
                     </div>
                     <span className={`text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${
                       vac.status === 'OVERDUE'
-                        ? 'bg-red-500/20 text-red-300'
+                        ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
                         : vac.status === 'DUE'
-                        ? 'bg-amber-500/20 text-amber-300'
-                        : 'bg-slate-500/20 text-slate-300'
+                        ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
+                        : 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
                     }`}>
                       {vac.status}
                     </span>
@@ -390,8 +316,10 @@ export default function MotherDashboard() {
                 ))}
               </div>
             ) : (
-              <div className="text-white/60 text-sm flex items-center gap-2 py-4">
-                <Info size={16} /> No vaccination schedule found
+              <div className="py-8 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-100 dark:border-slate-700 text-center">
+                <p className="text-slate-500 dark:text-slate-400 text-sm flex items-center justify-center gap-2">
+                  <Info size={16} /> No vaccination schedule found
+                </p>
               </div>
             )}
           </div>
