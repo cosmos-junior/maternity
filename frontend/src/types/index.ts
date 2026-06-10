@@ -114,6 +114,15 @@ export interface Appointment {
   updated_at: string;
 }
 
+export interface TicketReply {
+  id: number;
+  ticket: number;
+  author: number;
+  author_name: string;
+  message: string;
+  created_at: string;
+}
+
 export interface Ticket {
   id: number;
   title: string;
@@ -128,6 +137,7 @@ export interface Ticket {
   patient_number: string | null;
   created_at: string;
   updated_at: string;
+  reply?: TicketReply | null;
 }
 
 export interface Notification {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRightCircle, RefreshCw } from 'lucide-react';
 import { ticketsApi } from '../api';
 import { emitTicketResolved } from '../utils/ticketEvents';
@@ -26,12 +27,18 @@ export default function TicketDashboard() {
 
   useEffect(() => { loadTickets(); }, []);
 
+  const navigate = useNavigate();
+
   const updateStatus = async (ticketId: number, nextStatus: string) => {
     await ticketsApi.updateStatus(ticketId, nextStatus);
     if (nextStatus === 'RESOLVED') {
       emitTicketResolved();
     }
     loadTickets();
+  };
+
+  const viewTicket = (ticketId: number) => {
+    navigate(`/tickets/${ticketId}`);
   };
 
   const nextStatus = (current: string) => {
@@ -93,6 +100,13 @@ export default function TicketDashboard() {
                         <td>{STATUS_LABELS[ticket.status] ?? ticket.status}</td>
                         <td>{new Date(ticket.created_at).toLocaleString()}</td>
                         <td>
+                          <button
+                            className="btn btn-sm btn-secondary"
+                            onClick={() => viewTicket(ticket.id)}
+                            style={{ marginRight: 8 }}
+                          >
+                            View
+                          </button>
                           {next ? (
                             <button
                               className="btn btn-sm btn-primary"

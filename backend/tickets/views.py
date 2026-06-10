@@ -93,23 +93,31 @@ class TicketReplyCreateView(APIView):
 
 class NotificationListView(generics.ListAPIView):
     serializer_class = NotificationSerializer
-    permission_classes = [permissions.IsAuthenticated, IsAdminRole]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        queryset = Notification.objects.select_related('user', 'ticket')
+        queryset = Notification.objects.select_related('user', 'ticket').filter(user=self.request.user)
         if self.request.query_params.get('unread') in ['true', '1', 'yes']:
             queryset = queryset.filter(is_read=False)
         return queryset.order_by('-created_at')
 
 
 class NotificationReadView(APIView):
-    permission_classes = [permissions.IsAuthenticated, IsAdminRole]
+    permission_classes = [permissions.IsAuthenticated]
 
     def patch(self, request, pk):
         notification = get_object_or_404(Notification, pk=pk, user=request.user)
         notification.is_read = True
         notification.save(update_fields=['is_read'])
         return Response(NotificationSerializer(notification).data)
+
+
+class NotificationMarkAllReadView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def patch(self, request):
+        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        return Response({'marked_all_read': True})
 
 
 class UnresolvedTicketCountView(APIView):
@@ -122,8 +130,8 @@ class UnresolvedTicketCountView(APIView):
 
 
 class UnreadNotificationCountView(APIView):
-    """Return unread notification count for the current admin."""
-    permission_classes = [IsAuthenticated, IsAdminRole]
+    """Return unread notification count for the current user."""
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         count = Notification.objects.filter(user=request.user, is_read=False).count()

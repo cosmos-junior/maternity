@@ -90,7 +90,6 @@ const NAV_SECTIONS: NavSection[] = [
       { to: '/alerts', icon: <AlertCircle size={18} />, label: 'Clinical Alerts' },
       { to: '/tickets/create', icon: <Ticket size={18} />, label: 'Raise Ticket', roles: ['DOCTOR', 'NURSE'] },
       { to: '/tickets', icon: <Ticket size={18} />, label: 'Ticket Dashboard', roles: ['ADMIN'] },
-      { to: '/notifications', icon: <Bell size={18} />, label: 'Notifications', roles: ['ADMIN'] },
       { to: '/admin/users', icon: <UserCog size={18} />, label: 'User Management', roles: ['ADMIN'] },
       { to: '/admin/audit', icon: <FileText size={18} />, label: 'Audit Trail', roles: ['ADMIN'] },
       { to: '/mortality-review', icon: <AlertOctagon size={18} />, label: 'Mortality Audit', roles: ['ADMIN', 'DOCTOR'] },

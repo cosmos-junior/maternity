@@ -221,12 +221,14 @@ export const ticketsApi = {
   list: (params?: Record<string, string>) => api.get('/tickets/', { params }),
   get: (id: number) => api.get(`/tickets/${id}/`),
   updateStatus: (id: number, status: string) => api.patch(`/tickets/${id}/status/`, { status }),
+  reply: (id: number, message: string) => api.post(`/tickets/${id}/reply/`, { message }),
   unresolvedCount: () => api.get('/tickets/unresolved_count/'),
 };
 
 export const notificationsApi = {
   list: (params?: Record<string, string>) => api.get('/tickets/notifications/', { params }),
   markRead: (id: number) => api.patch(`/tickets/notifications/${id}/read/`, {}),
+  markAllRead: () => api.patch('/tickets/notifications/read_all/', {}),
   unreadCount: () => api.get('/tickets/notifications/unread_count/'),
 };
 

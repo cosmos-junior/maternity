@@ -15,6 +15,18 @@ import { MotherPregnancyTrackingData } from '../types';
 import { formatDate } from '../utils';
 import { motherPortalImages } from '../utils/motherImages';
 
+// Compute the trimester at a given visit date, based on the mother's LMP.
+function getTrimesterAtDate(lmpIso: string, visitDateIso: string): 'First' | 'Second' | 'Third' {
+  if (!lmpIso || !visitDateIso) return 'First';
+  const lmp = new Date(lmpIso).getTime();
+  const visit = new Date(visitDateIso).getTime();
+  const days = (visit - lmp) / (1000 * 60 * 60 * 24);
+  const weeks = days / 7;
+  if (weeks <= 13) return 'First';
+  if (weeks <= 27) return 'Second';
+  return 'Third';
+}
+
 export default function MotherPregnancy() {
   const [data, setData] = useState<MotherPregnancyTrackingData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -395,7 +407,7 @@ export default function MotherPregnancy() {
                   {/* Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <h3 className="font-bold text-white text-lg">Visit {visit.visit_number}</h3>
+                      <h3 className="font-bold text-white text-lg">Trimester: {getTrimesterAtDate(lmp, visit.visit_date)}</h3>
                       <p className="text-white/60 text-sm">{formatDate(visit.visit_date)}</p>
                     </div>
                     <ChevronRight className="text-white/40 flex-shrink-0" size={20} />
