@@ -1,5 +1,3 @@
-import axios, { AxiosError } from 'axios';
-
 import React, { useState, useEffect } from 'react';
 import { 
   Save, 
@@ -190,31 +188,22 @@ export default function ANCVisitForm({ appointmentId, patientId, onSuccess, onCl
       };
 
       // Remove empty/null fields
-      Object.keys(submitData).forEach((key) => {
-        const typedKey = key as keyof typeof submitData;
-        const value = submitData[typedKey];
-
-        if (value == null || String(value).trim() === '' || value === 'null') {
-          delete submitData[typedKey];
+      Object.keys(submitData).forEach((k) => {
+        const key = k as keyof typeof submitData;
+        if (submitData[key] === null || submitData[key] === '' || submitData[key] === 'null') {
+          delete submitData[key];
         }
       });
 
       await clinicalApi.createAncVisit(submitData);
       setSuccess('ANC visit recorded successfully!');
-      onSuccess?.();
-
-    } catch (err) {
-      console.error(err);
-
-      if (axios.isAxiosError(err)) {
-        setError(
-          err.response?.data?.message ??
-            'Failed to save ANC visit. Please check all required fields.'
-        );
-      } else {
-        setError('Unexpected error occurred.');
+      
+      if (onSuccess) {
+        setTimeout(onSuccess, 1500);
       }
-
+    } catch (err: any) {
+      console.error(err);
+      setError(err.response?.data?.message || 'Failed to save ANC visit. Please check all required fields.');
     } finally {
       setSaving(false);
     }
@@ -236,7 +225,7 @@ export default function ANCVisitForm({ appointmentId, patientId, onSuccess, onCl
           <span>{error}</span>
         </div>
       )}
-
+      
       {success && (
         <div className="alert alert-success flex items-center gap-2">
           <CheckCircle size={18} />
@@ -509,7 +498,7 @@ export default function ANCVisitForm({ appointmentId, patientId, onSuccess, onCl
                 <option value="NORMAL">Normal</option>
                 <option value="MILD">Mild (10.0-10.9 g/dL)</option>
                 <option value="MODERATE">Moderate (7.0-9.9 g/dL)</option>
-                <option value="SEVERE">Severe (Below 7.0 g/dL)</option>
+                <option value="SEVERE">Severe (&lt;7.0 g/dL)</option>
               </select>
             </div>
             <div className="form-group">
@@ -730,8 +719,8 @@ export default function ANCVisitForm({ appointmentId, patientId, onSuccess, onCl
       {/* Actions */}
       <div className="flex items-center justify-end gap-3">
         {onClose && (
-          <button
-            type="button"
+          <button 
+            type="button" 
             className="btn btn-ghost flex items-center gap-2"
             onClick={onClose}
           >
@@ -739,9 +728,8 @@ export default function ANCVisitForm({ appointmentId, patientId, onSuccess, onCl
             Cancel
           </button>
         )}
-
-        <button
-          type="submit"
+        <button 
+          type="submit" 
           className="btn btn-primary flex items-center gap-2"
           disabled={saving}
         >

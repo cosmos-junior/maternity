@@ -149,6 +149,8 @@ export interface PostnatalRecord {
   patient_number: string;
   delivery_date: string;
   delivery_type: 'NORMAL' | 'CAESAREAN' | 'ASSISTED';
+  baby_first_name: string;
+  baby_last_name: string;
   baby_weight_kg: string | null;
   baby_gender: 'MALE' | 'FEMALE' | 'UNKNOWN';
   mother_condition: string;

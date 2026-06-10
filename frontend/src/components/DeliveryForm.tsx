@@ -19,6 +19,8 @@ import { Patient } from '../types';
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
 interface NewbornRecord {
+  baby_first_name: string;
+  baby_last_name: string;
   baby_gender: 'MALE' | 'FEMALE' | 'UNKNOWN';
   baby_weight_kg: string;
   baby_condition: string;
@@ -44,6 +46,8 @@ interface DeliveryFormData {
 }
 
 const BLANK_NEWBORN: NewbornRecord = {
+  baby_first_name: '',
+  baby_last_name: '',
   baby_gender: 'UNKNOWN',
   baby_weight_kg: '',
   baby_condition: '',
@@ -180,6 +184,8 @@ export default function DeliveryForm({ patients, onClose, onSaved }: DeliveryFor
         delivery_date:      form.delivery_date,
         delivery_type:      form.delivery_type,
         mother_condition:   form.mother_condition,
+        baby_first_name:    firstNb.baby_first_name,
+        baby_last_name:     firstNb.baby_last_name,
         baby_gender:        firstNb.baby_gender,
         baby_weight_kg:     firstNb.baby_weight_kg || null,
         baby_condition:     firstNb.baby_condition,
@@ -286,6 +292,18 @@ export default function DeliveryForm({ patients, onClose, onSaved }: DeliveryFor
                   </div>
 
                   <div className="form-grid">
+                    <div className="form-group">
+                      <label className="form-label">First Name</label>
+                      <input className="form-input" placeholder="First Name (Optional)"
+                        value={nb.baby_first_name}
+                        onChange={e => setNewborn(idx, 'baby_first_name', e.target.value)} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Last Name</label>
+                      <input className="form-input" placeholder="Last Name (Optional)"
+                        value={nb.baby_last_name}
+                        onChange={e => setNewborn(idx, 'baby_last_name', e.target.value)} />
+                    </div>
                     <div className="form-group">
                       <label className="form-label">Gender</label>
                       <select className="form-select" value={nb.baby_gender}

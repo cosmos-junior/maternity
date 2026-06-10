@@ -19,8 +19,6 @@ import { pediatricsApi } from '../api';
 import { ChildProfile, GrowthRecord, VaccinationRecord } from '../types';
 import { formatDate } from '../utils';
 import { useAuth } from '../context/AuthContext';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 
 const CHART_TOOLTIP_STYLE = {
   background: 'var(--bg-card)',
@@ -141,6 +139,8 @@ export default function ChildProfilePage() {
   const exportPDF = async () => {
     if (!pdfRef.current || !profile) return;
     try {
+      const { default: html2canvas } = await import('html2canvas');
+      const { default: jsPDF } = await import('jspdf');
       const canvas = await html2canvas(pdfRef.current, { scale: 2 });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');

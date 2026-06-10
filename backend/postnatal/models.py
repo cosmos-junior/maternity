@@ -23,6 +23,8 @@ class PostnatalRecord(models.Model):
     )
     delivery_date = models.DateField()
     delivery_type = models.CharField(max_length=15, choices=DELIVERY_TYPE_CHOICES)
+    baby_first_name = models.CharField(max_length=100, blank=True)
+    baby_last_name = models.CharField(max_length=100, blank=True)
     baby_weight_kg = models.DecimalField(max_digits=4, decimal_places=2, null=True, blank=True)
     baby_gender = models.CharField(max_length=10, choices=[('MALE', 'Male'), ('FEMALE', 'Female'), ('UNKNOWN', 'Unknown')], default='UNKNOWN')
     apgar_score_1min = models.IntegerField(null=True, blank=True, help_text="APGAR score at 1 minute (0-10)")

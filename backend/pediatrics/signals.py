@@ -15,6 +15,8 @@ def create_child_profile_and_vaccinations(sender, instance, created, **kwargs):
         child = ChildProfile.objects.create(
             mother=instance.patient,
             postnatal_record=instance,
+            first_name=instance.baby_first_name,
+            last_name=instance.baby_last_name,
             date_of_birth=instance.delivery_date,
             birth_weight_kg=instance.baby_weight_kg,
             gender=instance.baby_gender
