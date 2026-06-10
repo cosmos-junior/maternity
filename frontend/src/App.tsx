@@ -115,6 +115,7 @@ function AppRoutes() {
         <Route path="patients/:id" element={<PatientDetail />} />
         <Route path="patients/:id/partograph" element={<Partograph />} />
         <Route path="patients/:id/nutrition" element={<Nutrition />} />
+        <Route path="appointments" element={<Appointments />} />
         <Route path="postnatal" element={<Postnatal />} />
         <Route path="children" element={<Children />} />
         <Route path="children/:id" element={<ChildProfile />} />
