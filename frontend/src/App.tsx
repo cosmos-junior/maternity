@@ -18,6 +18,7 @@ import Documents from './pages/Documents';
 import CreateTicket from './pages/CreateTicket';
 import TicketDashboard from './pages/TicketDashboard';
 import Notifications from './pages/Notifications';
+import TicketDetail from './pages/TicketDetail';
 import Nutrition from './pages/Nutrition';
 import Procedures from './pages/Procedures';
 import ChildProfile from './pages/ChildProfile';
@@ -36,7 +37,7 @@ import MotherJourney from './pages/MotherJourney';
 import MotherAppointments from './pages/MotherAppointments';
 import MotherMedicalRecords from './pages/MotherMedicalRecords';
 import MotherSymptoms from './pages/MotherSymptoms';
-import MotherMessages from './pages/MotherMessages';
+import MotherLearn from './pages/MotherLearn';
 import MotherLayout from './components/MotherLayout';
 
 import { useLocation } from 'react-router-dom';
@@ -103,7 +104,7 @@ function AppRoutes() {
         <Route path="appointments" element={<MotherAppointments />} />
         <Route path="records" element={<MotherMedicalRecords />} />
         <Route path="symptoms" element={<MotherSymptoms />} />
-        <Route path="messages" element={<MotherMessages />} />
+        <Route path="learn" element={<MotherLearn />} />
       </Route>
 
       {/* Staff routes */}
@@ -139,8 +140,11 @@ function AppRoutes() {
         <Route path="tickets" element={
           <RoleRoute roles={['ADMIN']}><TicketDashboard /></RoleRoute>
         } />
+        <Route path="tickets/:id" element={
+          <RoleRoute roles={['ADMIN', 'DOCTOR', 'NURSE']}><TicketDetail /></RoleRoute>
+        } />
         <Route path="notifications" element={
-          <RoleRoute roles={['ADMIN']}><Notifications /></RoleRoute>
+          <RoleRoute roles={['ADMIN', 'DOCTOR', 'NURSE']}><Notifications /></RoleRoute>
         } />
         <Route path="mortality-review" element={
           <RoleRoute roles={['ADMIN', 'DOCTOR']}><MortalityReview /></RoleRoute>

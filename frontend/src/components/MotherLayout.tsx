@@ -7,10 +7,8 @@ import {
   Calendar,
   Stethoscope,
   AlertCircle,
-  MessageSquare,
-  LogOut,
-  MoonStar,
-  SunMedium
+  BookOpen,
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getPersonalizedGreeting } from '../utils';
@@ -22,7 +20,7 @@ const MOTHER_NAV = [
   { to: '/mother/appointments', icon: <Calendar size={18} />, label: 'Appointments' },
   { to: '/mother/records', icon: <Stethoscope size={18} />, label: 'Records' },
   { to: '/mother/symptoms', icon: <AlertCircle size={18} />, label: 'Symptoms' },
-  { to: '/mother/messages', icon: <MessageSquare size={18} />, label: 'Messages' },
+  { to: '/mother/learn', icon: <BookOpen size={18} />, label: 'Learn' },
 ];
 
 const PAGE_META: Record<string, { title: string; subtitle: string }> = {
@@ -50,9 +48,9 @@ const PAGE_META: Record<string, { title: string; subtitle: string }> = {
     title: 'Report Symptoms',
     subtitle: 'Submit urgent symptoms and keep your care team informed.'
   },
-  '/mother/messages': {
-    title: 'Messages',
-    subtitle: 'Secure chat with your clinic care team.'
+  '/mother/learn': {
+    title: 'Learn',
+    subtitle: 'Educational guides for you and your baby.'
   }
 };
 

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Mail, Phone, User as UserIcon, LogOut, Bell } from 'lucide-react';
+import { Mail, Phone, User as UserIcon, LogOut, Bell, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { User } from '../types';
+import { notificationsApi } from '../api';
+import { Notification, User } from '../types';
 
 interface Props {
   user: User | null;
@@ -13,6 +14,9 @@ export default function UserMenu({ user, onClose, onLogout }: Props) {
   const ref = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
   const [showNotification, setShowNotification] = useState(false);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
 
   useEffect(() => {
     function handle(e: MouseEvent) {
@@ -32,6 +36,58 @@ export default function UserMenu({ user, onClose, onLogout }: Props) {
     navigate('/profile');
     onClose();
   };
+
+  const loadNotifications = async () => {
+    setLoadingNotifications(true);
+    try {
+      const { data } = await notificationsApi.list({ unread: 'true' });
+      setNotifications(data.results ?? data);
+    } catch (err) {
+      setNotifications([]);
+    } finally {
+      setLoadingNotifications(false);
+    }
+  };
+
+  const markAllNotificationsRead = async () => {
+    try {
+      await notificationsApi.markAllRead();
+      setUnreadCount(0);
+    } catch {
+      // ignore failure for now
+    }
+  };
+
+  const loadUnreadCount = async () => {
+    try {
+      const { data } = await notificationsApi.unreadCount();
+      setUnreadCount(data?.unread_count ?? 0);
+    } catch {
+      setUnreadCount(0);
+    }
+  };
+
+  const handleToggleNotifications = async () => {
+    if (!showNotification) {
+      await loadNotifications();
+      await markAllNotificationsRead();
+    }
+    setShowNotification((current) => !current);
+  };
+
+  const markNotificationRead = async (id: number) => {
+    try {
+      await notificationsApi.markRead(id);
+      await loadNotifications();
+      await loadUnreadCount();
+    } catch {
+      // ignore failure for now
+    }
+  };
+
+  useEffect(() => {
+    loadUnreadCount();
+  }, []);
 
   return (
     <div style={{ position: 'fixed', top: '76px', right: 20, zIndex: 200, maxWidth: 'calc(100vw - 40px)' }}>
@@ -83,12 +139,12 @@ export default function UserMenu({ user, onClose, onLogout }: Props) {
               gap: 12,
               position: 'relative',
             }}
-            onClick={() => setShowNotification(!showNotification)}
+            onClick={handleToggleNotifications}
             title="View notifications"
           >
             <Bell size={18} />
             Notifications
-            {shouldShowProfileReminder && (
+            {(shouldShowProfileReminder || unreadCount > 0) && (
               <div style={{
                 width: 8,
                 height: 8,
@@ -119,56 +175,59 @@ export default function UserMenu({ user, onClose, onLogout }: Props) {
             borderTop: '1px solid var(--border)',
             padding: '12px 16px',
             background: 'var(--bg-hover)',
-            maxHeight: 200,
+            maxHeight: 260,
             overflowY: 'auto',
           }}>
-            {shouldShowProfileReminder ? (
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 8,
-              }}>
-                <div style={{
+            {loadingNotifications ? (
+              <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
+                Loading notifications...
+              </div>
+            ) : notifications.length > 0 ? (
+              notifications.map((notification) => (
+                <div key={notification.id} style={{
+                  marginBottom: 12,
                   padding: '12px',
-                  borderRadius: 8,
-                  background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.1))',
-                  border: '1px solid rgba(59, 130, 246, 0.3)',
+                  borderRadius: 10,
+                  background: notification.is_read ? 'var(--bg-base)' : 'rgba(238, 68, 68, 0.06)',
+                  border: notification.is_read ? '1px solid var(--border)' : '1px solid rgba(239, 68, 68, 0.15)',
                 }}>
-                  <p style={{
-                    margin: '0 0 8px 0',
-                    fontWeight: 600,
-                    color: 'var(--text-primary)',
-                    fontSize: '0.9rem',
-                  }}>
-                    Complete Your Profile
-                  </p>
-                  <p style={{
-                    margin: 0,
-                    color: 'var(--text-secondary)',
-                    fontSize: '0.85rem',
-                  }}>
-                    Add your bio and update your information to personalize your account.
-                  </p>
-                  <button
-                    onClick={handleViewProfile}
-                    style={{
-                      marginTop: 8,
-                      padding: '6px 12px',
-                      borderRadius: 6,
-                      border: 'none',
-                      background: 'var(--hosp-blue)',
-                      color: 'white',
-                      fontSize: '0.85rem',
-                      fontWeight: 500,
-                      cursor: 'pointer',
-                      transition: 'opacity 0.2s',
-                    }}
-                    onMouseEnter={e => (e.currentTarget.style.opacity = '0.9')}
-                    onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
-                  >
-                    Go to Profile
-                  </button>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'start' }}>
+                    <div>
+                      <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600 }}>{notification.message}</p>
+                      <p style={{ margin: '6px 0 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                        {notification.ticket_title ? `Ticket: ${notification.ticket_title}` : 'General notification'}
+                      </p>
+                      <p style={{ margin: '6px 0 0 0', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                        {new Date(notification.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                    {!notification.is_read && (
+                      <button
+                        onClick={() => markNotificationRead(notification.id)}
+                        style={{
+                          padding: '6px 10px',
+                          borderRadius: 6,
+                          border: 'none',
+                          background: 'var(--hosp-blue)',
+                          color: 'white',
+                          fontSize: '0.8rem',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        <CheckCircle2 size={14} />
+                      </button>
+                    )}
+                  </div>
                 </div>
+              ))
+            ) : shouldShowProfileReminder ? (
+              <div style={{
+                padding: '16px',
+                textAlign: 'center',
+                color: 'var(--text-muted)',
+                fontSize: '0.9rem',
+              }}>
+                No new notifications.
               </div>
             ) : (
               <div style={{
@@ -177,7 +236,7 @@ export default function UserMenu({ user, onClose, onLogout }: Props) {
                 color: 'var(--text-muted)',
                 fontSize: '0.9rem',
               }}>
-                No new notifications
+                No new notifications.
               </div>
             )}
           </div>
