@@ -240,6 +240,13 @@ class ANCVisit(models.Model):
     def __str__(self):
         return f"ANC Visit {self.visit_number} - {self.patient.full_name} on {self.visit_date}"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.appointment and self.appointment.status != 'ATTENDED':
+            self.appointment.status = 'ATTENDED'
+            self.appointment.attended_date = self.visit_date
+            self.appointment.save(update_fields=['status', 'attended_date'])
+
     def get_lab_results_summary(self):
         """Return a formatted summary of all lab results for this visit."""
         results = []

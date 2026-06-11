@@ -62,6 +62,7 @@ class MarkAttendedView(APIView):
             appointment.attended_date = date.today()
             appointment.save()
             
+            anc_visit = None
             # For ANC appointments, create an ANCVisit record if it doesn't exist
             if appointment.appointment_type in ['ANC1', 'ANC2', 'ANC3', 'ANC4']:
                 # Check if an ANCVisit already exists for this appointment
@@ -83,7 +84,7 @@ class MarkAttendedView(APIView):
             
             return Response({
                 'appointment': AppointmentSerializer(appointment).data,
-                'anc_visit_created': anc_visit.id if 'anc_visit' in locals() and anc_visit else None
+                'anc_visit_created': anc_visit.id if anc_visit else None
             })
         except Appointment.DoesNotExist:
             return Response({'error': 'Appointment not found'}, status=404)
