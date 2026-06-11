@@ -87,11 +87,17 @@ class StaffListView(generics.ListAPIView):
         return qs
 
 
-class StaffDetailView(generics.RetrieveUpdateAPIView):
-    """Retrieve or update a staff account — ADMIN only."""
+class StaffDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """Retrieve, update or delete a staff account — ADMIN only."""
     queryset = StaffUser.objects.all()
     serializer_class = AdminStaffUserSerializer
     permission_classes = [permissions.IsAuthenticated, IsAdminRole]
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance == request.user:
+            return Response({'error': 'You cannot delete your own account.'}, status=status.HTTP_400_BAD_REQUEST)
+        return super().destroy(request, *args, **kwargs)
 
 
 class StaffDeactivateView(APIView):

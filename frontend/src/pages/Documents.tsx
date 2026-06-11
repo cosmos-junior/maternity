@@ -64,6 +64,12 @@ export default function Documents() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [confirmModal, setConfirmModal] = useState<{
+    show: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void | Promise<void>;
+  }>({ show: false, title: '', message: '', onConfirm: () => {} });
 
   const [form, setForm] = useState({
     patient: patientId || '',
@@ -109,11 +115,21 @@ export default function Documents() {
     finally { setSaving(false); }
   };
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('Delete this document?')) return;
-    await clinicalApi.deleteDoc(id);
-    flash('Document deleted');
-    load();
+  const handleDelete = (id: number) => {
+    setConfirmModal({
+      show: true,
+      title: 'Delete Document',
+      message: 'Are you sure you want to delete this document? This action cannot be undone.',
+      onConfirm: async () => {
+        try {
+          await clinicalApi.deleteDoc(id);
+          flash('Document deleted');
+          load();
+        } catch {
+          alert('Failed to delete document.');
+        }
+      }
+    });
   };
 
   const set = (k: string, v: string) => setForm(f => ({ ...f, [k]: v }));
@@ -239,6 +255,35 @@ export default function Documents() {
           </div>
         )}
       </div>
+      {/* Confirm Modal */}
+      {confirmModal.show && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setConfirmModal(prev => ({ ...prev, show: false }))}>
+          <div className="modal" style={{ maxWidth: 400 }}>
+            <div className="modal-header">
+              <div className="modal-title flex items-center gap-2 font-bold text-lg text-slate-900 dark:text-white">
+                {confirmModal.title}
+              </div>
+            </div>
+            <div className="modal-body py-4 text-slate-600 dark:text-slate-300">
+              {confirmModal.message}
+            </div>
+            <div className="modal-footer flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
+              <button className="btn btn-ghost" onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))}>
+                Cancel
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={async () => {
+                  await confirmModal.onConfirm();
+                  setConfirmModal(prev => ({ ...prev, show: false }));
+                }}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

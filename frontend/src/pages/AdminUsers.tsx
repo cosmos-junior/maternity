@@ -22,6 +22,12 @@ export default function AdminUsers() {
   const [saving, setSaving]   = useState(false);
   const [error, setError]     = useState('');
   const [success, setSuccess] = useState('');
+  const [confirmModal, setConfirmModal] = useState<{
+    show: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void | Promise<void>;
+  }>({ show: false, title: '', message: '', onConfirm: () => {} });
 
   const load = async () => {
     setLoading(true);
@@ -75,21 +81,44 @@ export default function AdminUsers() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleToggleLock = async (u: StaffUser) => {
-    try {
-      if (u.is_active) {
-        if (!confirm(`Deactivate ${u.full_name}?`)) return;
-        await staffApi.deactivate(u.id);
-      } else {
-        if (!confirm(`Reactivate ${u.full_name}?`)) return;
-        await staffApi.reactivate(u.id);
+  const handleToggleLock = (u: StaffUser) => {
+    const action = u.is_active ? 'Deactivate' : 'Reactivate';
+    setConfirmModal({
+      show: true,
+      title: `${action} Staff Member`,
+      message: `Are you sure you want to ${action.toLowerCase()} ${u.full_name}?`,
+      onConfirm: async () => {
+        try {
+          if (u.is_active) {
+            await staffApi.deactivate(u.id);
+          } else {
+            await staffApi.reactivate(u.id);
+          }
+          load();
+        } catch (err: any) {
+          alert(err.response?.data?.error ?? `Failed to ${action.toLowerCase()} user.`);
+        }
       }
-      load();
-    } catch (err: any) {
-      alert(err.response?.data?.error ?? 'Failed to toggle lock status.');
-    }
+    });
   };
 
+  const handleDelete = (id: number) => {
+    setConfirmModal({
+      show: true,
+      title: 'Delete Staff Member',
+      message: 'Are you sure you want to permanently delete this user? This action cannot be undone.',
+      onConfirm: async () => {
+        try {
+          await staffApi.delete(id);
+          setSuccess('Staff member deleted successfully.');
+          setTimeout(() => setSuccess(''), 3000);
+          load();
+        } catch (err: any) {
+          alert(err.response?.data?.error ?? 'Failed to delete user.');
+        }
+      }
+    });
+  };
 
   const handleRoleChange = async (id: number, newRole: string) => {
     try {
@@ -131,7 +160,7 @@ export default function AdminUsers() {
                   <label className="form-label">Email *</label>
                   <div className="relative">
                     <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input className="form-input pl-10" type="email" required value={form.email}
+                    <input className="form-input" style={{ paddingLeft: '38px' }} type="email" required value={form.email}
                       onChange={e => setForm(f => ({ ...f, email: e.target.value }))} />
                   </div>
                 </div>
@@ -139,7 +168,7 @@ export default function AdminUsers() {
                   <label className="form-label">Phone Number</label>
                   <div className="relative">
                     <Phone size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <input className="form-input pl-10" value={form.phone_number}
+                    <input className="form-input" style={{ paddingLeft: '38px' }} value={form.phone_number}
                       onChange={e => setForm(f => ({ ...f, phone_number: e.target.value }))} placeholder="+254..." />
                   </div>
                 </div>
@@ -152,7 +181,7 @@ export default function AdminUsers() {
                   <label className="form-label">Role</label>
                   <div className="relative">
                     <Shield size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                    <select className="form-select pl-10 text-xs font-bold" value={form.role}
+                    <select className="form-select text-xs font-bold" style={{ paddingLeft: '38px' }} value={form.role}
                       onChange={e => setForm(f => ({ ...f, role: e.target.value as any }))}>
                       <option value="NURSE">NURSE</option>
                       <option value="DOCTOR">DOCTOR</option>
@@ -235,27 +264,40 @@ export default function AdminUsers() {
                         {new Date(u.date_joined).toLocaleDateString('en-KE')}
                       </td>
                       <td className="px-4 py-4 text-right">
-                        <button
-                          className="btn btn-ghost btn-xs text-slate-500 hover:bg-slate-100"
-                          onClick={() => setViewUser(u)}
-                          title="View Details"
-                        >
-                          <Eye size={16} />
-                        </button>
-                        <button
-                          className="btn btn-ghost btn-xs text-blue-500 hover:bg-blue-50"
-                          onClick={() => handleEdit(u)}
-                          title="Edit User"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          className={`btn btn-ghost btn-xs ${u.is_active ? 'text-slate-500 hover:bg-slate-100' : 'text-red-500 hover:bg-red-50'}`}
-                          onClick={() => handleToggleLock(u)}
-                          title={u.is_active ? "Lock User" : "Unlock User"}
-                        >
-                          {u.is_active ? <Unlock size={16} /> : <Lock size={16} />}
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            className="btn btn-ghost btn-xs hover:bg-slate-100"
+                            style={{ color: '#2563eb' }}
+                            onClick={() => setViewUser(u)}
+                            title="View Details"
+                          >
+                            <Eye size={16} />
+                          </button>
+                          <button
+                            className="btn btn-ghost btn-xs hover:bg-amber-50"
+                            style={{ color: '#d97706' }}
+                            onClick={() => handleEdit(u)}
+                            title="Edit User"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          <button
+                            className="btn btn-ghost btn-xs hover:bg-purple-50"
+                            style={{ color: u.is_active ? '#7c3aed' : '#ef4444' }}
+                            onClick={() => handleToggleLock(u)}
+                            title={u.is_active ? "Lock User" : "Unlock User"}
+                          >
+                            {u.is_active ? <Unlock size={16} /> : <Lock size={16} />}
+                          </button>
+                          <button
+                            className="btn btn-ghost btn-xs hover:bg-red-50"
+                            style={{ color: '#dc2626' }}
+                            onClick={() => handleDelete(u.id)}
+                            title="Delete User"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -323,6 +365,36 @@ export default function AdminUsers() {
             </div>
             <div className="modal-footer">
               <button className="btn btn-ghost" onClick={() => setViewUser(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Modal */}
+      {confirmModal.show && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setConfirmModal(prev => ({ ...prev, show: false }))}>
+          <div className="modal" style={{ maxWidth: 400 }}>
+            <div className="modal-header">
+              <div className="modal-title flex items-center gap-2 font-bold text-lg text-slate-900 dark:text-white">
+                {confirmModal.title}
+              </div>
+            </div>
+            <div className="modal-body py-4 text-slate-600 dark:text-slate-300">
+              {confirmModal.message}
+            </div>
+            <div className="modal-footer flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
+              <button className="btn btn-ghost" onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))}>
+                Cancel
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={async () => {
+                  await confirmModal.onConfirm();
+                  setConfirmModal(prev => ({ ...prev, show: false }));
+                }}
+              >
+                Confirm
+              </button>
             </div>
           </div>
         </div>

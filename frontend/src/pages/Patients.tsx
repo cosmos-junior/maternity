@@ -64,6 +64,12 @@ export default function Patients() {
   // Facility autocomplete states
   const [suggestedFacilities, setSuggestedFacilities] = useState<any[]>([]);
   const [showFacilitySuggestions, setShowFacilitySuggestions] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{
+    show: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void | Promise<void>;
+  }>({ show: false, title: '', message: '', onConfirm: () => {} });
 
 
 
@@ -145,23 +151,37 @@ export default function Patients() {
     setShowModal(true);
   };
 
-  const handleToggleLock = async (p: Patient) => {
-    try {
-      await patientsApi.update(p.id, { is_active: !p.is_active });
-      load();
-    } catch (err) {
-      alert('Failed to update status.');
-    }
+  const handleToggleLock = (p: Patient) => {
+    const action = p.is_active ? 'Deactivate' : 'Reactivate';
+    setConfirmModal({
+      show: true,
+      title: `${action} Patient`,
+      message: `Are you sure you want to ${action.toLowerCase()} patient ${p.name}?`,
+      onConfirm: async () => {
+        try {
+          await patientsApi.update(p.id, { is_active: !p.is_active });
+          load();
+        } catch (err) {
+          alert('Failed to update status.');
+        }
+      }
+    });
   };
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('Are you sure you want to permanently delete this patient?')) return;
-    try {
-      await patientsApi.delete(id);
-      load();
-    } catch (err) {
-      alert('Failed to delete patient.');
-    }
+  const handleDelete = (id: number) => {
+    setConfirmModal({
+      show: true,
+      title: 'Delete Patient',
+      message: 'Are you sure you want to permanently delete this patient? This action cannot be undone.',
+      onConfirm: async () => {
+        try {
+          await patientsApi.delete(id);
+          load();
+        } catch (err) {
+          alert('Failed to delete patient.');
+        }
+      }
+    });
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -763,53 +783,54 @@ export default function Patients() {
                   Medical & Surgical History
                 </div>
                 
-                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 24, marginTop: 12 }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.88rem', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={form.has_diabetes ?? false}
-                      onChange={e => set('has_diabetes', e.target.checked)}
-                    />
-                    Diabetes?
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.88rem', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={form.has_hypertension ?? false}
-                      onChange={e => set('has_hypertension', e.target.checked)}
-                    />
-                    Hypertension?
-                  </label>
-                </div>
-
-                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 12 }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.88rem', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={form.has_drug_allergy ?? false}
-                      onChange={e => set('has_drug_allergy', e.target.checked)}
-                    />
-                    Any Drug Allergy?
-                  </label>
-                </div>
-
-                <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: 24, marginTop: 12 }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.88rem', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={form.family_history_twins ?? false}
-                      onChange={e => set('family_history_twins', e.target.checked)}
-                    />
-                    Family History: Twins
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.88rem', cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={form.family_history_tb ?? false}
-                      onChange={e => set('family_history_tb', e.target.checked)}
-                    />
-                    Family History: Tuberculosis
-                  </label>
+                <div style={{ gridColumn: '1 / -1', marginTop: 12 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '16px', marginBottom: '16px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.88rem', cursor: 'pointer', color: 'var(--text-main)' }}>
+                      <input
+                        type="checkbox"
+                        checked={form.has_diabetes ?? false}
+                        onChange={e => set('has_diabetes', e.target.checked)}
+                        style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--primary)' }}
+                      />
+                      Diabetes?
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.88rem', cursor: 'pointer', color: 'var(--text-main)' }}>
+                      <input
+                        type="checkbox"
+                        checked={form.has_hypertension ?? false}
+                        onChange={e => set('has_hypertension', e.target.checked)}
+                        style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--primary)' }}
+                      />
+                      Hypertension?
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.88rem', cursor: 'pointer', color: 'var(--text-main)' }}>
+                      <input
+                        type="checkbox"
+                        checked={form.has_drug_allergy ?? false}
+                        onChange={e => set('has_drug_allergy', e.target.checked)}
+                        style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--primary)' }}
+                      />
+                      Any Drug Allergy?
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.88rem', cursor: 'pointer', color: 'var(--text-main)' }}>
+                      <input
+                        type="checkbox"
+                        checked={form.family_history_twins ?? false}
+                        onChange={e => set('family_history_twins', e.target.checked)}
+                        style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--primary)' }}
+                      />
+                      Family History: Twins
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.88rem', cursor: 'pointer', color: 'var(--text-main)' }}>
+                      <input
+                        type="checkbox"
+                        checked={form.family_history_tb ?? false}
+                        onChange={e => set('family_history_tb', e.target.checked)}
+                        style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--primary)' }}
+                      />
+                      Family History: Tuberculosis
+                    </label>
+                  </div>
                 </div>
 
                 <div style={{ gridColumn: '1 / -1' }} className="form-group">
@@ -874,6 +895,36 @@ export default function Patients() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Confirm Modal */}
+      {confirmModal.show && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setConfirmModal(prev => ({ ...prev, show: false }))}>
+          <div className="modal" style={{ maxWidth: 400 }}>
+            <div className="modal-header">
+              <div className="modal-title flex items-center gap-2 font-bold text-lg text-slate-900 dark:text-white">
+                {confirmModal.title}
+              </div>
+            </div>
+            <div className="modal-body py-4 text-slate-600 dark:text-slate-300">
+              {confirmModal.message}
+            </div>
+            <div className="modal-footer flex justify-end gap-3 mt-4 pt-4 border-t border-slate-100">
+              <button className="btn btn-ghost" onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))}>
+                Cancel
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={async () => {
+                  await confirmModal.onConfirm();
+                  setConfirmModal(prev => ({ ...prev, show: false }));
+                }}
+              >
+                Confirm
+              </button>
+            </div>
           </div>
         </div>
       )}
