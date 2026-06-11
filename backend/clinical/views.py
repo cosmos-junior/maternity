@@ -164,8 +164,15 @@ class ANCVisitPDFView(APIView):
         except ANCVisit.DoesNotExist:
             return Response({'error': 'ANC visit not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Check permissions - only allow access to own patient or staff
-        if not request.user.is_staff and not (hasattr(request.user, 'patient') and request.user.patient == visit.patient):
+        # Check permissions - staff roles or the patient themselves
+        is_staff_user = getattr(request.user, 'role', None) in ('ADMIN', 'NURSE', 'DOCTOR')
+        is_own_patient = (
+            getattr(request.user, 'role', None) == 'MOTHER' and
+            hasattr(request.user, 'patient') and
+            request.user.patient is not None and
+            request.user.patient.id == visit.patient.id
+        )
+        if not is_staff_user and not is_own_patient:
             return Response({'error': 'Permission denied'}, status=status.HTTP_403_FORBIDDEN)
 
         # Generate HTML content for PDF
@@ -173,6 +180,15 @@ class ANCVisitPDFView(APIView):
             'visit': visit,
             'patient': visit.patient,
             'attending_staff': visit.attending_staff,
+            # Pre-render all display values since templates can't call get_FOO_display()
+            'blood_group_confirmed_display': visit.get_blood_group_confirmed_display() if visit.blood_group_confirmed else '',
+            'anemia_severity_display': visit.get_anemia_severity_display() if visit.anemia_severity else '',
+            'blood_sugar_type_display': visit.get_blood_sugar_type_display() if visit.blood_sugar_type else '',
+            'fetal_presentation_display': visit.get_fetal_presentation_display() if visit.fetal_presentation else '',
+            'hiv_status_display': visit.get_hiv_status_display() if visit.hiv_status else '',
+            'syphilis_status_display': visit.get_syphilis_status_display() if visit.syphilis_status else '',
+            'hepatitis_b_surface_ag_display': visit.get_hepatitis_b_surface_ag_display() if visit.hepatitis_b_surface_ag else '',
+            'rubella_igg_display': visit.get_rubella_igg_display() if visit.rubella_igg else '',
         }
 
         # Try to render PDF using weasyprint if available, otherwise return HTML

@@ -156,7 +156,7 @@ export default function Patients() {
     setConfirmModal({
       show: true,
       title: `${action} Patient`,
-      message: `Are you sure you want to ${action.toLowerCase()} patient ${p.name}?`,
+      message: `Are you sure you want to ${action.toLowerCase()} patient ${p.full_name}?`,
       onConfirm: async () => {
         try {
           await patientsApi.update(p.id, { is_active: !p.is_active });

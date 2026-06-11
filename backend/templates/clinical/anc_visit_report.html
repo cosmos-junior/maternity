@@ -301,7 +301,7 @@
                 </div>
                 <div class="info-item">
                     <span class="info-label">Blood Group:</span>
-                    <span class="info-value">{{ visit.blood_group_confirmed_display|default:patient.blood_group }}</span>
+                    <span class="info-value">{{ blood_group_confirmed_display|default:patient.blood_group }}</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Visit Date:</span>
@@ -380,7 +380,7 @@
                 {% if visit.fetal_presentation %}
                 <div class="info-item">
                     <span class="info-label">Fetal Presentation:</span>
-                    <span class="info-value">{{ visit.fetal_presentation_display }}</span>
+                    <span class="info-value">{{ fetal_presentation_display }}</span>
                 </div>
                 {% endif %}
             </div>
@@ -404,9 +404,9 @@
                     <div class="lab-test-name">Hemoglobin (Anemia Check)</div>
                     <div class="lab-result">
                         {{ visit.hemoglobin_gdl }} g/dL
-                        {% if visit.anemia_severity_display %}
+                        {% if anemia_severity_display %}
                         <br><span class="{% if visit.anemia_severity == 'NORMAL' %}normal{% else %}warning{% endif %}">
-                            {{ visit.anemia_severity_display }}
+                            {{ anemia_severity_display }}
                         </span>
                         {% endif %}
                     </div>
@@ -418,8 +418,8 @@
                     <div class="lab-test-name">Blood Sugar</div>
                     <div class="lab-result">
                         {{ visit.blood_sugar_mgdl }} mg/dL
-                        {% if visit.blood_sugar_type_display %}
-                        <br><span style="color: #718096;">({{ visit.blood_sugar_type_display }})</span>
+                        {% if blood_sugar_type_display %}
+                        <br><span style="color: #718096;">({{ blood_sugar_type_display }})</span>
                         {% endif %}
                     </div>
                 </div>
@@ -441,7 +441,7 @@
                     <div class="lab-test-name">HIV Screening</div>
                     <div class="lab-result">
                         <span class="{% if visit.hiv_status == 'NEGATIVE' %}normal{% elif visit.hiv_status == 'POSITIVE' %}abnormal{% else %}warning{% endif %}">
-                            {{ visit.hiv_status_display }}
+                            {{ hiv_status_display }}
                         </span>
                     </div>
                 </div>
@@ -452,7 +452,7 @@
                     <div class="lab-test-name">Syphilis Screening (VDRL/RPR)</div>
                     <div class="lab-result">
                         <span class="{% if visit.syphilis_status == 'NON-REACTIVE' %}normal{% elif visit.syphilis_status == 'REACTIVE' %}abnormal{% else %}warning{% endif %}">
-                            {{ visit.syphilis_status_display }}
+                            {{ syphilis_status_display }}
                         </span>
                     </div>
                 </div>
@@ -463,7 +463,7 @@
                     <div class="lab-test-name">Hepatitis B Surface Antigen</div>
                     <div class="lab-result">
                         <span class="{% if visit.hepatitis_b_surface_ag == 'NEGATIVE' %}normal{% elif visit.hepatitis_b_surface_ag == 'POSITIVE' %}abnormal{% else %}warning{% endif %}">
-                            {{ visit.hepatitis_b_surface_ag_display }}
+                            {{ hepatitis_b_surface_ag_display }}
                         </span>
                     </div>
                 </div>
@@ -474,7 +474,7 @@
                     <div class="lab-test-name">Rubella IgG Antibody</div>
                     <div class="lab-result">
                         <span class="{% if visit.rubella_igg == 'IMMUNE' %}normal{% elif visit.rubella_igg == 'NON-IMMUNE' %}warning{% else %}warning{% endif %}">
-                            {{ visit.rubella_igg_display }}
+                            {{ rubella_igg_display }}
                         </span>
                     </div>
                 </div>

@@ -92,21 +92,24 @@ export default function MotherJourney() {
     try {
       setDownloading(visitId);
       const response = await motherApi.getAncVisitPDF(visitId);
-      
-      // Create blob and download
-      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const contentType = response.headers?.['content-type'] || '';
+      const isHtml = contentType.includes('text/html');
+      const blob = new Blob([response.data], { type: isHtml ? 'text/html' : 'application/pdf' });
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `ANC_Visit_${visitNumber}.pdf`);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      if (isHtml) {
+        window.open(url, '_blank');
+      } else {
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `ANC_Visit_${visitNumber}.pdf`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      }
       window.URL.revokeObjectURL(url);
     } catch (err: any) {
       console.error('Download failed:', err);
-      // Fallback: open in new tab
-      window.open(`/api/v1/clinical/anc-visits/${visitId}/pdf/`, '_blank');
+      setError('Failed to download PDF. Please try again.');
     } finally {
       setDownloading(null);
     }
