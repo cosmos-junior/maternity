@@ -28,6 +28,7 @@ export interface Patient {
   patient_number: string;
   full_name: string;
   phone_number: string;
+  email: string | null;
   national_id: string | null;
   nhif_number: string | null;
   next_of_kin_name: string;

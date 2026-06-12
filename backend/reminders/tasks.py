@@ -1,7 +1,7 @@
 """
 Celery tasks for automated appointment reminders.
 
-Schedules two SMS reminders per appointment:
+Schedules two reminders per appointment:
   - 24 hours before the scheduled date
   - 1 hour before (on the day)
 
@@ -18,7 +18,7 @@ try:
     @shared_task(bind=True, max_retries=3, default_retry_delay=60)
     def send_appointment_reminder_task(self, appointment_id, hours_before=24):
         """
-        Send an SMS or Email reminder for an upcoming appointment.
+        Send an SMS and Email reminder for an upcoming appointment.
         """
         from appointments.models import Appointment
         from reminders.sms_service import send_sms, build_appointment_reminder
@@ -39,6 +39,10 @@ try:
         phone = patient.phone_number or ''
         email = getattr(patient, 'email', None)
 
+        if not phone and not email:
+            logger.warning('No phone or email for patient %s - skipping.', patient.pk)
+            return
+
         if phone:
             if phone.startswith('0') and len(phone) == 10:
                 phone = '+254' + phone[1:]
@@ -55,42 +59,50 @@ try:
             lang=getattr(patient, 'lang', 'en'),
         )
 
-        success = False
-        error_msg = ""
-        provider = 'AFRICAS_TALKING'
-        channel = 'SMS'
+        sms_success = True
+        email_success = True
+        sms_error = ""
+        email_error = ""
 
+        # Send SMS if phone is available
         if phone:
             result = send_sms(phone, msg)
-            success = result.get('success', False)
-            error_msg = result.get('error', '')
-        elif email:
+            sms_success = result.get('success', False)
+            sms_error = result.get('error', '')
+            ReminderLog.objects.create(
+                patient=patient,
+                appointment=appt,
+                channel='SMS',
+                phone_number=phone,
+                message_body=msg,
+                delivery_status='SENT' if sms_success else 'FAILED',
+                provider='AFRICAS_TALKING',
+                error_message=sms_error,
+            )
+
+        # Send Email if phone is NOT available and email is available
+        if not phone and email:
             result = send_email_reminder(email, "Upcoming Appointment Reminder", msg)
-            success = result.get('success', False)
-            error_msg = result.get('error', '')
-            provider = 'SMTP'
-            channel = 'EMAIL'
-        else:
-            logger.warning('No phone or email for patient %s - skipping.', patient.pk)
-            return
+            email_success = result.get('success', False)
+            email_error = result.get('error', '')
+            ReminderLog.objects.create(
+                patient=patient,
+                appointment=appt,
+                channel='EMAIL',
+                email_address=email,
+                message_body=msg,
+                delivery_status='SENT' if email_success else 'FAILED',
+                provider='SMTP',
+                error_message=email_error,
+            )
 
-        ReminderLog.objects.create(
-            patient=patient,
-            appointment=appt,
-            channel=channel,
-            phone_number=phone if phone else '',
-            email_address=email if email else '',
-            message_body=msg,
-            delivery_status='SENT' if success else 'FAILED',
-            provider=provider,
-            error_message=error_msg,
-        )
+        # Retry if any active delivery channel failed
+        if (phone and not sms_success) or (not phone and email and not email_success):
+            failed_msg = f"SMS: {sms_error}; Email: {email_error}".strip("; ")
+            logger.error('Reminder failed for appt %s: %s', appointment_id, failed_msg)
+            raise self.retry(exc=Exception(failed_msg or 'Reminder failed'))
 
-        if not success:
-            logger.error('Reminder failed for appt %s: %s', appointment_id, error_msg)
-            raise self.retry(exc=Exception(error_msg or 'Reminder failed'))
-
-        logger.info('Reminder sent for appointment %s (%sh before)', appointment_id, hours_before)
+        logger.info('Reminder successfully processed for appointment %s (%sh before)', appointment_id, hours_before)
 
     @shared_task
     def check_upcoming_vaccinations():
@@ -99,7 +111,7 @@ try:
         """
         from pediatrics.models import VaccinationRecord
         from reminders.sms_service import send_sms
-        from reminders.email_service import build_vaccination_reminder
+        from reminders.email_service import send_email_reminder, build_vaccination_reminder
         from reminders.models import ReminderLog
         from django.utils import timezone
         
@@ -112,15 +124,20 @@ try:
         for vac in due_vaccines:
             mother = vac.child.mother
             phone = mother.phone_number
-            if phone:
-                msg = build_vaccination_reminder(
-                    patient_name=mother.full_name,
-                    baby_name=vac.child.first_name,
-                    vaccine_name=vac.get_vaccine_name_display(),
-                    expected_date=str(vac.expected_date),
-                    lang=getattr(mother, 'lang', 'en')
-                )
+            email = getattr(mother, 'email', None)
+            
+            if not phone and not email:
+                continue
                 
+            msg = build_vaccination_reminder(
+                patient_name=mother.full_name,
+                baby_name=vac.child.first_name,
+                vaccine_name=vac.get_vaccine_name_display(),
+                expected_date=str(vac.expected_date),
+                lang=getattr(mother, 'lang', 'en')
+            )
+            
+            if phone:
                 if phone.startswith('0') and len(phone) == 10:
                     phone = '+254' + phone[1:]
                 elif phone.startswith('254') and not phone.startswith('+'):
@@ -129,7 +146,6 @@ try:
                     phone = '+254' + phone
                 
                 res = send_sms(phone, msg)
-                
                 ReminderLog.objects.create(
                     patient=mother,
                     channel='SMS',
@@ -137,6 +153,18 @@ try:
                     message_body=msg,
                     delivery_status='SENT' if res.get('success') else 'FAILED',
                     provider='AFRICAS_TALKING',
+                    error_message=res.get('error', ''),
+                )
+
+            elif email:
+                res = send_email_reminder(email, "Upcoming Vaccination Reminder", msg)
+                ReminderLog.objects.create(
+                    patient=mother,
+                    channel='EMAIL',
+                    email_address=email,
+                    message_body=msg,
+                    delivery_status='SENT' if res.get('success') else 'FAILED',
+                    provider='SMTP',
                     error_message=res.get('error', ''),
                 )
 
@@ -148,7 +176,7 @@ try:
         """
         from appointments.models import Appointment
         from reminders.sms_service import send_sms
-        from reminders.email_service import build_missed_visit_alert
+        from reminders.email_service import send_email_reminder, build_missed_visit_alert
         from reminders.models import ReminderLog
         from django.utils import timezone
 
@@ -164,14 +192,19 @@ try:
 
             patient = appt.patient
             phone = patient.phone_number
+            email = getattr(patient, 'email', None)
+            
+            if not phone and not email:
+                continue
+
+            msg = build_missed_visit_alert(
+                patient_name=patient.full_name,
+                visit_type=appt.get_appointment_type_display(),
+                missed_date=str(appt.scheduled_date),
+                lang=getattr(patient, 'lang', 'en')
+            )
+            
             if phone:
-                msg = build_missed_visit_alert(
-                    patient_name=patient.full_name,
-                    visit_type=appt.get_appointment_type_display(),
-                    missed_date=str(appt.scheduled_date),
-                    lang=getattr(patient, 'lang', 'en')
-                )
-                
                 if phone.startswith('0') and len(phone) == 10:
                     phone = '+254' + phone[1:]
                 elif phone.startswith('254') and not phone.startswith('+'):
@@ -188,6 +221,19 @@ try:
                     message_body=msg,
                     delivery_status='SENT' if res.get('success') else 'FAILED',
                     provider='AFRICAS_TALKING',
+                    error_message=res.get('error', ''),
+                )
+
+            elif email:
+                res = send_email_reminder(email, "Missed Appointment Alert", msg)
+                ReminderLog.objects.create(
+                    patient=patient,
+                    appointment=appt,
+                    channel='EMAIL',
+                    email_address=email,
+                    message_body=msg,
+                    delivery_status='SENT' if res.get('success') else 'FAILED',
+                    provider='SMTP',
                     error_message=res.get('error', ''),
                 )
 
@@ -255,6 +301,7 @@ def send_bulk_reminders_sync(patient_ids, use_template, message, lang, user_id=N
     from patients.models import Patient
     from appointments.models import Appointment
     from reminders.sms_service import send_sms, build_appointment_reminder
+    from reminders.email_service import send_email_reminder
     from reminders.models import ReminderLog
     from django.contrib.auth import get_user_model
     
@@ -270,7 +317,6 @@ def send_bulk_reminders_sync(patient_ids, use_template, message, lang, user_id=N
     results = {'sent': 0, 'failed': 0, 'details': []}
 
     for patient in patients:
-        # Check if an upcoming appointment exists
         appointment = Appointment.objects.filter(patient=patient, status='UPCOMING').first()
         
         # Build message
@@ -296,27 +342,48 @@ def send_bulk_reminders_sync(patient_ids, use_template, message, lang, user_id=N
 
         # Normalize phone
         phone = patient.phone_number.strip()
-        if phone.startswith('0') and len(phone) == 10:
-            phone = '+254' + phone[1:]
-        elif phone.startswith('254') and not phone.startswith('+'):
-            phone = '+' + phone
-        elif not phone.startswith('+'):
-            phone = '+254' + phone
+        email = getattr(patient, 'email', None)
 
-        res = send_sms(phone, msg)
-        
-        # Log it
-        ReminderLog.objects.create(
-            patient=patient,
-            appointment=appointment,
-            phone_number=phone,
-            message_body=msg,
-            delivery_status='SENT' if res['success'] else 'FAILED',
-            error_message=res.get('error', ''),
-            sent_by=sender,
-        )
+        if phone:
+            if phone.startswith('0') and len(phone) == 10:
+                phone = '+254' + phone[1:]
+            elif phone.startswith('254') and not phone.startswith('+'):
+                phone = '+' + phone
+            elif not phone.startswith('+'):
+                phone = '+254' + phone
 
-        if res['success']:
+        sms_success = False
+        email_success = False
+
+        if phone:
+            res_sms = send_sms(phone, msg)
+            sms_success = res_sms['success']
+            ReminderLog.objects.create(
+                patient=patient,
+                appointment=appointment,
+                channel='SMS',
+                phone_number=phone,
+                message_body=msg,
+                delivery_status='SENT' if sms_success else 'FAILED',
+                error_message=res_sms.get('error', ''),
+                sent_by=sender,
+            )
+
+        elif email:
+            res_email = send_email_reminder(email, "Reminder Notification", msg)
+            email_success = res_email['success']
+            ReminderLog.objects.create(
+                patient=patient,
+                appointment=appointment,
+                channel='EMAIL',
+                email_address=email,
+                message_body=msg,
+                delivery_status='SENT' if email_success else 'FAILED',
+                error_message=res_email.get('error', ''),
+                sent_by=sender,
+            )
+
+        if sms_success or email_success:
             results['sent'] += 1
         else:
             results['failed'] += 1
@@ -325,8 +392,9 @@ def send_bulk_reminders_sync(patient_ids, use_template, message, lang, user_id=N
             'patient_id': patient.id,
             'patient_name': patient.full_name,
             'phone_number': phone,
-            'success': res['success'],
-            'error': res.get('error', '')
+            'email': email,
+            'success': sms_success or email_success,
+            'error': '' if (sms_success or email_success) else 'Both SMS and Email delivery failed'
         })
         
     return results

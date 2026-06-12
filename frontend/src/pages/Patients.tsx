@@ -30,7 +30,7 @@ import { useFormValidation, patientSchema, PatientFormFields } from '../hooks/us
 
 
 const BLANK_FORM: PatientForm = {
-  full_name: '', phone_number: '', next_of_kin_name: '', next_of_kin_phone: '',
+  full_name: '', phone_number: '', email: '', next_of_kin_name: '', next_of_kin_phone: '',
   national_id: '', nhif_number: '', date_of_birth: null, lmp: '', clinic_stage: 'ANC1', risk_level: 'LOW',
   blood_group: 'O+', lang: 'en', medical_history: '', surgical_history: '', allergies: '', family_history: '',
   address: '', notes: '', is_active: true, registered_by: null,
@@ -190,6 +190,7 @@ export default function Patients() {
     const formAsFields: PatientFormFields = {
       full_name:        form.full_name,
       phone_number:     form.phone_number,
+      email:            form.email ?? undefined,
       next_of_kin_name: form.next_of_kin_name,
       next_of_kin_phone:form.next_of_kin_phone,
       date_of_birth:    form.date_of_birth ?? '',
@@ -252,6 +253,7 @@ export default function Patients() {
     // Live-validate touched fields
     validateOne(field as keyof PatientFormFields, val, {
       full_name: form.full_name, phone_number: form.phone_number,
+      email: form.email,
       national_id: form.national_id ?? '', nhif_number: form.nhif_number ?? '',
       next_of_kin_name: form.next_of_kin_name, next_of_kin_phone: form.next_of_kin_phone,
       date_of_birth: form.date_of_birth ?? '', lmp: form.lmp,
@@ -371,7 +373,10 @@ export default function Patients() {
                           <span style={{ fontWeight: 600 }}>{p.full_name}</span>
                         </div>
                       </td>
-                      <td className="text-muted">{p.phone_number}</td>
+                      <td className="text-muted">
+                        <div>{p.phone_number}</div>
+                        {p.email && <div style={{ fontSize: '0.75rem', opacity: 0.7 }}>{p.email}</div>}
+                      </td>
                       <td className="text-muted">{formatDate(p.lmp)}</td>
                       <td>
                         {p.clinic_stage === 'DELIVERED' || p.clinic_stage === 'POSTNATAL' ? (
@@ -532,6 +537,18 @@ export default function Patients() {
                     onBlur={() => touch('phone_number')}
                   />
                   {getError('phone_number') && <span className="form-error">{getError('phone_number')}</span>}
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Email Address</label>
+                  <input
+                    className={`form-input${getError('email') ? ' input-error' : ''}`}
+                    type="email"
+                    value={form.email ?? ''}
+                    placeholder="jane.kemunto@gmail.com"
+                    onChange={e => set('email', e.target.value)}
+                    onBlur={() => touch('email')}
+                  />
+                  {getError('email') && <span className="form-error">{getError('email')}</span>}
                 </div>
                  <div className="form-group">
                    <label className="form-label">National ID</label>

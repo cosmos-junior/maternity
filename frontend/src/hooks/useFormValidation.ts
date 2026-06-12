@@ -187,6 +187,7 @@ export function useFormValidation<T extends Record<string, unknown>>(
 export type PatientFormFields = {
   full_name: string;
   phone_number: string;
+  email?: string;
   national_id?: string;
   nhif_number?: string;
   next_of_kin_name: string;
@@ -253,6 +254,13 @@ export const patientSchema: ValidationSchema<PatientFormFields> = {
       type: 'pattern',
       regex: PATTERNS.KENYA_PHONE,
       message: 'Enter a valid Kenyan phone number (e.g. 0712345678).',
+    },
+  ],
+  email: [
+    {
+      type: 'pattern',
+      regex: PATTERNS.EMAIL,
+      message: 'Enter a valid email address.',
     },
   ],
   next_of_kin_phone: [

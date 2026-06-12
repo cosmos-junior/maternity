@@ -92,7 +92,7 @@ export default function MotherJourney() {
     try {
       setDownloading(visitId);
       const response = await motherApi.getAncVisitPDF(visitId);
-      const contentType = response.headers?.['content-type'] || '';
+      const contentType = String(response.headers?.['content-type'] || '');
       const isHtml = contentType.includes('text/html');
       const blob = new Blob([response.data], { type: isHtml ? 'text/html' : 'application/pdf' });
       const url = window.URL.createObjectURL(blob);

@@ -216,6 +216,7 @@ export default function PatientDetail() {
                   {[
                     ['Patient #', patient.patient_number],
                     ['Phone', patient.phone_number],
+                    ['Email Address', patient.email || '—'],
                     ['National ID', patient.national_id || '—'],
                     ['NHIF / SHA / SHIF / Huduma Number', patient.nhif_number || '—'],
                     ['Date of Birth', formatDate(patient.date_of_birth)],

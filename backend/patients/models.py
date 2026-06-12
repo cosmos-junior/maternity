@@ -98,6 +98,7 @@ class Patient(models.Model):
     national_id = EncryptedCharField(blank=True, null=True, verbose_name="National ID")
     nhif_number = EncryptedCharField(blank=True, null=True, verbose_name="NHIF Number")
     phone_number = EncryptedCharField()
+    email = models.EmailField(blank=True, null=True)
     next_of_kin_name = models.CharField(max_length=200, blank=True)
     next_of_kin_phone = models.CharField(max_length=15, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
@@ -514,7 +515,7 @@ def create_mother_user_account(sender, instance, created, **kwargs):
         first_name = instance.first_name.strip().lower() if instance.first_name else instance.full_name.split()[0].lower()
         # Clean the first name to be email-safe (remove special chars, spaces)
         first_name_clean = ''.join(c for c in first_name if c.isalnum())
-        email = f"{first_name_clean}@gmail.com"
+        email = instance.email if instance.email else f"{first_name_clean}@gmail.com"
         
         # Generate password from national_id and last name
         national_id = str(instance.national_id).strip() if instance.national_id else ""

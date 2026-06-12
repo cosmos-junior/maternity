@@ -84,10 +84,31 @@ export default function Reminders() {
       if (!form.use_template && form.message) payload.message = form.message;
       const { data } = await remindersApi.send(payload);
       if (data.success) {
-        setResult({ success: true, msg: 'SMS sent successfully! ✓' });
+        // Build detailed success feedback message based on which channels succeeded
+        const logs = data.logs || [];
+        const smsLog = logs.find((l: any) => l.channel === 'SMS');
+        const emailLog = logs.find((l: any) => l.channel === 'EMAIL');
+        
+        let msg = 'Reminder sent successfully! ✓';
+        if (smsLog && emailLog) {
+          if (smsLog.delivery_status === 'SENT' && emailLog.delivery_status === 'SENT') {
+            msg = 'SMS and Email reminders sent successfully! ✓';
+          } else if (smsLog.delivery_status === 'SENT') {
+            msg = 'SMS reminder sent successfully! ✓ (Email delivery failed)';
+          } else if (emailLog.delivery_status === 'SENT') {
+            msg = 'Email reminder sent successfully! ✓ (SMS delivery failed)';
+          }
+        } else if (smsLog && smsLog.delivery_status === 'SENT') {
+          msg = 'SMS reminder sent successfully! ✓';
+        } else if (emailLog && emailLog.delivery_status === 'SENT') {
+          msg = 'Email reminder sent successfully! ✓';
+        }
+
+        setResult({ success: true, msg });
         setShowModal(false); load();
       } else {
-        setResult({ success: false, msg: 'SMS delivery failed. Please verify the customer\'s connection or try using the fallback message template.' });
+        const errorDetail = data.error ? ` (${data.error})` : '';
+        setResult({ success: false, msg: `Reminder delivery failed${errorDetail}. Please verify the customer's connection, check configurations, or try again.` });
       }
     } catch (err: any) {
       setResult({ success: false, msg: 'Failed to send SMS reminder. Please check your Africa\'s Talking configuration (API key and Username), verify that the patient has a valid phone number, and ensure you have internet access.' });

@@ -113,7 +113,7 @@ class PatientSerializer(serializers.ModelSerializer):
             'id', 'patient_number', 'full_name', 'first_name', 'middle_name', 'last_name', 'preferred_name',
             'gender', 'marital_status', 'education_level', 'occupation', 'spouse_name', 'spouse_phone',
             'national_id', 'nhif_number',
-            'phone_number', 'address', 'residence_county', 'residence_subcounty', 'residence_ward',
+            'phone_number', 'email', 'address', 'residence_county', 'residence_subcounty', 'residence_ward',
             'residence_village', 'birth_registration_number', 'place_of_birth', 'birth_country',
             'emergency_contact_relationship', 'emergency_contact_address', 'household_size',
             'next_of_kin_name', 'next_of_kin_phone', 'date_of_birth',
@@ -201,7 +201,7 @@ class PatientListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patient
         fields = [
-            'id', 'patient_number', 'full_name', 'phone_number',
+            'id', 'patient_number', 'full_name', 'phone_number', 'email',
             'lmp', 'edd', 'clinic_stage', 'risk_level', 'registration_stage',
             'blood_group', 'lang', 'residence_county', 'residence_village', 'is_active',
             'days_to_edd', 'is_due_soon', 'is_overdue', 'weeks_pregnant',
@@ -299,7 +299,7 @@ class PatientSerializer(serializers.ModelSerializer):
             'health_facility_name', 'kmhfl_code', 'anc_number', 'pnc_number',
             'gravida', 'parity', 'height', 'weight', 'estate_house_number',
             'national_id', 'nhif_number',
-            'phone_number', 'address', 'residence_county', 'residence_subcounty', 'residence_ward',
+            'phone_number', 'email', 'address', 'residence_county', 'residence_subcounty', 'residence_ward',
             'residence_village', 'birth_registration_number', 'place_of_birth', 'birth_country',
             'emergency_contact_relationship', 'emergency_contact_address', 'household_size',
             'next_of_kin_name', 'next_of_kin_phone', 'date_of_birth',
@@ -387,7 +387,7 @@ class PatientListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patient
         fields = [
-            'id', 'patient_number', 'full_name', 'phone_number',
+            'id', 'patient_number', 'full_name', 'phone_number', 'email',
             'lmp', 'edd', 'clinic_stage', 'risk_level', 'registration_stage',
             'blood_group', 'lang', 'residence_county', 'residence_village', 'is_active',
             'days_to_edd', 'is_due_soon', 'is_overdue', 'weeks_pregnant',

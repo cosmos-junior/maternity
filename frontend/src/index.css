@@ -1868,3 +1868,43 @@ td .mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8rem; co
   position: relative;
   z-index: 1;
 }
+
+/* Print Styles for Referral Form */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .modal-backdrop, .modal-content, .modal-content * {
+    visibility: visible;
+  }
+  .modal-backdrop {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    background: white !important;
+    width: 100% !important;
+    height: auto !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    z-index: 9999 !important;
+  }
+  .modal-content {
+    border: none !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  .modal-body {
+    overflow: visible !important;
+    max-height: none !important;
+    padding: 0 !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+}

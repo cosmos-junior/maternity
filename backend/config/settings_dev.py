@@ -11,6 +11,9 @@ CACHES = {
     }
 }
 
+# Redirect all outgoing emails to the terminal console during development unless overridden in .env
+EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.console.EmailBackend')
+
 import sys
 if 'test' in sys.argv or any('pytest' in arg for arg in sys.argv) or 'tests' in sys.argv:
     DATABASES = {
